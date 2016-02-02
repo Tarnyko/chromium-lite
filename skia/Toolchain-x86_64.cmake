@@ -1,0 +1,2 @@
+ADD_DEFINITIONS(-m64 -msse2 -mfpmath=sse)
+SET(CMAKE_SHARED_LINKER_FLAGS "-m64")
