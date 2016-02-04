@@ -93,6 +93,9 @@ ADD_LIBRARY(randutil OBJECT rand_util.cc rand_util_posix.cc)
 # hash
 ADD_LIBRARY(hash OBJECT third_party/superfasthash/superfasthash.c hash.cc)
 
+# base64
+ADD_LIBRARY(base64 OBJECT ../third_party/modp_b64/modp_b64.cc base64.cc base64url.cc)
+
 # md5
 ADD_LIBRARY(md5 OBJECT md5.cc)
 
@@ -116,7 +119,7 @@ ADD_LIBRARY(environment OBJECT environment.cc)
 SET(include_dirs ${INCLUDE_DIRS} ${libevent_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/..)
 SET(link_libraries ${libevent_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -lrt -ldl)
 
-ADD_LIBRARY(base SHARED $<TARGET_OBJECTS:switches> $<TARGET_OBJECTS:command_line> $<TARGET_OBJECTS:strings> $<TARGET_OBJECTS:logging> $<TARGET_OBJECTS:debug> $<TARGET_OBJECTS:lock> $<TARGET_OBJECTS:memory> $<TARGET_OBJECTS:messageloop> $<TARGET_OBJECTS:vlog> $<TARGET_OBJECTS:pickle> $<TARGET_OBJECTS:paths> $<TARGET_OBJECTS:atexit> $<TARGET_OBJECTS:callback> $<TARGET_OBJECTS:lazyinstance> $<TARGET_OBJECTS:sysinfo> $<TARGET_OBJECTS:threading> $<TARGET_OBJECTS:time> $<TARGET_OBJECTS:timer> $<TARGET_OBJECTS:files> $<TARGET_OBJECTS:metrics> $<TARGET_OBJECTS:randutil> $<TARGET_OBJECTS:hash> $<TARGET_OBJECTS:md5> $<TARGET_OBJECTS:sha1> $<TARGET_OBJECTS:values> $<TARGET_OBJECTS:process> $<TARGET_OBJECTS:profiler> $<TARGET_OBJECTS:environment> nix/xdg_util.cc third_party/xdg_user_dirs/xdg_user_dir_lookup.cc posix/safe_strerror.cc build_time.cc)
+ADD_LIBRARY(base SHARED $<TARGET_OBJECTS:switches> $<TARGET_OBJECTS:command_line> $<TARGET_OBJECTS:strings> $<TARGET_OBJECTS:logging> $<TARGET_OBJECTS:debug> $<TARGET_OBJECTS:lock> $<TARGET_OBJECTS:memory> $<TARGET_OBJECTS:messageloop> $<TARGET_OBJECTS:vlog> $<TARGET_OBJECTS:pickle> $<TARGET_OBJECTS:paths> $<TARGET_OBJECTS:atexit> $<TARGET_OBJECTS:callback> $<TARGET_OBJECTS:lazyinstance> $<TARGET_OBJECTS:sysinfo> $<TARGET_OBJECTS:threading> $<TARGET_OBJECTS:time> $<TARGET_OBJECTS:timer> $<TARGET_OBJECTS:files> $<TARGET_OBJECTS:metrics> $<TARGET_OBJECTS:randutil> $<TARGET_OBJECTS:hash> $<TARGET_OBJECTS:base64> $<TARGET_OBJECTS:md5> $<TARGET_OBJECTS:sha1> $<TARGET_OBJECTS:values> $<TARGET_OBJECTS:process> $<TARGET_OBJECTS:profiler> $<TARGET_OBJECTS:environment> nix/xdg_util.cc third_party/xdg_user_dirs/xdg_user_dir_lookup.cc posix/safe_strerror.cc build_time.cc)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(base ${link_libraries})
 
