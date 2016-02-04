@@ -23,7 +23,6 @@ ENDIF()
 
 
 # SOURCES FILE LIST
-
 ADD_LIBRARY(src OBJECT curve25519-donna.c curve25519_nss.cc ghash.cc ec_private_key_nss.cc ec_signature_creator_nss.cc ec_signature_creator.cc encryptor_nss.cc encryptor.cc hkdf.cc hmac_nss.cc hmac.cc nss_key_util.cc nss_util.cc p224.cc random.cc rsa_private_key_nss.cc rsa_private_key.cc secure_hash_default.cc sha2.cc signature_creator_nss.cc signature_verifier_nss.cc symmetric_key_nss.cc secure_util.cc third_party/nss/pk11akey.cc third_party/nss/rsawrapr.c third_party/nss/secsign.cc third_party/nss/sha512.cc)
 
 

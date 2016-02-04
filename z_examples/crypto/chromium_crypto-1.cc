@@ -1,5 +1,5 @@
 //  (C)2016 Tarnyko <tarnyko@tarnyko.net>
-// compile with : g++ -std=c++11 ... -I/usr/include/url /usr/lib/chromium/lib/libcrcrypto.so /usr/lib/chromium/lib/libbase.so -lnss3
+// compile with : g++ -std=c++11 ... -I/usr/include/url /usr/lib/chromium/lib/libcrcrypto.so /usr/lib/chromium/lib/libbase.so
 
 #include <stdio.h>		// for printf
 #include <stdlib.h>		// for atoi

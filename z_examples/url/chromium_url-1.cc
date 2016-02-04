@@ -1,5 +1,5 @@
 //  (C)2016 Tarnyko <tarnyko@tarnyko.net>
-// compile with : g++ -std=c++11 ... -I/usr/include/url /usr/lib/chromium/lib/liburl_lib.so /usr/lib/chromium/lib/libbase.so -licuuc
+// compile with : g++ -std=c++11 ... -I/usr/include/url /usr/lib/chromium/lib/liburl_lib.so /usr/lib/chromium/lib/libbase.so
 
 #include "url/gurl.h"	// for GURL
 
