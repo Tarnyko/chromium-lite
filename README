@@ -18,10 +18,13 @@ by doing the following :
 01a) base
 
  General-purpose toolkit (somewhat equivalent to GNOME GLib or QtCore).
- * Depends on : libevent
+ * Depends on : libevent, libicui18n
  * Handles : logging, callbacks, string and numeral conversions,
              command line arguments, file and directory operations,
              message loops, threads, time and date...
+ * Notes : the full "base::i18n" subclass uses a fork of libicui18n
+           in "third_party/icu"; to avoid using it, we omit 2 source
+           files in the "i18n" subfolder.
 
 01b) skia
 
@@ -32,6 +35,9 @@ by doing the following :
    - egl, glesv2 (wayland) / gl, glu, x11 (x11) / osmesa (software)
  * Handles : basic drawing, image formats conversion, GL acceleration
              and shaders.
+ * Notes : upstream Skia is in "third_party/skia", but Chromium needs
+           additional source files in "skia/ext", and also specific
+           macros (look for "Chromium-specific" in CMakeLists.txt)
 
 02a) url
 
@@ -45,3 +51,10 @@ by doing the following :
  * Depends on : base, libnss
  * Handles : hashing, certificate creation and validation,
              randomization, encryption.
+
+02d) ui_gfx
+
+ UI Gfx helper library.
+ * Depends on :
+   - base, skia, libjpeg-turbo, harfbuzz
+   - x11, x1 (x11)

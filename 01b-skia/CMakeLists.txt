@@ -83,6 +83,10 @@ ADD_DEFINITIONS(-DSK_INTERNAL=1 -DSK_ALLOW_STATIC_GLOBAL_INITIALIZERS=1 -DSK_SUP
 ADD_DEFINITIONS(-DSK_GAMMA_SRGB -DSK_GAMMA_APPLY_TO_A8)
 ADD_DEFINITIONS(-DSK_BUILD_FOR_UNIX -DSKIA_DLL -DSKIA_IMPLEMENTATION=1)
 
+# Chromium-specific defintions !
+ADD_DEFINITIONS(-DSK_SUPPORT_LEGACY_GETDEVICE -DSK_SUPPORT_LEGACY_GETTOPDEVICE)
+# this exposes 2 private methods : "SkCanvas::get(Top)Device()"
+
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
   ADD_DEFINITIONS(-DSK_DEVELOPER=1)
 ELSE()
@@ -128,11 +132,16 @@ ADD_LIBRARY(sfnt OBJECT src/sfnt/SkOTTable_name.cpp src/sfnt/SkOTUtils.cpp)
 
 ADD_LIBRARY(opts OBJECT ${TOOLCHAIN_OPTS_SOURCE_FILES})
 
+# This is Chromium-specific !
+ADD_LIBRARY(ext OBJECT ../../skia/ext/platform_canvas.cc ../../skia/ext/platform_device.cc ../../skia/ext/platform_device_linux.cc ../../skia/ext/bitmap_platform_device_skia.cc ../../skia/ext/convolver.cc ../../skia/ext/image_operations.cc ../../skia/ext/google_logging.cc)
+# TODO : specify an absolute folder instead of "../../skia"
 
-SET(include_dirs ${INCLUDE_DIRS} ${freetype_INCLUDE_DIRS} ${fontconfig_INCLUDE_DIRS} ${libpng12_INCLUDE_DIRS} ${libwebp_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include/config ${CMAKE_SOURCE_DIR}/include/private ${CMAKE_SOURCE_DIR}/include/c ${CMAKE_SOURCE_DIR}/src/core ${CMAKE_SOURCE_DIR}/include/core ${CMAKE_SOURCE_DIR}/src/utils ${CMAKE_SOURCE_DIR}/include/utils ${CMAKE_SOURCE_DIR}/src/gpu ${CMAKE_SOURCE_DIR}/include/gpu ${CMAKE_SOURCE_DIR}/src/image ${CMAKE_SOURCE_DIR}/include/images ${CMAKE_SOURCE_DIR}/include/pathops ${CMAKE_SOURCE_DIR}/include/ports ${CMAKE_SOURCE_DIR}/src/opts ${CMAKE_SOURCE_DIR}/src/sfnt ${CMAKE_SOURCE_DIR}/include/pipe ${CMAKE_SOURCE_DIR}/include/effects ${CMAKE_SOURCE_DIR}/src/lazy ${CMAKE_SOURCE_DIR}/third_party/etc1 ${CMAKE_SOURCE_DIR}/third_party/ktx)
+
+SET(include_dirs ${INCLUDE_DIRS} ${freetype_INCLUDE_DIRS} ${fontconfig_INCLUDE_DIRS} ${libpng12_INCLUDE_DIRS} ${libwebp_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include/config ${CMAKE_SOURCE_DIR}/include/private ${CMAKE_SOURCE_DIR}/include/c ${CMAKE_SOURCE_DIR}/src/core ${CMAKE_SOURCE_DIR}/include/core ${CMAKE_SOURCE_DIR}/src/utils ${CMAKE_SOURCE_DIR}/include/utils ${CMAKE_SOURCE_DIR}/src/gpu ${CMAKE_SOURCE_DIR}/include/gpu ${CMAKE_SOURCE_DIR}/src/image ${CMAKE_SOURCE_DIR}/include/images ${CMAKE_SOURCE_DIR}/include/pathops ${CMAKE_SOURCE_DIR}/include/ports ${CMAKE_SOURCE_DIR}/src/opts ${CMAKE_SOURCE_DIR}/src/sfnt ${CMAKE_SOURCE_DIR}/include/pipe ${CMAKE_SOURCE_DIR}/include/effects ${CMAKE_SOURCE_DIR}/src/lazy ${CMAKE_SOURCE_DIR}/third_party/etc1 ${CMAKE_SOURCE_DIR}/third_party/ktx ${CMAKE_SOURCE_DIR}/../..)
+# TODO : specify an absolute folder instead of "../.."
 SET(link_libraries ${freetype_LIBRARIES} ${fontconfig_LIBRARIES} ${libpng12_LIBRARIES} ${libwebp_LIBRARIES} ${backend_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -ljpeg -lgif)
 
-ADD_LIBRARY(skia SHARED $<TARGET_OBJECTS:core> $<TARGET_OBJECTS:core-ext> $<TARGET_OBJECTS:etc1> $<TARGET_OBJECTS:utils> $<TARGET_OBJECTS:ktx> $<TARGET_OBJECTS:images> $<TARGET_OBJECTS:effects> $<TARGET_OBJECTS:gpu> $<TARGET_OBJECTS:gpu-gl> $<TARGET_OBJECTS:gpu-gl-backend> $<TARGET_OBJECTS:ports> $<TARGET_OBJECTS:sfnt> $<TARGET_OBJECTS:opts>)
+ADD_LIBRARY(skia SHARED $<TARGET_OBJECTS:core> $<TARGET_OBJECTS:core-ext> $<TARGET_OBJECTS:etc1> $<TARGET_OBJECTS:utils> $<TARGET_OBJECTS:ktx> $<TARGET_OBJECTS:images> $<TARGET_OBJECTS:effects> $<TARGET_OBJECTS:gpu> $<TARGET_OBJECTS:gpu-gl> $<TARGET_OBJECTS:gpu-gl-backend> $<TARGET_OBJECTS:ports> $<TARGET_OBJECTS:sfnt> $<TARGET_OBJECTS:opts> $<TARGET_OBJECTS:ext>)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(skia ${link_libraries})
 
