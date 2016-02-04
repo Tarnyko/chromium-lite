@@ -1,0 +1,47 @@
+ Chromium-lite build system (by Tarnyko <tarnyko@tarnyko.net>)
+ **************************
+
+An attempt to cut down Chromium, and make it more comprehensive,
+by doing the following :
+
+- extracting Linux-only sources (removing MacOS, Win32, Android...
+                                 source files);
+- linking with system libraries (system libnss instead of local
+                                 Google BoringSSL e.g.);
+- configuring with CMake instead of Gyp ;
+- compiling with GCC instead of Clang/LLVM ;
+- disabling unneeded optimizations.
+
+ Packages :
+ --------
+
+01a) base
+
+ General-purpose toolkit (somewhat equivalent to GNOME GLib or QtCore).
+ * Depends on : libevent
+ * Handles : logging, callbacks, string and numeral conversions,
+             command line arguments, file and directory operations,
+             message loops, threads, time and date...
+
+01b) skia
+
+ Low-level drawing API (somewhat equivalent to Cairo or EFL Evas).
+ * Depends on :
+   - libjpeg-turbo, libpng12, libgif, libwebp (image formats)
+   - freetype, fontconfig (font drawing)
+   - egl, glesv2 (wayland) / gl, glu, x11 (x11) / osmesa (software)
+ * Handles : basic drawing, image formats conversion, GL acceleration
+             and shaders.
+
+02a) url
+
+ URL parsing.
+ * Depends on : base, libicuuc
+ * Handles : recognition of URLs validity/protocol/scheme/content.
+
+02b) crypto
+
+ Cryptographic helper library.
+ * Depends on : base, libnss
+ * Handles : hashing, certificate creation and validation,
+             randomization, encryption.
