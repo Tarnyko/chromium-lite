@@ -1,7 +1,7 @@
 PROJECT(chromium-base C CXX)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
-SET(CMAKE_BUILD_TYPE, Debug)
+SET(CMAKE_BUILD_TYPE Debug)
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 SET(PROJECT_NAME "Chromium - Base")
@@ -9,8 +9,6 @@ SET(PROJECT_NAME "Chromium - Base")
 # CMake modules
 INCLUDE(FindThreads)
 INCLUDE(FindPkgConfig)
-INCLUDE(CheckIncludeFiles)
-INCLUDE(CheckLibraryExists)
 INCLUDE(GNUInstallDirs)
 
 # Mandatory dependencies

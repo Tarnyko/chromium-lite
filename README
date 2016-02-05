@@ -57,4 +57,4 @@ by doing the following :
  UI Gfx helper library.
  * Depends on :
    - base, skia, libjpeg-turbo, harfbuzz
-   - x11, x1 (x11)
+   - x11, xi (x11)

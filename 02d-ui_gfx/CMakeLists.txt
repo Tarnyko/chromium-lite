@@ -1,10 +1,14 @@
 PROJECT(chromium-ui-gfx C CXX)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
-SET(CMAKE_BUILD_TYPE, Debug)
+SET(CMAKE_BUILD_TYPE Debug)
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 SET(PROJECT_NAME "Chromium - UI Gfx")
+
+# Location of Skia source folders
+SET(SKIA_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../third_party/skia")
+SET(SKIA_EXT_DIR "${CMAKE_SOURCE_DIR}/../../skia")
 
 # Verify a backend (X11/OZONE) has been chosen ; default to OZONE
 IF(NOT BACKEND)
@@ -22,6 +26,7 @@ INCLUDE(GNUInstallDirs)
 # Mandatory dependencies
 PKG_CHECK_MODULES(harfbuzz REQUIRED harfbuzz)
 
+# libjpeg-turbo
 IF(EXISTS "/usr/include/jpeglib.h")
   SET(HAVE_LIBJPEG_TURBO_H "1")
 ENDIF()
@@ -36,7 +41,7 @@ IF(NOT HAVE_LIBJPEG_TURBO)
     Please install the \"libjpeg-turbo-devel\" or \"libjpeg62-turbo-dev\" package !")
 ENDIF(NOT HAVE_LIBJPEG_TURBO)
 
-# Optional dependencies (Backends)
+# Optional definitions
 IF(BACKEND STREQUAL "OZONE")
   ADD_DEFINITIONS(-DUSE_OZONE)
 ENDIF(BACKEND STREQUAL "OZONE")
@@ -49,7 +54,6 @@ ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
 ADD_DEFINITIONS(-DGFX_IMPLEMENTATION -DUSE_AURA -DUSE_SYSTEM_LIBJPEG)
-# TODO : patch png codec to use system libpng12 !
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
@@ -84,8 +88,7 @@ ADD_LIBRARY(misc OBJECT blit.cc buffer_format_util.cc canvas.cc canvas_skia.cc c
 
 
 # all files refer to "ui/...", so we include "../.." here
-SET(include_dirs ${INCLUDE_DIRS} ${harfbuzz_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../.. ${CMAKE_SOURCE_DIR}/../../skia/config ${CMAKE_SOURCE_DIR}/../../third_party/skia/include/core)
-# TODO : replace "../../*/skia/*" by regular .pc includes !
+SET(include_dirs ${INCLUDE_DIRS} ${harfbuzz_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../.. ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core)
 SET(link_libraries ${harfbuzz_LIBRARIES} ${backend_LIBRARIES} -ljpeg)
 
 # avoid naming ourselves "crypto", which collides with OpenSSL
