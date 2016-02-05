@@ -39,6 +39,12 @@ by doing the following :
            additional source files in "skia/ext", and also specific
            macros (look for "Chromium-specific" in CMakeLists.txt)
 
+01c) v8
+
+ V8 JavaScript Engine (somewhat equivalent to Mozilla Spidermonkey).
+ * Depends on : libicui18n
+ * Handles : JavaScript parsing, compilation and optimization.
+
 02a) url
 
  URL parsing.
