@@ -15,12 +15,16 @@
 #include "base/time/time.h"				// for TimeDelta
 
 
+ // we run this function as a callback
+
 int multiply_by (int factor, int number) {
 	LOG(INFO) << "Launched multiply_by...";
 	return factor*number;
 }
 
- // functions called by PostTask()/PostTaskDelayed() need to be void (SURE ?)
+ /* we run this function delayed by <X> seconds via a MessageLoop
+  * (functions called by PostTask()/PostTaskDelayed() need to have void type) */
+
 void multiply_by_delayed (int factor, int number) {
 	LOG(INFO) << "Launched multiply_by_delayed...";
 	LOG(INFO) << "Delayed result : " << factor*number;
@@ -47,6 +51,7 @@ int main (int argc, char *argv[])
 
 
 	 // an "AtExitManager" is required for any to-be-PostTask()ed function beore its Bind()ing
+
 	base::AtExitManager exit_manager;
 	base::Callback<void()> callback_delayed = base::Bind (&multiply_by_delayed, 2, number);
 	auto duration = base::TimeDelta::FromSeconds (seconds);

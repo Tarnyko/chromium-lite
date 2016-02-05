@@ -11,6 +11,8 @@
 #include "base/bind.h"					// for Bind
 
 
+ // we run this function as a callback
+
 void multiply_by_itself (int number) {
 	LOG(INFO) << "Result : " << number*number;
 }

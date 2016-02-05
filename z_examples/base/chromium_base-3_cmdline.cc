@@ -14,6 +14,8 @@ int main (int argc, char *argv[])
 {
 	LOG(INFO) << "Hello !";
 
+	 // we can choose source file and target directory
+	 // with command line arguments
 
 	auto cmdline = base::CommandLine (argc, argv);
 
@@ -21,11 +23,13 @@ int main (int argc, char *argv[])
 		LOG(INFO) << "No parameters, exiting ; try \"--help\"...";
 		return 0;
 	}
+
 	if (cmdline.HasSwitch ("help")) { // without the "--"
 		std::cout << " -f=<file> -d=<directory> : move a file to a subdirectory" << std::endl;
 		std::cout << " --help                   : this help text" << std::endl;
 		return 0;
 	}
+
 	if (!cmdline.HasSwitch ("f") && !cmdline.HasSwitch ("d")) {
 		LOG(INFO) << "Unrecognized parameters, exiting ; try \"--help\"...";
 		return 0;
@@ -47,9 +51,9 @@ int main (int argc, char *argv[])
 	} else {
 		LOG(INFO) << "Please create '" << filepath.value() << "' to run the test !";
 	}
+
 	filepath.clear();
 	dirpath.clear();
-
 
 	return 0;
 }

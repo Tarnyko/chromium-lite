@@ -1,5 +1,5 @@
 //  (C)2016 Tarnyko <tarnyko@tarnyko.net>
-// compile with : g++ -std=c++11 -DUSE_X11/-DUSE_OZONE -DUSE_AURA ... /usr/lib/chromium/lib/libbase.so /usr/lib/chromium/lib/libskia.so /usr/lib/chromium/lib/libui_gfx.so
+// compile with : g++ -std=c++11 -DUSE_X11/-DUSE_OZONE -DUSE_AURA ... -I/usr/include/chromium /usr/lib/chromium/lib/libbase.so /usr/lib/chromium/lib/libskia.so /usr/lib/chromium/lib/libui_gfx.so
 
 #include <iostream>			// for << >>
 #include <fstream>			// for ofstream
@@ -25,7 +25,7 @@ int main (int argc, char *argv[])
 
 	 // write the file to the disk
 	std::ofstream file;
-	file.open ("picture.png");
+	file.open ("picture1.png");
 	file << data;
 	file.close ();
 
