@@ -33,7 +33,7 @@ ADD_LIBRARY(switches OBJECT base_switches.cc)
 ADD_LIBRARY(command_line OBJECT command_line.cc)
 
 # strings
-ADD_LIBRARY(strings OBJECT third_party/icu/icu_utf.cc third_party/dmg_fp/g_fmt.cc third_party/dmg_fp/dtoa.cc strings/utf_string_conversion_utils.cc strings/utf_string_conversions.cc strings/string16.cc strings/string_piece.cc strings/string_util.cc strings/string_util_constants.cc strings/string_split.cc strings/stringprintf.cc strings/sys_string_conversions_posix.cc strings/string_number_conversions.cc strings/pattern.cc json/string_escape.cc json/json_writer.cc json/json_reader.cc json/json_parser.cc json/json_string_value_serializer.cc)
+ADD_LIBRARY(strings OBJECT third_party/icu/icu_utf.cc third_party/dmg_fp/g_fmt.cc third_party/dmg_fp/dtoa.cc strings/utf_string_conversion_utils.cc strings/utf_string_conversions.cc strings/utf_offset_string_conversions.cc strings/string16.cc strings/string_piece.cc strings/string_util.cc strings/string_util_constants.cc strings/string_split.cc strings/stringprintf.cc strings/sys_string_conversions_posix.cc strings/string_number_conversions.cc strings/pattern.cc json/string_escape.cc json/json_writer.cc json/json_reader.cc json/json_parser.cc json/json_string_value_serializer.cc)
 
 # logging
 ADD_LIBRARY(logging OBJECT logging.cc trace_event/trace_log.cc trace_event/trace_log_constants.cc trace_event/trace_config.cc trace_event/trace_buffer.cc trace_event/trace_event_impl.cc trace_event/malloc_dump_provider.cc trace_event/process_memory_totals_dump_provider.cc  trace_event/trace_event_synthetic_delay.cc trace_event/trace_event_memory_overhead.cc trace_event/memory_dump_manager.cc trace_event/memory_dump_request_args.cc trace_event/process_memory_dump.cc trace_event/memory_dump_session_state.cc trace_event/memory_allocator_dump.cc trace_event/process_memory_maps.cc trace_event/process_memory_totals.cc trace_event/heap_profiler_heap_dump_writer.cc trace_event/heap_profiler_stack_frame_deduplicator.cc trace_event/heap_profiler_type_name_deduplicator.cc trace_event/heap_profiler_allocation_context.cc trace_event/heap_profiler_allocation_context_tracker.cc trace_event/process_memory_maps_dump_provider.cc trace_event/memory_allocator_dump_guid.cc trace_event/trace_sampling_thread.cc trace_event/trace_event_argument.cc)
@@ -52,6 +52,9 @@ ADD_LIBRARY(memory OBJECT memory/singleton.cc memory/aligned_memory.cc memory/re
 
 # message_loop
 ADD_LIBRARY(messageloop OBJECT message_loop/message_loop.cc message_loop/message_loop_task_runner.cc message_loop/message_pump.cc message_loop/message_pump_default.cc message_loop/message_pump_libevent.cc message_loop/incoming_task_queue.cc run_loop.cc)
+
+# version
+ADD_LIBRARY(version OBJECT version.cc)
 
 # vlog
 ADD_LIBRARY(vlog OBJECT vlog.cc)
@@ -121,7 +124,7 @@ ADD_LIBRARY(environment OBJECT environment.cc)
 SET(include_dirs ${INCLUDE_DIRS} ${libevent_INCLUDE_DIRS} ${icui18n_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/..)
 SET(link_libraries ${libevent_LIBRARIES} ${icui18n_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -lrt -ldl)
 
-ADD_LIBRARY(base SHARED $<TARGET_OBJECTS:switches> $<TARGET_OBJECTS:command_line> $<TARGET_OBJECTS:strings> $<TARGET_OBJECTS:logging> $<TARGET_OBJECTS:i18n> $<TARGET_OBJECTS:debug> $<TARGET_OBJECTS:lock> $<TARGET_OBJECTS:memory> $<TARGET_OBJECTS:messageloop> $<TARGET_OBJECTS:vlog> $<TARGET_OBJECTS:pickle> $<TARGET_OBJECTS:paths> $<TARGET_OBJECTS:atexit> $<TARGET_OBJECTS:callback> $<TARGET_OBJECTS:lazyinstance> $<TARGET_OBJECTS:sysinfo> $<TARGET_OBJECTS:threading> $<TARGET_OBJECTS:time> $<TARGET_OBJECTS:timer> $<TARGET_OBJECTS:files> $<TARGET_OBJECTS:metrics> $<TARGET_OBJECTS:randutil> $<TARGET_OBJECTS:hash> $<TARGET_OBJECTS:base64> $<TARGET_OBJECTS:md5> $<TARGET_OBJECTS:sha1> $<TARGET_OBJECTS:values> $<TARGET_OBJECTS:process> $<TARGET_OBJECTS:profiler> $<TARGET_OBJECTS:environment> nix/xdg_util.cc third_party/xdg_user_dirs/xdg_user_dir_lookup.cc posix/safe_strerror.cc build_time.cc)
+ADD_LIBRARY(base SHARED $<TARGET_OBJECTS:switches> $<TARGET_OBJECTS:command_line> $<TARGET_OBJECTS:strings> $<TARGET_OBJECTS:logging> $<TARGET_OBJECTS:i18n> $<TARGET_OBJECTS:debug> $<TARGET_OBJECTS:lock> $<TARGET_OBJECTS:memory> $<TARGET_OBJECTS:messageloop> $<TARGET_OBJECTS:version> $<TARGET_OBJECTS:vlog> $<TARGET_OBJECTS:pickle> $<TARGET_OBJECTS:paths> $<TARGET_OBJECTS:atexit> $<TARGET_OBJECTS:callback> $<TARGET_OBJECTS:lazyinstance> $<TARGET_OBJECTS:sysinfo> $<TARGET_OBJECTS:threading> $<TARGET_OBJECTS:time> $<TARGET_OBJECTS:timer> $<TARGET_OBJECTS:files> $<TARGET_OBJECTS:metrics> $<TARGET_OBJECTS:randutil> $<TARGET_OBJECTS:hash> $<TARGET_OBJECTS:base64> $<TARGET_OBJECTS:md5> $<TARGET_OBJECTS:sha1> $<TARGET_OBJECTS:values> $<TARGET_OBJECTS:process> $<TARGET_OBJECTS:profiler> $<TARGET_OBJECTS:environment> nix/xdg_util.cc third_party/xdg_user_dirs/xdg_user_dir_lookup.cc posix/safe_strerror.cc build_time.cc)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(base ${link_libraries})
 
