@@ -8,7 +8,7 @@
 #include "ipc/ipc_message.h"	// for IPC::Message
 
 
- /* we create a message and verify it contains the correct value */
+ // we create a message and verify it contains the correct value
 
 int main (int argc, char *argv[])
 {

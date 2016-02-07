@@ -48,7 +48,7 @@ ADD_LIBRARY(debug OBJECT debug/debugger.cc debug/debugger_posix.cc debug/stack_t
 ADD_LIBRARY(lock OBJECT synchronization/lock.cc synchronization/lock_impl_posix.cc synchronization/waitable_event_posix.cc synchronization/waitable_event_watcher_posix.cc synchronization/condition_variable_posix.cc synchronization/cancellation_flag.cc)
 
 # memory
-ADD_LIBRARY(memory OBJECT memory/singleton.cc memory/aligned_memory.cc memory/ref_counted.cc memory/ref_counted_memory.cc memory/weak_ptr.cc allocator/allocator_extension.cc)
+ADD_LIBRARY(memory OBJECT memory/singleton.cc memory/aligned_memory.cc memory/ref_counted.cc memory/ref_counted_memory.cc memory/shared_memory_posix.cc memory/weak_ptr.cc allocator/allocator_extension.cc)
 
 # message_loop
 ADD_LIBRARY(messageloop OBJECT message_loop/message_loop.cc message_loop/message_loop_task_runner.cc message_loop/message_pump.cc message_loop/message_pump_default.cc message_loop/message_pump_libevent.cc message_loop/incoming_task_queue.cc run_loop.cc)

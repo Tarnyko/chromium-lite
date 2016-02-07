@@ -71,6 +71,16 @@ by doing the following :
  * Depends on : base
  * Handles : socket-based message passing.
 
+02d) gpu_command_buffer
+
+ GPU command helper library.
+ * Depends on : base
+ * Handles : small utility functions to get/set GL properties,
+             group GL commands and mark them...
+ * Notes : we can not rely on system Mesa to build it, because
+           it uses very recent and sometimes Chromium-specific
+           GL header definitions internally.
+
 03a) net
 
  Net helper library.
@@ -100,6 +110,16 @@ by doing the following :
  * Handles : intermediate drawing helper API between Views toolkit
              (see below) and Skia. Can easily convert to PNG/JPEG,
 
+04a) ozone
+
+ Ozone library.
+ * Depends on : wayland-client, wayland-cursor, wayland-egl, egl,
+                xkbcommon
+ * Handles : Ozone is an alternative backend to X11 under Linux ;
+             we only build its Wayland implementation, though a
+             DRM implementation (for ChromeOS ?) exists somewhere.
+             You have no reason to compile this under X11.
+
 04d) ui_events
 
  UI Events helper library.
@@ -110,8 +130,6 @@ by doing the following :
              detection. Basically, this library uses platform-specific
              APIs (XInput under X11, UDev under Ozone/Wayland) to
              handle keyboard, mouse, touch... events.
- * Notes : the Ozone backend can also build with "evdev", but this
+ * Notes : the Ozone implementation can also support "evdev", but this
            seems to be required only by the higher-level Ozone DRM
-           backend, which is probably only used on ChromeOS to handle
-           graphics hardware. Linux has already a display manager and
-           does not need this.
+           backend, which we do not build (see above).
