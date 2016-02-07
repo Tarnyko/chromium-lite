@@ -13,7 +13,7 @@
 
 int main (int argc, char *argv[])
 {
-	gpu::gles2::GLES2Util *util = new gpu::gles2::GLES2Util ();
+	auto *util = new gpu::gles2::GLES2Util ();
 
 	util->set_num_compressed_texture_formats (2);
 

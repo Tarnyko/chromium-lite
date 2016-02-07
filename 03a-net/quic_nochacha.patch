@@ -1,0 +1,50 @@
+--- quic/crypto/aead_base_decrypter.h	2016-02-07 19:25:39.322362461 +0000
++++ quic/crypto/aead_base_decrypter.h	2016-02-07 19:28:00.538388338 +0000
+@@ -56,7 +56,11 @@
+     unsigned int len;
+     union {
+       CK_GCM_PARAMS gcm_params;
++#if !defined(USE_NSS_CERTS)
++      // USE_NSS means we are using system NSS rather than our copy of NSS.
++      // The system NSS <pkcs11n.h> header doesn't define this type yet.
+       CK_NSS_AEAD_PARAMS nss_aead_params;
++#endif
+     } data;
+   };
+ 
+--- quic/crypto/aead_base_encrypter.h	2016-02-07 20:00:56.945801146 +0000
++++ quic/crypto/aead_base_encrypter.h	2016-02-07 19:29:25.132602188 +0000
+@@ -67,7 +67,11 @@
+     unsigned int len;
+     union {
+       CK_GCM_PARAMS gcm_params;
++#if !defined(USE_NSS_CERTS)
++      // USE_NSS means we are using system NSS rather than our copy of NSS.
++      // The system NSS <pkcs11n.h> header doesn't define this type yet.
+       CK_NSS_AEAD_PARAMS nss_aead_params;
++#endif
+     } data;
+   };
+ 
+--- quic/crypto/quic_encrypter.cc	2016-02-07 21:11:07.828237892 +0000
++++ quic/crypto/quic_encrypter.cc	2016-02-07 21:12:17.771336402 +0000
+@@ -16,8 +16,6 @@
+   switch (algorithm) {
+     case kAESG:
+       return new Aes128Gcm12Encrypter();
+-    case kCC12:
+-      return new ChaCha20Poly1305Encrypter();
+     case kNULL:
+       return new NullEncrypter();
+     default:
+--- quic/crypto/quic_decrypter.cc	2016-02-07 22:19:26.953954469 +0000
++++ quic/crypto/quic_decrypter.cc	2016-02-07 22:19:39.759135108 +0000
+@@ -16,8 +16,6 @@
+   switch (algorithm) {
+     case kAESG:
+       return new Aes128Gcm12Decrypter();
+-    case kCC12:
+-      return new ChaCha20Poly1305Decrypter();
+     case kNULL:
+       return new NullDecrypter();
+     default:

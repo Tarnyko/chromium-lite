@@ -25,8 +25,8 @@ by doing the following :
              command line arguments, file and directory operations,
              message loops, threads, time and date...
  * Notes : the full "base::i18n" subclass uses a fork of libicui18n
-           in "third_party/icu"; to avoid using it, we omit building
-           2 source files in the "i18n" subfolder.
+           in "third_party/icu"; we patch 1 file and ignore another
+           one in the "i18n" subfolder to avoid this.
 
 01b) skia
 
@@ -71,21 +71,27 @@ by doing the following :
  * Depends on : base
  * Handles : socket-based message passing.
 
-02d) gpu_command_buffer
+02d) sdch
+
+ SDCH library.
+ * Depends on : base
+ * SDCH is Google's implementation of the VCDIFF format, used
+   for delta encoding in HTTP communications.
+
+02e) gpu_command_buffer
 
  GPU command helper library.
  * Depends on : base
  * Handles : small utility functions to get/set GL properties,
              group GL commands and mark them...
  * Notes : we can not rely on system Mesa to build it, because
-           it uses very recent and sometimes Chromium-specific
-           GL header definitions internally.
+           it uses Chromium-specific GL headers definitions.
 
 03a) net
 
  Net helper library.
  * Depends on :
-   - base, url, crypto, protobuf, libnss, libnspr
+   - base, url, crypto, sdch, protobuf, libnss, libnspr
    - python, protobuf-compiler (for building only)
  * Handles : this huge library is at the core of Chromium's
              recognition of various protocols (HTTP://, FTP://,
@@ -96,8 +102,8 @@ by doing the following :
  * Notes : cryptographic code, when it does not depend on crypto
            (see above) has 2 implementations : NSS and OpenSSL.
            OpenSSL, despite its name, requires Google BoringSSL,
-           thus we use NSS. Though, it requires extensions such
-           as "CK_NSS_AEAD_PARAMS" which are not merged in NSS yet
+           thus we use NSS. Though, it requires non-upstream code
+           such as "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305" (see
            (see https://bugzilla.mozilla.org/show_bug.cgi?id=917571),
            thus we also build sources in "third_party/nss" for now.
 
@@ -113,8 +119,8 @@ by doing the following :
 04a) ozone
 
  Ozone library.
- * Depends on : wayland-client, wayland-cursor, wayland-egl, egl,
-                xkbcommon
+ * Depends on : base, skia, ui_gfx, wayland-client, wayland-cursor,
+                wayland-egl, egl, xkbcommon
  * Handles : Ozone is an alternative backend to X11 under Linux ;
              we only build its Wayland implementation, though a
              DRM implementation (for ChromeOS ?) exists somewhere.

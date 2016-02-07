@@ -1,0 +1,18 @@
+--- ftp/ftp_util.cc	2016-02-07 20:51:12.498492138 +0000
++++ ftp/ftp_util.cc	2016-02-07 20:54:45.077792489 +0000
+@@ -18,9 +18,15 @@
+ #include "base/strings/string_util.h"
+ #include "base/strings/utf_string_conversions.h"
+ #include "base/time/time.h"
++
++#include <unicode/uchar.h>
++#include <unicode/datefmt.h>
++#include <unicode/dtfmtsym.h>
++#if 0
+ #include "third_party/icu/source/common/unicode/uchar.h"
+ #include "third_party/icu/source/i18n/unicode/datefmt.h"
+ #include "third_party/icu/source/i18n/unicode/dtfmtsym.h"
++#endif
+ 
+ using base::ASCIIToUTF16;
+ using base::StringPiece16;
