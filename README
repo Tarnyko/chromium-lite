@@ -71,16 +71,6 @@ by doing the following :
  * Depends on : base
  * Handles : socket-based message passing.
 
-02d) ui_gfx
-
- UI Gfx helper library.
- * Depends on :
-   - base, skia, libjpeg-turbo, harfbuzz
-   - x11, xi (x11)
- * Handles : intermediate drawing helper API between Views toolkit
-             (see below) and Skia. Can easily convert to PNG/JPEG,
-             draw text, set bounds...
-
 03a) net
 
  Net helper library.
@@ -101,7 +91,16 @@ by doing the following :
            (see https://bugzilla.mozilla.org/show_bug.cgi?id=917571),
            thus we also build sources in "third_party/nss" for now.
 
-03d) ui_events
+03d) ui_gfx
+
+ UI Gfx helper library.
+ * Depends on :
+   - base, skia, ipc, libjpeg-turbo, harfbuzz
+   - x11, xi (x11)
+ * Handles : intermediate drawing helper API between Views toolkit
+             (see below) and Skia. Can easily convert to PNG/JPEG,
+
+04d) ui_events
 
  UI Events helper library.
  * Depends on :
@@ -109,8 +108,8 @@ by doing the following :
    - libudev (wayland) / x11, xi, xproto (x11)
  * Handles : hardware detection, keyboard events, motion and gesture
              detection. Basically, this library uses platform-specific
-             mechanisms to handle keyboard, mouse, touch... events in
-             a uniform manner.
+             APIs (XInput under X11, UDev under Ozone/Wayland) to
+             handle keyboard, mouse, touch... events.
  * Notes : the Ozone backend can also build with "evdev", but this
            seems to be required only by the higher-level Ozone DRM
            backend, which is probably only used on ChromeOS to handle

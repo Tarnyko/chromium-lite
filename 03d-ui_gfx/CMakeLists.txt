@@ -53,7 +53,7 @@ IF(BACKEND STREQUAL "X11")
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DGFX_IMPLEMENTATION -DUSE_AURA -DUSE_SYSTEM_LIBJPEG)
+ADD_DEFINITIONS(-DGFX_IMPLEMENTATION -DGFX_IPC_IMPLEMENTATION -DUSE_AURA -DUSE_SYSTEM_LIBJPEG)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
@@ -80,6 +80,9 @@ ADD_LIBRARY(font OBJECT font.cc font_fallback_linux.cc font_list.cc font_list_im
 # range
 ADD_LIBRARY(range OBJECT range/range.cc range/range_f.cc)
 
+# ipc
+ADD_LIBRARY(ipc OBJECT ipc/gfx_param_traits.cc)
+
 # backend
 ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
 
@@ -91,8 +94,7 @@ ADD_LIBRARY(misc OBJECT blit.cc buffer_format_util.cc canvas.cc canvas_skia.cc c
 SET(include_dirs ${INCLUDE_DIRS} ${harfbuzz_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../.. ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core)
 SET(link_libraries ${harfbuzz_LIBRARIES} ${backend_LIBRARIES} -ljpeg)
 
-# avoid naming ourselves "crypto", which collides with OpenSSL
-ADD_LIBRARY(ui_gfx SHARED $<TARGET_OBJECTS:geometry> $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:codec> $<TARGET_OBJECTS:image> $<TARGET_OBJECTS:font> $<TARGET_OBJECTS:range> $<TARGET_OBJECTS:backend> $<TARGET_OBJECTS:misc>)
+ADD_LIBRARY(ui_gfx SHARED $<TARGET_OBJECTS:geometry> $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:codec> $<TARGET_OBJECTS:image> $<TARGET_OBJECTS:font> $<TARGET_OBJECTS:range> $<TARGET_OBJECTS:ipc> $<TARGET_OBJECTS:backend> $<TARGET_OBJECTS:misc>)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ui_gfx ${link_libraries})
 
