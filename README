@@ -10,7 +10,8 @@ by doing the following :
                                  Google BoringSSL e.g.);
 - configuring with CMake instead of Gyp ;
 - compiling with GCC instead of Clang/LLVM ;
-- disabling unneeded optimizations.
+- disabling unneeded optimizations ;
+- making debugging easier.
 
 
  Packages :
@@ -43,7 +44,9 @@ by doing the following :
 01c) v8
 
  V8 JavaScript Engine (somewhat equivalent to Mozilla Spidermonkey).
- * Depends on : libicui18n, python (for building only)
+ * Depends on :
+   - libicui18n
+   - python (for building only)
  * Handles : JavaScript parsing, compilation and optimization.
 
 02a) url
@@ -58,6 +61,15 @@ by doing the following :
  * Depends on : base, libnss
  * Handles : hashing, certificate creation and validation,
              randomization, encryption.
+ * Notes : there are 2 implementations : NSS and OpenSSL.
+           The OpenSSL one, despite its name, only works with
+           Google-forked BoringSSL, thus we use NSS instead.
+
+02c) ipc
+
+ IPC helper library.
+ * Depends on : base
+ * Handles : socket-based message passing.
 
 02d) ui_gfx
 
@@ -69,9 +81,38 @@ by doing the following :
              (see below) and Skia. Can easily convert to PNG/JPEG,
              draw text, set bounds...
 
-03) net
+03a) net
 
  Net helper library.
  * Depends on :
    - base, url, crypto, protobuf, libnss, libnspr
    - python, protobuf-compiler (for building only)
+ * Handles : this huge library is at the core of Chromium's
+             recognition of various protocols (HTTP://, FTP://,
+             FILE://, SPDY, WebSockets...) and also serves as a
+             toolkit for various browser-oriented mechanisms such
+             as cache and cookies management, DNS resolving,
+             proxy settings, SSL certificate recognition...
+ * Notes : cryptographic code, when it does not depend on crypto
+           (see above) has 2 implementations : NSS and OpenSSL.
+           OpenSSL, despite its name, requires Google BoringSSL,
+           thus we use NSS. Though, it requires extensions such
+           as "CK_NSS_AEAD_PARAMS" which are not merged in NSS yet
+           (see https://bugzilla.mozilla.org/show_bug.cgi?id=917571),
+           thus we also build sources in "third_party/nss" for now.
+
+03d) ui_events
+
+ UI Events helper library.
+ * Depends on :
+   - base, skia, ipc, ui_gfx, xkbcommon
+   - libudev (wayland) / x11, xi, xproto (x11)
+ * Handles : hardware detection, keyboard events, motion and gesture
+             detection. Basically, this library uses platform-specific
+             mechanisms to handle keyboard, mouse, touch... events in
+             a uniform manner.
+ * Notes : the Ozone backend can also build with "evdev", but this
+           seems to be required only by the higher-level Ozone DRM
+           backend, which is probably only used on ChromeOS to handle
+           graphics hardware. Linux has already a display manager and
+           does not need this.
