@@ -162,6 +162,19 @@ by doing the following :
  * Depends on :
    - base, skia, url, net, ui_gfx, ui_events, ui_strings, ui_resources
 
+06b) ui_gl
+
+ UI GL helper library.
+ * Depends on :
+   - base, skia, gpu_command_buffer, ui_gfx, ui_base
+
+07b) gpu
+
+ GPU library.
+ * Depends on :
+   - base, crypto, ipc, gpu_command_buffer, ui_gfx, ui_gl
+   - (re2, smasher, angle) ?
+
 09a) blink
 
  Blink Web Engine, Google's fork of WebKit.
