@@ -23,7 +23,7 @@ INCLUDE(GNUInstallDirs)
 
 # Optional dependencies and definitions
 IF(BACKEND STREQUAL "OZONE")
-  SET(BACKEND_SOURCE_FILES cursor/cursor_loader_ozone.cc cursor/cursor_ozone.cc cursor/ozone/bitmap_cursor_factory_ozone.cc)
+  SET(BACKEND_SOURCE_FILES clipboard_aura.cc cursor/cursor_loader_ozone.cc cursor/cursor_ozone.cc cursor/ozone/bitmap_cursor_factory_ozone.cc dragdrop/os_exchange_data_provider_aura.cc)
   ADD_DEFINITIONS(-DUSE_OZONE)
 ENDIF(BACKEND STREQUAL "OZONE")
 
@@ -50,16 +50,18 @@ ADD_LIBRARY(base OBJECT base_window.cc default_theme_provider.cc device_form_fac
 ADD_LIBRARY(accelerators OBJECT accelerators/accelerator.cc accelerators/accelerator_history.cc accelerators/accelerator_manager.cc accelerators/menu_label_accelerator_util_linux.cc)
 
 # clipboard
-ADD_LIBRARY(clipboard OBJECT clipboard/clipboard.cc clipboard/clipboard_aura.cc clipboard/clipboard_constants.cc clipboard/custom_data_helper.cc clipboard/custom_data_helper_linux.cc clipboard/scoped_clipboard_writer.cc)
+ADD_LIBRARY(clipboard OBJECT clipboard/clipboard.cc clipboard/clipboard_constants.cc clipboard/custom_data_helper.cc clipboard/custom_data_helper_linux.cc clipboard/scoped_clipboard_writer.cc)
 
 # cursor
 ADD_LIBRARY(cursor OBJECT cursor/cursor.cc cursor/cursor_util.cc cursor/cursors_aura.cc cursor/image_cursors.cc)
 
 # dragdrop
-ADD_LIBRARY(dragdrop OBJECT dragdrop/drag_utils.cc dragdrop/drag_utils_aura.cc dragdrop/drop_target_event.cc dragdrop/file_info.cc dragdrop/os_exchange_data.cc dragdrop/os_exchange_data_provider_aura.cc)
+ADD_LIBRARY(dragdrop OBJECT dragdrop/drag_utils.cc dragdrop/drag_utils_aura.cc dragdrop/drop_target_event.cc dragdrop/file_info.cc dragdrop/os_exchange_data.cc)
 
-# l1on
-ADD_LIBRARY(l10n OBJECT l10n/formatter.cc l10n/l10n_font_util.cc l10n/l10n_util.cc l10n/l10n_util_posix.cc l10n/time_format.cc)
+# l10n
+ADD_LIBRARY(l10n OBJECT l10n/l10n_font_util.cc l10n/l10n_util.cc l10n/l10n_util_posix.cc)
+# we let out "l10n/formatter.cc" and "l10n/time_format.cc" because
+# they need the libicu fork
 
 # models
 ADD_LIBRARY(models OBJECT models/button_menu_item_model.cc models/combobox_model.cc models/dialog_model.cc models/list_selection_model.cc models/menu_model.cc models/simple_combobox_model.cc models/simple_menu_model.cc models/table_model.cc models/tree_model.cc)

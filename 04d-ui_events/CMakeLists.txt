@@ -27,7 +27,7 @@ PKG_CHECK_MODULES(xkbcommon REQUIRED xkbcommon)
 # Optional dependencies and definitions
 IF(BACKEND STREQUAL "OZONE")
   PKG_CHECK_MODULES(backend REQUIRED libudev)
-  SET(BACKEND_SOURCE_FILES ozone/events_ozone.cc events_default.cc ozone/device/device_event.cc ozone/device/device_manager.cc ozone/device/device_manager_manual.cc ozone/device/udev/device_manager_udev.cc)
+  SET(BACKEND_SOURCE_FILES ozone/events_ozone.cc events_default.cc ozone/device/device_event.cc ozone/device/device_manager.cc ozone/device/device_manager_manual.cc ozone/device/udev/device_manager_udev.cc platform/platform_event_source_stub.cc)
   ADD_DEFINITIONS(-DUSE_OZONE -DEVENTS_OZONE_IMPLEMENTATION -DUSE_UDEV)
 ENDIF(BACKEND STREQUAL "OZONE")
 
@@ -38,7 +38,7 @@ IF(BACKEND STREQUAL "X11")
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DEVENTS_BASE_IMPLEMENTATION -DEVENTS_IPC_IMPLEMENTATION -DEVENTS_DEVICES_IMPLEMENTATION -DGESTURE_DETECTION_IMPLEMENTATION -DUSE_AURA)
+ADD_DEFINITIONS(-DEVENTS_IMPLEMENTATION -DEVENTS_BASE_IMPLEMENTATION -DEVENTS_IPC_IMPLEMENTATION -DEVENTS_DEVICES_IMPLEMENTATION -DGESTURE_DETECTION_IMPLEMENTATION -DUSE_AURA)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
@@ -62,6 +62,9 @@ ADD_LIBRARY(devices OBJECT devices/device_data_manager.cc devices/device_util_li
 # gesture_detection
 ADD_LIBRARY(gesture_detection OBJECT gesture_detection/filtered_gesture_provider.cc gesture_detection/gesture_configuration.cc gesture_detection/gesture_configuration_aura.cc gesture_detection/gesture_detector.cc gesture_detection/gesture_event_data.cc gesture_detection/gesture_event_data_packet.cc gesture_detection/gesture_listeners.cc gesture_detection/gesture_provider.cc gesture_detection/gesture_provider_config_helper.cc gesture_detection/gesture_touch_uma_histogram.cc gesture_detection/motion_event.cc gesture_detection/motion_event_buffer.cc gesture_detection/motion_event_generic.cc gesture_detection/scale_gesture_detector.cc gesture_detection/scale_gesture_listeners.cc gesture_detection/snap_scroll_controller.cc gesture_detection/touch_disposition_gesture_filter.cc gesture_detection/velocity_tracker.cc gesture_detection/velocity_tracker_state.cc)
 
+# platform
+ADD_LIBRARY(platform OBJECT platform/platform_event_source.cc platform/scoped_event_dispatcher.cc)
+
 # backend
 ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
 
@@ -70,7 +73,7 @@ ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
 SET(include_dirs ${INCLUDE_DIRS} ${xkbcommon_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_SOURCE_DIR}/include/core ${SKIA_EXT_DIR}/config ${CMAKE_SOURCE_DIR}/.. ${CMAKE_SOURCE_DIR}/../..)
 SET(link_libraries ${xkbcommon_LIBRARIES} ${backend_LIBRARIES})
 
-ADD_LIBRARY(ui_events SHARED $<TARGET_OBJECTS:keycode_converter> $<TARGET_OBJECTS:event> $<TARGET_OBJECTS:ipc> $<TARGET_OBJECTS:devices> $<TARGET_OBJECTS:gesture_detection> $<TARGET_OBJECTS:backend>)
+ADD_LIBRARY(ui_events SHARED $<TARGET_OBJECTS:keycode_converter> $<TARGET_OBJECTS:event> $<TARGET_OBJECTS:ipc> $<TARGET_OBJECTS:devices> $<TARGET_OBJECTS:gesture_detection> $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:backend>)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ui_events ${link_libraries})
 

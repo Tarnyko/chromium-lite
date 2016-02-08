@@ -25,8 +25,8 @@ by doing the following :
              command line arguments, file and directory operations,
              message loops, threads, time and date...
  * Notes : the full "base::i18n" subclass uses a fork of libicui18n
-           in "third_party/icu"; we patch 1 file and ignore another
-           one in the "i18n" subfolder to avoid this.
+           in "third_party/icu"; we patch 1 file and use the fork
+           headers for the other one ("net" requires it).
 
 01b) skia
 
@@ -146,7 +146,7 @@ by doing the following :
  Media library.
  * Depends on :
    - base, skia, url, crypto, gpu_command_buffer, ui_gfx, ui_events
-   - yasm (for building only)
+   - yasm (for building on x86/x86_64 only)
    - alsa, opus
    - ozone (wayland) / x11, xdamage, xext, xfixes, xtst (x11)
  * Handles :
@@ -155,6 +155,12 @@ by doing the following :
            and required libyuv is pretty different from the version
            found publicly. Thus, we are building "third_party/libwebm"
            and "third_party/libyuv" directly in the library binary.
+
+05b) ui_base
+
+ UI Base helper library.
+ * Depends on :
+   - base, skia, url, net, ui_gfx, ui_events, ui_strings, ui_resources
 
 09a) blink
 
