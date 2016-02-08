@@ -139,3 +139,11 @@ by doing the following :
  * Notes : the Ozone implementation can also support "evdev", but this
            seems to be required only by the higher-level Ozone DRM
            backend, which we do not build (see above).
+
+05a) media
+
+ Media library.
+ * Depends on :
+   - base, skia, url, crypto, gpu_command_buffer, ui_gfx, ui_events
+   - alsa, libwebm, libyuv, opus
+   - ozone (wayland) / x11, xdamage, xext, xfixes, xtst (x11)
