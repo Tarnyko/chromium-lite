@@ -1,5 +1,5 @@
 //  (C)2016 Tarnyko <tarnyko@tarnyko.net>
-// compile with : g++ ... -DUSE_AURA -DUSE_OZONE/-DUSE_X11 -I/usr/include/chromium /usr/lib/chromium/lib/libbase.so /usr/lib/chromium/lib/libskia.so /usr/lib/chromium/lib/liburl.so /usr/lib/chromium/lib/libcrypto.so /usr/lib/chromium/lib/libgpu_command_buffer.so /usr/lib/chromium/lib/libui_gfx.so /usr/lib/chromium/lib/libui_events.so
+// compile with : g++ ... -DUSE_AURA -DUSE_OZONE/-DUSE_X11 -I/usr/include/chromium /usr/lib/chromium/lib/libbase.so /usr/lib/chromium/lib/libskia.so /usr/lib/chromium/lib/liburl.so /usr/lib/chromium/lib/libcrypto.so /usr/lib/chromium/lib/libgpu_command_buffer.so /usr/lib/chromium/lib/libui_gfx.so /usr/lib/chromium/lib/libui_events.so /usr/lib/chromium/lib/libmedia.so
 
 #include <iostream>				// for << >>
 

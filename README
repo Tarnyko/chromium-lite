@@ -115,6 +115,7 @@ by doing the following :
    - x11, xi (x11)
  * Handles : intermediate drawing helper API between Views toolkit
              (see below) and Skia. Can easily convert to PNG/JPEG,
+             draw text, set bounds...
 
 04a) ozone
 
@@ -145,5 +146,20 @@ by doing the following :
  Media library.
  * Depends on :
    - base, skia, url, crypto, gpu_command_buffer, ui_gfx, ui_events
-   - alsa, libwebm, libyuv, opus
+   - yasm (for building only)
+   - alsa, opus
    - ozone (wayland) / x11, xdamage, xext, xfixes, xtst (x11)
+ * Handles :
+ * Notes : "libwebm" and "libyuv" are supposed to be dependecies,
+           but a libwebm RPM/DEB package is nowhere to be found,
+           and required libyuv is pretty different from the version
+           found publicly. Thus, we are building "third_party/libwebm"
+           and "third_party/libyuv" directly in the library binary.
+
+09a) blink
+
+ Blink Web Engine, Google's fork of WebKit.
+ * Depends on :
+   - base, skia, v8, url, ui_gfx, gpu, cc
+   - libicui18n, libicuuc
+ * Handles : Web rendering.

@@ -20,7 +20,7 @@ SET(SKIA_EXT_DIR "${CMAKE_SOURCE_DIR}/../skia")
 SET(CHROMIUM_GL_DIR "${CMAKE_SOURCE_DIR}/../third_party/khronos")
 SET(CHROMIUM_GLES2_EXT_DIR "${CMAKE_SOURCE_DIR}/../gpu")
 
-# Location of libwebm/libyuv source folder
+# Location of libwebm/libyuv source folders
 SET(LIBWEBM_DIR "${CMAKE_SOURCE_DIR}/../third_party/libwebm")
 SET(LIBYUV_DIR "${CMAKE_SOURCE_DIR}/../third_party/libyuv")
 
@@ -107,7 +107,7 @@ ADD_LIBRARY(filters OBJECT filters/audio_clock.cc filters/audio_renderer_algorit
 ADD_LIBRARY(formats OBJECT formats/common/offset_byte_queue.cc formats/webm/webm_audio_client.cc formats/webm/webm_cluster_parser.cc formats/webm/webm_constants.cc formats/webm/webm_content_encodings.cc formats/webm/webm_content_encodings_client.cc formats/webm/webm_crypto_helpers.cc formats/webm/webm_info_parser.cc formats/webm/webm_parser.cc formats/webm/webm_stream_parser.cc formats/webm/webm_tracks_parser.cc formats/webm/webm_video_client.cc formats/webm/webm_webvtt_parser.cc)
 
 # renderers
-ADD_LIBRARY(renderers OBJECT renderers/audio_renderer_impl.cc renderers/default_renderer_factory.cc renderers/renderer_impl.cc renderers/skcanvas_video_renderer.cc renderers/video_renderer_impl.cc)
+ADD_LIBRARY(renderers OBJECT renderers/audio_renderer_impl.cc renderers/default_renderer_factory.cc renderers/renderer_impl.cc renderers/video_renderer_impl.cc)
 
 # video
 ADD_LIBRARY(video OBJECT video/fake_video_encode_accelerator.cc video/gpu_memory_buffer_video_frame_pool.cc video/h264_poc.cc video/jpeg_decode_accelerator.cc video/picture.cc video/video_decode_accelerator.cc video/video_encode_accelerator.cc)
