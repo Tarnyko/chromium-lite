@@ -28,7 +28,7 @@ PKG_CHECK_MODULES(xkbcommon REQUIRED xkbcommon)
 IF(BACKEND STREQUAL "OZONE")
   PKG_CHECK_MODULES(backend REQUIRED libudev)
   SET(BACKEND_SOURCE_FILES ozone/events_ozone.cc events_default.cc ozone/device/device_event.cc ozone/device/device_manager.cc ozone/device/device_manager_manual.cc ozone/device/udev/device_manager_udev.cc)
-  ADD_DEFINITIONS(-DUSE_OZONE -DEVENTS_OZONE_IMPLEMENTATION)
+  ADD_DEFINITIONS(-DUSE_OZONE -DEVENTS_OZONE_IMPLEMENTATION -DUSE_UDEV)
 ENDIF(BACKEND STREQUAL "OZONE")
 
 IF(BACKEND STREQUAL "X11")

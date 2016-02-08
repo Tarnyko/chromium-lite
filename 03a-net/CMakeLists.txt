@@ -61,7 +61,7 @@ EXECUTE_PROCESS(COMMAND tools/dafsa/make_dafsa.py base/registry_controlled_domai
 
 MESSAGE(STATUS "Generating .pak from .grd...")
 
-EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i base/net_resources.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR} --write-only-new=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i base/net_resources.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR}/net --write-only-new=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
 # SOURCES FILE LIST, PER SECTION

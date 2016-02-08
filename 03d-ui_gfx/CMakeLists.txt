@@ -43,6 +43,8 @@ ENDIF(NOT HAVE_LIBJPEG_TURBO)
 
 # Optional definitions
 IF(BACKEND STREQUAL "OZONE")
+  # useless, but this variable cannot be empty
+  SET(BACKEND_SOURCE_FILES native_pixmap_handle_ozone.h)
   ADD_DEFINITIONS(-DUSE_OZONE)
 ENDIF(BACKEND STREQUAL "OZONE")
 
@@ -87,7 +89,7 @@ ADD_LIBRARY(ipc OBJECT ipc/gfx_param_traits.cc)
 ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
 
 # misc
-ADD_LIBRARY(misc OBJECT blit.cc buffer_format_util.cc canvas.cc canvas_skia.cc color_analysis.cc color_profile.cc color_utils.cc display.cc display_change_notifier.cc display_observer.cc favicon_size.cc generic_shared_memory_id.cc gfx_paths.cc interpolated_transform.cc nine_image_painter.cc paint_throbber.cc path.cc screen.cc screen_aura.cc scrollbar_size.cc selection_model.cc sequential_id_generator.cc shadow_value.cc skbitmap_operations.cc skia_util.cc switches.cc text_elider.cc text_utils.cc text_utils_skia.cc transform.cc transform_util.cc ui_gfx_exports.cc utf16_indexing.cc)
+ADD_LIBRARY(misc OBJECT blit.cc buffer_format_util.cc canvas.cc canvas_skia.cc color_analysis.cc color_profile.cc color_utils.cc display.cc display_change_notifier.cc display_observer.cc favicon_size.cc generic_shared_memory_id.cc gfx_paths.cc gpu_memory_buffer.cc interpolated_transform.cc nine_image_painter.cc paint_throbber.cc path.cc screen.cc screen_aura.cc scrollbar_size.cc selection_model.cc sequential_id_generator.cc shadow_value.cc skbitmap_operations.cc skia_util.cc switches.cc text_elider.cc text_utils.cc text_utils_skia.cc transform.cc transform_util.cc ui_gfx_exports.cc utf16_indexing.cc)
 
 
 # all files refer to "ui/...", so we include "../.." here

@@ -93,7 +93,7 @@ ADD_LIBRARY(threading OBJECT threading/thread.cc threading/simple_thread.cc thre
 ADD_LIBRARY(xdg OBJECT nix/mime_util_xdg.cc nix/xdg_util.cc third_party/xdg_mime/xdgmime.c third_party/xdg_mime/xdgmimealias.c third_party/xdg_mime/xdgmimecache.c third_party/xdg_mime/xdgmimeglob.c third_party/xdg_mime/xdgmimeicon.c third_party/xdg_mime/xdgmimeint.c third_party/xdg_mime/xdgmimemagic.c third_party/xdg_mime/xdgmimeparent.c third_party/xdg_user_dirs/xdg_user_dir_lookup.cc)
 
 # time
-ADD_LIBRARY(time OBJECT third_party/nspr/prtime.cc time/time.cc time/time_posix.cc time/clock.cc time/default_clock.cc)
+ADD_LIBRARY(time OBJECT third_party/nspr/prtime.cc time/time.cc time/time_posix.cc time/clock.cc time/tick_clock.cc time/default_clock.cc time/default_tick_clock.cc)
 
 # timer
 ADD_LIBRARY(timer OBJECT timer/timer.cc timer/elapsed_timer.cc)
@@ -126,7 +126,7 @@ ADD_LIBRARY(values OBJECT values.cc)
 ADD_LIBRARY(powermonitor OBJECT power_monitor/power_monitor.cc power_monitor/power_monitor_device_source.cc power_monitor/power_monitor_device_source_posix.cc power_monitor/power_monitor_source.cc)
 
 # process
-ADD_LIBRARY(process OBJECT process/process_handle.cc process/process_handle_linux.cc process/process_handle_posix.cc process/process_metrics.cc process/process_metrics_linux.cc process/process_metrics_posix.cc process/internal_linux.cc)
+ADD_LIBRARY(process OBJECT process/launch.cc process/launch_posix.cc process/process_posix.cc process/process_handle.cc process/process_handle_linux.cc process/process_handle_posix.cc process/process_metrics.cc process/process_metrics_linux.cc process/process_metrics_posix.cc process/internal_linux.cc)
 
 # profiler
 ADD_LIBRARY(profiler OBJECT location.cc tracked_objects.cc tracking_info.cc profiler/scoped_profile.cc profiler/scoped_tracker.cc profiler/tracked_time.cc profiler/alternate_timer.cc)
@@ -135,14 +135,14 @@ ADD_LIBRARY(profiler OBJECT location.cc tracked_objects.cc tracking_info.cc prof
 ADD_LIBRARY(environment OBJECT environment.cc)
 
 # misc
-ADD_LIBRARY(misc OBJECT big_endian.cc build_time.cc supports_user_data.cc value_conversions.cc)
+ADD_LIBRARY(misc OBJECT barrier_closure.cc big_endian.cc build_time.cc supports_user_data.cc sync_socket_posix.cc value_conversions.cc)
 
 
 # all files refer to "base/...", so we include ".." here
 SET(include_dirs ${INCLUDE_DIRS} ${libevent_INCLUDE_DIRS} ${icui18n_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/..)
 SET(link_libraries ${libevent_LIBRARIES} ${icui18n_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -lrt -ldl)
 
-ADD_LIBRARY(base SHARED $<TARGET_OBJECTS:switches> $<TARGET_OBJECTS:command_line> $<TARGET_OBJECTS:strings> $<TARGET_OBJECTS:logging> $<TARGET_OBJECTS:i18n> $<TARGET_OBJECTS:debug> $<TARGET_OBJECTS:lock> $<TARGET_OBJECTS:memory> $<TARGET_OBJECTS:messageloop> $<TARGET_OBJECTS:nativelibrary> $<TARGET_OBJECTS:version> $<TARGET_OBJECTS:vlog> $<TARGET_OBJECTS:pickle> $<TARGET_OBJECTS:paths> $<TARGET_OBJECTS:atexit> $<TARGET_OBJECTS:callback> $<TARGET_OBJECTS:lazyinstance> $<TARGET_OBJECTS:posix> $<TARGET_OBJECTS:prefs> $<TARGET_OBJECTS:sysinfo> $<TARGET_OBJECTS:threading> $<TARGET_OBJECTS:xdg> $<TARGET_OBJECTS:time> $<TARGET_OBJECTS:timer> $<TARGET_OBJECTS:files> $<TARGET_OBJECTS:metrics> $<TARGET_OBJECTS:randutil> $<TARGET_OBJECTS:hash> $<TARGET_OBJECTS:base64> $<TARGET_OBJECTS:md5> $<TARGET_OBJECTS:sha1> $<TARGET_OBJECTS:values> $<TARGET_OBJECTS:powermonitor> $<TARGET_OBJECTS:process> $<TARGET_OBJECTS:profiler> $<TARGET_OBJECTS:environment> $<TARGET_OBJECTS:misc>)
+ADD_LIBRARY(base SHARED $<TARGET_OBJECTS:switches> $<TARGET_OBJECTS:command_line> $<TARGET_OBJECTS:strings> $<TARGET_OBJECTS:logging> $<TARGET_OBJECTS:i18n> $<TARGET_OBJECTS:debug> $<TARGET_OBJECTS:lock> $<TARGET_OBJECTS:memory> $<TARGET_OBJECTS:messageloop> $<TARGET_OBJECTS:nativelibrary> $<TARGET_OBJECTS:version> $<TARGET_OBJECTS:vlog> $<TARGET_OBJECTS:pickle> $<TARGET_OBJECTS:paths> $<TARGET_OBJECTS:atexit> $<TARGET_OBJECTS:callback> $<TARGET_OBJECTS:lazyinstance> $<TARGET_OBJECTS:posix> $<TARGET_OBJECTS:prefs> $<TARGET_OBJECTS:sysinfo> $<TARGET_OBJECTS:threading> $<TARGET_OBJECTS:xdg> $<TARGET_OBJECTS:time> $<TARGET_OBJECTS:timer> $<TARGET_OBJECTS:files> $<TARGET_OBJECTS:metrics> $<TARGET_OBJECTS:randutil> $<TARGET_OBJECTS:hash> $<TARGET_OBJECTS:base64> $<TARGET_OBJECTS:md5> $<TARGET_OBJECTS:sha1> $<TARGET_OBJECTS:values> $<TARGET_OBJECTS:powermonitor> $<TARGET_OBJECTS:process> $<TARGET_OBJECTS:profiler> $<TARGET_OBJECTS:environment> $<TARGET_OBJECTS:misc> third_party/dynamic_annotations/dynamic_annotations.c)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(base ${link_libraries})
 
