@@ -191,4 +191,5 @@ by doing the following :
  * Depends on :
    - base, skia, v8, url, ui_gfx, gpu, cc
    - libicui18n, libicuuc
+   - python, gperf (for building only)
  * Handles : Web rendering.
