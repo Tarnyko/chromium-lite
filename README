@@ -177,6 +177,14 @@ by doing the following :
    - python, protobuf-compiler (for building only)
  * Handles :
 
+08a) cc
+
+ CC library:
+ * Depends on :
+   - base, skia, ui_gfx, ui_events, media, ui_gl, gpu
+   - protobuf
+   - python, protobuf-compiler (for building only)
+
 09a) blink
 
  Blink Web Engine, Google's fork of WebKit.

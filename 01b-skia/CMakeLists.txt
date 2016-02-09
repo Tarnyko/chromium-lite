@@ -104,8 +104,9 @@ IF(CMAKE_COMPILER_IS_GNUCC)
 ENDIF()
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-    ADD_DEFINITIONS(-std=c++11 -fno-rtti -fno-threadsafe-statics -Wnon-virtual-dtor -Wno-literal-suffix)
-# last parameter for "png.h" in libpng12 ; better solution ?
+    ADD_DEFINITIONS(-std=c++11 -fno-rtti -fno-threadsafe-statics -Wnon-virtual-dtor -Wno-literal-suffix -Wno-deprecated-declarations)
+# former last parameter for "png.h" in libpng12 ; better solution ?
+# last parameter for "ext/analysis_canvas.cc"
 ENDIF()
 
 
@@ -151,7 +152,7 @@ ADD_LIBRARY(sfnt OBJECT src/sfnt/SkOTTable_name.cpp src/sfnt/SkOTUtils.cpp)
 ADD_LIBRARY(opts OBJECT ${TOOLCHAIN_OPTS_SOURCE_FILES})
 
 # ext (This is Chromium-specific !)
-ADD_LIBRARY(ext OBJECT ${SKIA_EXT_DIR}/ext/platform_canvas.cc ${SKIA_EXT_DIR}/ext/platform_device.cc ${SKIA_EXT_DIR}/ext/platform_device_linux.cc ${SKIA_EXT_DIR}/ext/bitmap_platform_device_skia.cc ${SKIA_EXT_DIR}/ext/convolver.cc ${SKIA_EXT_DIR}/ext/image_operations.cc ${SKIA_EXT_DIR}/ext/google_logging.cc)
+ADD_LIBRARY(ext OBJECT ${SKIA_EXT_DIR}/ext/analysis_canvas.cc ${SKIA_EXT_DIR}/ext/opacity_filter_canvas.cc ${SKIA_EXT_DIR}/ext/platform_canvas.cc ${SKIA_EXT_DIR}/ext/platform_device.cc ${SKIA_EXT_DIR}/ext/platform_device_linux.cc ${SKIA_EXT_DIR}/ext/bitmap_platform_device_skia.cc ${SKIA_EXT_DIR}/ext/convolver.cc ${SKIA_EXT_DIR}/ext/image_operations.cc ${SKIA_EXT_DIR}/ext/google_logging.cc)
 
 
 SET(include_dirs ${INCLUDE_DIRS} ${freetype_INCLUDE_DIRS} ${fontconfig_INCLUDE_DIRS} ${libpng12_INCLUDE_DIRS} ${libwebp_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include/config ${CMAKE_SOURCE_DIR}/include/private ${CMAKE_SOURCE_DIR}/include/c ${CMAKE_SOURCE_DIR}/src/core ${CMAKE_SOURCE_DIR}/include/core ${CMAKE_SOURCE_DIR}/src/utils ${CMAKE_SOURCE_DIR}/include/utils ${CMAKE_SOURCE_DIR}/src/gpu ${CMAKE_SOURCE_DIR}/include/gpu ${CMAKE_SOURCE_DIR}/src/image ${CMAKE_SOURCE_DIR}/include/images ${CMAKE_SOURCE_DIR}/include/pathops ${CMAKE_SOURCE_DIR}/include/ports ${CMAKE_SOURCE_DIR}/src/opts ${CMAKE_SOURCE_DIR}/src/sfnt ${CMAKE_SOURCE_DIR}/include/pipe ${CMAKE_SOURCE_DIR}/include/effects ${CMAKE_SOURCE_DIR}/src/lazy ${CMAKE_SOURCE_DIR}/third_party/etc1 ${CMAKE_SOURCE_DIR}/third_party/ktx ${SKIA_EXT_DIR}/..)
