@@ -104,7 +104,7 @@ IF(CMAKE_COMPILER_IS_GNUCC)
 ENDIF()
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-    ADD_DEFINITIONS(-std=c++11 -fno-rtti -fno-threadsafe-statics -Wnon-virtual-dtor -Wno-literal-suffix -Wno-deprecated-declarations)
+    ADD_DEFINITIONS(-std=c++11 -fno-threadsafe-statics -Wnon-virtual-dtor -Wno-literal-suffix -Wno-deprecated-declarations)
 # former last parameter for "png.h" in libpng12 ; better solution ?
 # last parameter for "ext/analysis_canvas.cc"
 ENDIF()

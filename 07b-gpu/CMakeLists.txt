@@ -60,7 +60,7 @@ IF(BACKEND STREQUAL "X11")
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DGLES2_IMPL_IMPLEMENTATION -DUSE_AURA)
+ADD_DEFINITIONS(-DGLES2_IMPL_IMPLEMENTATION -DGLES2_C_LIB_IMPLEMENTATION -DUSE_AURA)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
@@ -80,6 +80,9 @@ EXECUTE_PROCESS(COMMAND python src/commit_id.py gen . src/id/commit.h WORKING_DI
 
 
 # SOURCES FILE LIST
+
+# c_lib
+ADD_LIBRARY(c_lib OBJECT command_buffer/client/gles2_c_lib.cc command_buffer/client/gles2_lib.cc)
 
 # command_buffer_client
 ADD_LIBRARY(command_buffer_client OBJECT command_buffer/client/cmd_buffer_helper.cc command_buffer/client/fenced_allocator.cc command_buffer/client/gpu_memory_buffer_manager.cc command_buffer/client/mapped_memory.cc command_buffer/client/ring_buffer.cc command_buffer/client/transfer_buffer.cc command_buffer/client/gles2_cmd_helper.cc)
@@ -115,7 +118,7 @@ ADD_LIBRARY(smhasher OBJECT ${SMHASHER_SOURCE_DIR}/src/City.cpp)
 SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CHROMIUM_GL_DIR}/noninclude ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${SKIA_SOURCE_DIR}/include/utils ${ANGLE_SOURCE_DIR}/include ${ANGLE_SOURCE_DIR}/src ${RE2_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/..)
 SET(link_libraries ${backend_LIBRARIES})
 
-ADD_LIBRARY(gpu SHARED $<TARGET_OBJECTS:command_buffer_client> $<TARGET_OBJECTS:command_buffer_service> $<TARGET_OBJECTS:config> $<TARGET_OBJECTS:ipc> $<TARGET_OBJECTS:generated> $<TARGET_OBJECTS:backend> $<TARGET_OBJECTS:angle> $<TARGET_OBJECTS:re2> $<TARGET_OBJECTS:smhasher>)
+ADD_LIBRARY(gpu SHARED $<TARGET_OBJECTS:c_lib> $<TARGET_OBJECTS:command_buffer_client> $<TARGET_OBJECTS:command_buffer_service> $<TARGET_OBJECTS:config> $<TARGET_OBJECTS:ipc> $<TARGET_OBJECTS:generated> $<TARGET_OBJECTS:backend> $<TARGET_OBJECTS:angle> $<TARGET_OBJECTS:re2> $<TARGET_OBJECTS:smhasher>)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(gpu ${link_libraries})
 
