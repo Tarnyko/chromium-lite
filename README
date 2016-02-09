@@ -24,9 +24,9 @@ by doing the following :
  * Handles : logging, callbacks, string and numeral conversions,
              command line arguments, file and directory operations,
              message loops, threads, time and date...
- * Notes : the full "base::i18n" subclass uses a fork of libicui18n
-           in "third_party/icu"; we patch 1 file and use the fork
-           headers for the other one ("net" requires it).
+ * Notes : the full "base::i18n" subclass requires a fork of libicui
+           in "third_party/icu"; to avoid this, we patch 1 file and use
+           the forked headers for the other one ("net" requires it).
 
 01b) skia
 
@@ -102,10 +102,11 @@ by doing the following :
  * Notes : cryptographic code, when it does not depend on crypto
            (see above) has 2 implementations : NSS and OpenSSL.
            OpenSSL, despite its name, requires Google BoringSSL,
-           thus we use NSS. Though, it requires non-upstream code
-           such as "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305" (see
+           thus we use NSS. Though, it requires non-upstream
+           features such as "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305"
            (see https://bugzilla.mozilla.org/show_bug.cgi?id=917571),
-           thus we also build sources in "third_party/nss" for now.
+           thus we patch a few sources to remove it - and also
+           include headers in "third_party/nss".
 
 03d) ui_gfx
 
@@ -125,7 +126,7 @@ by doing the following :
  * Handles : Ozone is an alternative backend to X11 under Linux ;
              we only build its Wayland implementation, though a
              DRM implementation (for ChromeOS ?) exists somewhere.
-             You have no reason to compile this under X11.
+             You have no reason to compile Ozone under X11.
 
 04d) ui_events
 
@@ -137,7 +138,7 @@ by doing the following :
              detection. Basically, this library uses platform-specific
              APIs (XInput under X11, UDev under Ozone/Wayland) to
              handle keyboard, mouse, touch... events.
- * Notes : the Ozone implementation can also support "evdev", but this
+ * Notes : the Ozone implementation may also support "evdev", but this
            seems to be required only by the higher-level Ozone DRM
            backend, which we do not build (see above).
 
@@ -151,10 +152,10 @@ by doing the following :
    - ozone (wayland) / x11, xdamage, xext, xfixes, xtst (x11)
  * Handles :
  * Notes : "libwebm" and "libyuv" are supposed to be dependecies,
-           but a libwebm RPM/DEB package is nowhere to be found,
+           but libwebm .RPM/.DEB packages are nowhere to be found,
            and required libyuv is pretty different from the version
-           found publicly. Thus, we are building "third_party/libwebm"
-           and "third_party/libyuv" directly in the library binary.
+           found publicly. We are thus putting "third_party/libwebm"
+           and "third_party/libyuv" code directly in the binary.
 
 05b) ui_base
 
@@ -173,7 +174,8 @@ by doing the following :
  GPU library.
  * Depends on :
    - base, crypto, ipc, gpu_command_buffer, ui_gfx, ui_gl
-   - (re2, smasher, angle) ?
+   - python, protobuf-compiler (for building only)
+ * Handles :
 
 09a) blink
 

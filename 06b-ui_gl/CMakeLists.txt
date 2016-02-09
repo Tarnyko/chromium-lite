@@ -36,10 +36,6 @@ IF(BACKEND STREQUAL "X11")
   ADD_DEFINITIONS(-DUSE_X11 -DGL_GLEXT_PROTOTYPES)
 ENDIF(BACKEND STREQUAL "X11")
 
-IF(BACKEND STREQUAL "OSMESA")
-  SET(BACKEND_SOURCE_FILES gl_bindings_autogen_osmesa.cc gl_context_osmesa.cc gl_osmesa_api_implementation.cc gl_surface_osmesa.cc)
-ENDIF(BACKEND STREQUAL "OSMESA")
-
 
 # Common definitions
 ADD_DEFINITIONS(-DGL_IMPLEMENTATION -DUSE_AURA)
@@ -51,7 +47,7 @@ ENDIF()
 
 # SOURCES FILE LIST
 
-ADD_LIBRARY(src OBJECT egl_util.cc gl_bindings.cc gl_bindings_autogen_egl.cc gl_bindings_autogen_gl.cc gl_bindings_skia_in_process.cc gl_context.cc gl_context_egl.cc gl_enums.cc gl_fence.cc gl_fence_arb.cc gl_fence_egl.cc gl_fence_nv.cc gl_egl_api_implementation.cc gl_gl_api_implementation.cc gl_helper.cc gl_image_memory.cc gl_image_ref_counted_memory.cc gl_image_shared_memory.cc gl_image_egl.cc gl_implementation.cc gl_share_group.cc gl_state_restorer.cc gl_surface.cc gl_surface_egl.cc gl_surface_overlay.cc gl_switches.cc gl_version_info.cc gpu_switching_manager.cc gpu_timing.cc scoped_api.cc scoped_binders.cc scoped_make_current.cc sync_control_vsync_provider.cc trace_util.cc)
+ADD_LIBRARY(src OBJECT egl_util.cc gl_bindings.cc gl_bindings_autogen_egl.cc gl_bindings_autogen_gl.cc gl_bindings_skia_in_process.cc gl_context.cc gl_context_egl.cc gl_context_stub.cc gl_context_stub_with_extensions.cc gl_enums.cc gl_fence.cc gl_fence_arb.cc gl_fence_egl.cc gl_fence_nv.cc gl_egl_api_implementation.cc gl_gl_api_implementation.cc gl_helper.cc gl_image_memory.cc gl_image_ref_counted_memory.cc gl_image_shared_memory.cc gl_image_stub.cc gl_image_egl.cc gl_implementation.cc gl_share_group.cc gl_state_restorer.cc gl_surface.cc gl_surface_stub.cc gl_surface_egl.cc gl_surface_overlay.cc gl_switches.cc gl_version_info.cc gpu_switching_manager.cc gpu_timing.cc scoped_api.cc scoped_binders.cc scoped_make_current.cc sync_control_vsync_provider.cc trace_util.cc gl_bindings_autogen_osmesa.cc gl_context_osmesa.cc gl_implementation_osmesa.cc gl_osmesa_api_implementation.cc gl_surface_osmesa.cc)
 
 # backend
 ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
