@@ -133,6 +133,20 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  * Notes : we can not rely on system Mesa to build it, because
            it uses Chromium-specific GL headers definitions.
 
+02f) sql
+
+ SQL helper library.
+ * Depends on : base, sqlite3
+ * Handles : a thin wrapper around SQLite3, which Google forked
+             to add the custom "recoverVtableInit()" function.
+             
+02g) gin
+
+ Gin helper library.
+ * Depends on : base, v8
+ * Handles : a set of utility functions on top of V8. Only used
+             at a very high level by Content Shell/Chromium.
+
 03a) net
 
  Net helper library.
@@ -273,6 +287,15 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 10a) ui_aura
 
  UI Aura library.
+ * Depends on : base, skia, ui_gfx, ui_events, ui_base,
+                ui_compositor, ui_resources
+ * Handles : Aura is the new abstraction layer between Views (see
+             below) and the platform, which, on ChromeOS, happens
+             to be a full-fledged window manager ; here it limits
+             its role in dispatching events between various Views
+             windows, managing z-order, etc.
+             Funny part is, even with Aura, Views still needs X11
+             libraries for custom stuff :).
 
 11a) ui_views
 
@@ -286,3 +309,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
    Elementary or QtWidgets. It leverages the whole lower-level
    UI libraries to create and handle buttons, menus, text fields,
    scrollbars, dialog boxes... and react to user input.
+
+
+(NOTES : "sdch" is only used by "net", "gin" by "content_shell"...
+         Merge them ?)
