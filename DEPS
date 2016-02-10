@@ -7,4 +7,4 @@ deps = {
   "src": Var('chromium_url') + '@' + Var('chromium_rev'),
 }
 
-recursion = 4
+recursion = 2

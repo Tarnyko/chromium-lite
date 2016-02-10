@@ -21,8 +21,8 @@ thus schedule accordingly) :
 
 $ git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
 $ export PATH="$PWD/depot_tools:$PATH"
-$ gclient config https://github.com/Tarnyko/chromium-lite --name=src/chrome/tools/test/reference_build/chrome_linux --deps-file "DEPS"
-$ gclient sync
+$ gclient config https://github.com/Tarnyko/chromium-lite.git --name=chromium-lite --deps-file DEPS
+$ gclient sync --nohooks
 
  How to build :
  ------------
