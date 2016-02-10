@@ -14,6 +14,17 @@ by doing the following :
 - making debugging easier.
 
 
+ How to install :
+ --------------
+To grab the whole Chromium source I am using (it is around 12 GB,
+thus schedule accordingly) :
+
+$ git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+$ export PATH="$PWD/depot_tools:$PATH"
+$ gclient config https://github.com/Tarnyko/chromium-lite --name=src/chromium --deps-file DEPS
+$ gclient sync
+
+
  Packages :
  --------
 
@@ -75,8 +86,9 @@ by doing the following :
 
  SDCH library.
  * Depends on : base
- * SDCH is Google's implementation of the VCDIFF format, used
-   for delta encoding in HTTP communications.
+ * Handles : SDCH is Google's implementation of the VCDIFF
+             format, based on open-vcdiff, and used for
+             delta encoding in HTTP communications.
 
 02e) gpu_command_buffer
 
@@ -95,9 +107,9 @@ by doing the following :
    - python, protobuf-compiler (for building only)
  * Handles : this huge library is at the core of Chromium's
              recognition of various protocols (HTTP://, FTP://,
-             FILE://, SPDY, WebSockets...) and also serves as a
-             toolkit for various browser-oriented mechanisms such
-             as cache and cookies management, DNS resolving,
+             FILE://, SPDY, HTTP/2, WebSockets...) and also serves
+             as a toolkit for various browser-oriented mechanisms
+             such as cache and cookies management, DNS resolving,
              proxy settings, SSL certificate recognition...
  * Notes : cryptographic code, when it does not depend on crypto
            (see above) has 2 implementations : NSS and OpenSSL.
@@ -106,7 +118,7 @@ by doing the following :
            features such as "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305"
            (see https://bugzilla.mozilla.org/show_bug.cgi?id=917571),
            thus we patch a few sources to remove it - and also
-           include headers in "third_party/nss".
+           include forked headers from "third_party/nss".
 
 03d) ui_gfx
 
@@ -168,6 +180,7 @@ by doing the following :
  UI GL helper library.
  * Depends on :
    - base, skia, gpu_command_buffer, ui_gfx, ui_base
+ * Handles : various OpenGL utility functions.
 
 07b) gpu
 
@@ -175,7 +188,11 @@ by doing the following :
  * Depends on :
    - base, crypto, ipc, gpu_command_buffer, ui_gfx, ui_gl
    - python, protobuf-compiler (for building only)
- * Handles :
+ * Handles : code for Chromium's "GPU process" lives there ; it is
+             responsible for detecting GPU OpenGL capabilities,
+             initializing the GL renderer and fallbacking to the
+             software renderer if necessary, and starting the
+             dedicated GPU Zygote process.
 
 08a) cc
 
@@ -184,12 +201,20 @@ by doing the following :
    - base, skia, ui_gfx, ui_events, media, ui_gl, gpu
    - protobuf
    - python, protobuf-compiler (for building only)
+ * Handles : code for Chromium's "Renderer process" lives there ;
+             it is the last abstraction layer between drawing
+             libraries (from above : UI Views, UI Gfx, Skia) and
+             the GPU process above which will do the real drawing.
+             It starts the dedicated Renderer Zygote process.
 
 09a) blink
 
  Blink Web Engine, Google's fork of WebKit.
  * Depends on :
    - base, skia, v8, url, ui_gfx, gpu, cc
-   - libicui18n, libicuuc
+   - libicui18n>=52, libicuuc>=52, harfbuzz
    - python, gperf (for building only)
  * Handles : Web rendering.
+ * Notes : hard-to-find third-parties such as QCMS (fork of
+           Mozilla TinyCMS) and OTS (security layer for TrueType
+           fonts decoding) are included directly inside the binary.

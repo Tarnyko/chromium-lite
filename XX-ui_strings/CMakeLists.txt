@@ -9,13 +9,13 @@ SET(PROJECT_NAME "Chromium - UI Strings")
 # Variable paths for required third-parties
 SET(GRIT_DIR "../..")
 
-# CMake modules
-INCLUDE(FindPythonLibs)
-
 # Mandatory dependencies
-IF(NOT PYTHONLIBS_FOUND)
-  MESSAGE(FATAL_ERROR "Python is required to generate some source files !")
-ENDIF(NOT PYTHONLIBS_FOUND)
+FIND_PROGRAM(PYTHON_FOUND python)
+IF(NOT PYTHON_FOUND)
+  MESSAGE(FATAL_ERROR "\"python\" is required, please install it !")
+ELSE()
+  MESSAGE(STATUS "\"python\" found...")
+ENDIF(NOT PYTHON_FOUND)
 
 
 MESSAGE(STATUS "Generating .pak from .grd...")

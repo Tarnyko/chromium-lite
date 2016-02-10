@@ -13,7 +13,6 @@ SET(SDCH_DIR "../sdch")
 
 # CMake modules
 INCLUDE(FindPkgConfig)
-INCLUDE(FindPythonLibs)
 INCLUDE(GNUInstallDirs)
 
 # Mandatory dependencies
@@ -22,9 +21,12 @@ PKG_CHECK_MODULES(protobuf REQUIRED protobuf)
 PKG_CHECK_MODULES(nss REQUIRED nss)
 PKG_CHECK_MODULES(nspr REQUIRED nspr)
 
-IF(NOT PYTHONLIBS_FOUND)
-  MESSAGE(FATAL_ERROR "Python is required to generate some source files !")
-ENDIF(NOT PYTHONLIBS_FOUND)
+FIND_PROGRAM(PYTHON_FOUND python)
+IF(NOT PYTHON_FOUND)
+  MESSAGE(FATAL_ERROR "\"python\" is required, please install it !")
+ELSE()
+  MESSAGE(STATUS "\"python\" found...")
+ENDIF(NOT PYTHON_FOUND)
 
 FIND_PROGRAM(PROTOC_FOUND protoc)
 IF(NOT PROTOC_FOUND)
