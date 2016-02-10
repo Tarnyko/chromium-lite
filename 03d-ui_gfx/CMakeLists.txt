@@ -72,10 +72,11 @@ ENDIF()
 # PRE-GENERATION .ICON -> .CC,.H
 
 MESSAGE(STATUS "Generating .cc,.h files from .icon files...")
-
+ 
 EXECUTE_PROCESS(COMMAND mkdir -p ui/gfx/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-EXECUTE_PROCESS(COMMAND python vector_icons/aggregate_vector_icons.py --working_directory=vector_icons --output_cc=${CMAKE_BINARY_DIR}/ui/gfx/vector_icons.cc --output_h=${CMAKE_BINARY_DIR}/ui/gfx/vector_icons.h WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+# the final "/" at the end of working_directory is essential...
+EXECUTE_PROCESS(COMMAND python vector_icons/aggregate_vector_icons.py --working_directory=vector_icons/ --output_cc=${CMAKE_BINARY_DIR}/ui/gfx/vector_icons.cc --output_h=${CMAKE_BINARY_DIR}/ui/gfx/vector_icons.h WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
 # SOURCES FILE LIST

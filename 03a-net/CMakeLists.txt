@@ -7,9 +7,9 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 SET(PROJECT_NAME "Chromium - Net")
 
 # Variable paths for required third-parties
-SET(PROTOC_WRAPPER_DIR "..")
-SET(GRIT_DIR "..")
-SET(SDCH_DIR "../sdch")
+SET(PROTOC_WRAPPER_DIR "${CMAKE_SOURCE_DIR}/..")
+SET(GRIT_DIR "${CMAKE_SOURCE_DIR}/..")
+SET(SDCH_DIR "${CMAKE_SOURCE_DIR}/../sdch")
 
 # CMake modules
 INCLUDE(FindPkgConfig)

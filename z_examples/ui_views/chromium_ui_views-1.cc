@@ -3,14 +3,12 @@
 
 #include <iostream>			// for << >>
 
-#include "ui/compositor/compositor.h"	// for ui::Compositor
+#include "ui/views/widget/native_widget.h"
 
 
 int main (int argc, char *argv[])
 {
-	scoped_ptr<ui::Compositor> compositor;
-
-	compositor->SetAcceleratedWidget (gfx::kNullAcceleratedWidget);
+	auto *widget = new views::Widget;
 
 	return 0;
 }

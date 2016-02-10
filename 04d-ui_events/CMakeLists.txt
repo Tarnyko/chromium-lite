@@ -32,8 +32,8 @@ IF(BACKEND STREQUAL "OZONE")
 ENDIF(BACKEND STREQUAL "OZONE")
 
 IF(BACKEND STREQUAL "X11")
-  PKG_CHECK_MODULES(backend REQUIRED x11 xi xproto inputproto)
-  SET(BACKEND_SOURCE_FILES keycodes/keyboard_code_conversion_x.cc x/keysym_to_unicode.cc x/events_x.cc devices/x11/device_data_manager_x11.cc devices/x11/device_list_cache_x11.cc devices/x11/touch_factory_x11.cc)
+  PKG_CHECK_MODULES(backend REQUIRED x11 xi xproto inputproto libevent)
+  SET(BACKEND_SOURCE_FILES keycodes/keyboard_code_conversion_x.cc x/keysym_to_unicode.cc x/events_x.cc devices/x11/device_data_manager_x11.cc devices/x11/device_list_cache_x11.cc devices/x11/touch_factory_x11.cc platform/x11/x11_event_source.cc platform/x11/x11_event_source_libevent.cc platform/x11/x11_hotplug_event_handler.cc)
   ADD_DEFINITIONS(-DUSE_X11)
 ENDIF(BACKEND STREQUAL "X11")
 
@@ -50,8 +50,8 @@ ENDIF()
 # keycode_converter
 ADD_LIBRARY(keycode_converter OBJECT keycodes/dom/keycode_converter.cc)
 
-# event
-ADD_LIBRARY(event OBJECT base_event_utils.cc event.cc event_dispatcher.cc event_handler.cc event_processor.cc event_source.cc event_switches.cc event_target.cc event_utils.cc gesture_event_details.cc gestures/fling_curve.cc gestures/gesture_provider_aura.cc gestures/gesture_recognizer_impl.cc gestures/motion_event_aura.cc keycodes/keyboard_code_conversion.cc keycodes/keyboard_code_conversion_xkb.cc linux/text_edit_command_auralinux.cc linux/text_edit_key_bindings_delegate_auralinux.cc latency_info.cc null_event_targeter.cc scoped_target_handler.cc)
+# base
+ADD_LIBRARY(base OBJECT base_event_utils.cc event.cc event_dispatcher.cc event_handler.cc event_processor.cc event_source.cc event_switches.cc event_target.cc event_utils.cc gesture_event_details.cc gestures/fling_curve.cc gestures/gesture_provider_aura.cc gestures/gesture_recognizer_impl.cc gestures/motion_event_aura.cc keycodes/keyboard_code_conversion.cc keycodes/keyboard_code_conversion_xkb.cc linux/text_edit_command_auralinux.cc linux/text_edit_key_bindings_delegate_auralinux.cc latency_info.cc null_event_targeter.cc scoped_target_handler.cc)
 
 # ipc
 ADD_LIBRARY(ipc OBJECT ipc/latency_info_param_traits.cc)
@@ -73,7 +73,7 @@ ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
 SET(include_dirs ${INCLUDE_DIRS} ${xkbcommon_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_SOURCE_DIR}/include/core ${SKIA_EXT_DIR}/config ${CMAKE_SOURCE_DIR}/.. ${CMAKE_SOURCE_DIR}/../..)
 SET(link_libraries ${xkbcommon_LIBRARIES} ${backend_LIBRARIES})
 
-ADD_LIBRARY(ui_events SHARED $<TARGET_OBJECTS:keycode_converter> $<TARGET_OBJECTS:event> $<TARGET_OBJECTS:ipc> $<TARGET_OBJECTS:devices> $<TARGET_OBJECTS:gesture_detection> $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:backend>)
+ADD_LIBRARY(ui_events SHARED $<TARGET_OBJECTS:keycode_converter> $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:ipc> $<TARGET_OBJECTS:devices> $<TARGET_OBJECTS:gesture_detection> $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:backend>)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ui_events ${link_libraries})
 

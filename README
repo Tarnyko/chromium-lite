@@ -187,7 +187,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  UI Events helper library.
  * Depends on :
    - base, skia, ipc, ui_gfx, xkbcommon
-   - libudev (wayland) / x11, xi, xproto (x11)
+   - libudev (wayland) / x11, xi, xproto, libevent (x11)
  * Handles : hardware detection, keyboard events, motion and gesture
              detection. Basically, this library uses platform-specific
              APIs (XInput under X11, UDev under Ozone/Wayland) to
@@ -235,6 +235,10 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
              initializing the GL renderer and fallbacking to the
              software renderer if necessary, and starting the
              dedicated GPU Zygote process.
+ * Notes : lots of third-parties are living inside this binary,
+           including ANGLE (converts D3D->OpenGL, but required ?),
+           RE2 (regular expressions), SMhasher (custom hashes) and
+           libXNVCTRL (specific NVidia extensions under X11).
 
 08a) cc
 
@@ -265,3 +269,20 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 
  UI Compositor helper library.
  * Depends on : base, skia, ui_gfx, ui_gl, gpu, cc
+
+10a) ui_aura
+
+ UI Aura library.
+
+11a) ui_views
+
+ UI Views toolkit.
+ * Depends on :
+   - base, skia, url, ui_gfx, ui_accessibility, ui_events, ui_base,
+     ui_compositor, ui_aura, ui_strings, ui_resoruces
+   - ozone (wayland) / x11, xext, xrandr, atk (x11)
+   - libicu
+ * Views is the real Chromium toolkit, feature-equivalent to GTK+,
+   Elementary or QtWidgets. It leverages the whole lower-level
+   UI libraries to create and handle buttons, menus, text fields,
+   scrollbars, dialog boxes... and react to user input.

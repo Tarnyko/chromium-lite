@@ -9,6 +9,13 @@ SET(PROJECT_NAME "Chromium - Base")
 # Location of libicu fork (required by i18n sources)
 SET(ICU_FORK_DIR "${CMAKE_SOURCE_DIR}/../third_party/icu")
 
+# Verify a backend (X11/OZONE) has been chosen ; default to OZONE
+IF(NOT BACKEND)
+  MESSAGE(STATUS "Option \"-DBACKEND=<X11/OZONE>\" not passed; defaulting to OZONE...")
+  SET(BACKEND "OZONE")
+ENDIF(NOT BACKEND)
+MESSAGE(STATUS "Chosen Backend: ${BACKEND}")
+
 # CMake modules
 INCLUDE(FindThreads)
 INCLUDE(FindPkgConfig)
@@ -18,6 +25,15 @@ INCLUDE(GNUInstallDirs)
 FIND_PACKAGE(Threads)
 PKG_CHECK_MODULES(libevent REQUIRED libevent)
 PKG_CHECK_MODULES(icui18n REQUIRED icu-i18n)
+
+# Optional dependencies and definitions
+IF(BACKEND STREQUAL "OZONE")
+  ADD_DEFINITIONS(-DUSE_OZONE)
+ENDIF(BACKEND STREQUAL "OZONE")
+
+IF(BACKEND STREQUAL "X11")
+  ADD_DEFINITIONS(-DUSE_X11)
+ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
 ADD_DEFINITIONS(-DOS_POSIX=1 -DCOMPONENT_BUILD=1 -DBASE_IMPLEMENTATION=1)

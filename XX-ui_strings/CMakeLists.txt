@@ -7,7 +7,7 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 SET(PROJECT_NAME "Chromium - UI Strings")
 
 # Variable paths for required third-parties
-SET(GRIT_DIR "../..")
+SET(GRIT_DIR "${CMAKE_SOURCE_DIR}/../..")
 
 # Mandatory dependencies
 FIND_PROGRAM(PYTHON_FOUND python)
