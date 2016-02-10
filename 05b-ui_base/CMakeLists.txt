@@ -34,7 +34,7 @@ IF(BACKEND STREQUAL "X11")
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DUI_BASE_IMPLEMENTATION -DUSE_AURA)
+ADD_DEFINITIONS(-DUI_BASE_IMPLEMENTATION -DUI_BASE_IME_IMPLEMENTATION -DUSE_AURA)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
@@ -72,6 +72,9 @@ ADD_LIBRARY(resource OBJECT resource/data_pack.cc resource/material_design/mater
 # touch
 ADD_LIBRARY(touch OBJECT touch/selection_bound.cc touch/touch_device_linux.cc touch/touch_editing_controller.cc touch/touch_enabled.cc)
 
+# ime
+ADD_LIBRARY(ime OBJECT ime/candidate_window.cc ime/composition_text.cc ime/ime_bridge.cc ime/ime_engine_handler_interface.cc ime/infolist_entry.cc ime/input_method_auralinux.cc ime/input_method_base.cc ime/input_method_factory.cc ime/input_method_initializer.cc ime/input_method_minimal.cc ime/mock_input_method.cc ime/text_input_client.cc ime/linux/fake_input_method_context.cc ime/linux/fake_input_method_context_factory.cc ime/linux/linux_input_method_context_factory.cc)
+
 # backend
 ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
 
@@ -80,7 +83,7 @@ ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
 SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_SOURCE_DIR}/include/core ${SKIA_EXT_DIR}/config ${CMAKE_SOURCE_DIR}/.. ${CMAKE_SOURCE_DIR}/../..)
 SET(link_libraries ${backend_LIBRARIES} -ldl)
 
-ADD_LIBRARY(ui_base SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:accelerators> $<TARGET_OBJECTS:clipboard> $<TARGET_OBJECTS:cursor> $<TARGET_OBJECTS:dragdrop> $<TARGET_OBJECTS:l10n> $<TARGET_OBJECTS:models> $<TARGET_OBJECTS:resource> $<TARGET_OBJECTS:touch> $<TARGET_OBJECTS:backend>)
+ADD_LIBRARY(ui_base SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:accelerators> $<TARGET_OBJECTS:clipboard> $<TARGET_OBJECTS:cursor> $<TARGET_OBJECTS:dragdrop> $<TARGET_OBJECTS:l10n> $<TARGET_OBJECTS:models> $<TARGET_OBJECTS:resource> $<TARGET_OBJECTS:touch> $<TARGET_OBJECTS:ime> $<TARGET_OBJECTS:backend>)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ui_base ${link_libraries})
 

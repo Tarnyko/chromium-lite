@@ -61,7 +61,7 @@ IF(BACKEND STREQUAL "X11")
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DCC_IMPLEMENTATION=1 -DCC_PROTO_IMPLEMENTATION=1 -DUSE_AURA)
+ADD_DEFINITIONS(-DCC_IMPLEMENTATION=1 -DCC_PROTO_IMPLEMENTATION=1 -DCC_SURFACES_IMPLEMENTATION=1 -DUSE_AURA)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
@@ -145,6 +145,9 @@ ADD_LIBRARY(tiles OBJECT tiles/eviction_tile_priority_queue.cc tiles/image_decod
 # trees
 ADD_LIBRARY(trees OBJECT trees/blocking_task_runner.cc trees/damage_tracker.cc trees/draw_property_utils.cc trees/latency_info_swap_promise_monitor.cc trees/layer_tree_host.cc trees/layer_tree_host_common.cc trees/layer_tree_host_impl.cc trees/layer_tree_impl.cc trees/layer_tree_settings.cc trees/occlusion.cc trees/occlusion_tracker.cc trees/property_tree.cc trees/property_tree_builder.cc trees/proxy_common.cc trees/proxy_impl.cc trees/proxy_main.cc trees/single_thread_proxy.cc trees/swap_promise_monitor.cc trees/task_runner_provider.cc trees/threaded_channel.cc trees/tree_synchronizer.cc)
 
+# surfaces
+ADD_LIBRARY(surfaces OBJECT surfaces/display.cc surfaces/display_scheduler.cc surfaces/onscreen_display_client.cc surfaces/surface.cc surfaces/surface_aggregator.cc surfaces/surface_display_output_surface.cc surfaces/surface_factory.cc surfaces/surface_hittest.cc surfaces/surface_id_allocator.cc surfaces/surface_manager.cc surfaces/surface_resource_holder.cc)
+
 # generated (these are generated !)
 ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/cc/proto/compositor_message.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/display_item.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/display_list_recording_source.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/layer.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/layer_position_constraint.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/layer_tree_debug_state.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/layer_tree_settings.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/managed_memory_policy.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/memory_allocation.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/point.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/point3f.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/pointf.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/property_tree.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/rect.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/rectf.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/region.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/renderer_settings.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/scroll_offset.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/size.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/sizef.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/skregion.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/skrrect.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/skxfermode.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/transform.pb.cc ${CMAKE_BINARY_DIR}/cc/proto/vector2df.pb.cc)
 
@@ -154,7 +157,7 @@ ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/cc/proto/compositor_message.pb.
 SET(include_dirs ${INCLUDE_DIRS} ${protobuf_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${SKIA_SOURCE_DIR}/include/utils ${SKIA_SOURCE_DIR}/include/gpu ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/.. ${CMAKE_SOURCE_DIR})
 SET(link_libraries ${protobuf_LIBRARIES})
 
-ADD_LIBRARY(cc SHARED $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:debug> $<TARGET_OBJECTS:input> $<TARGET_OBJECTS:layers> $<TARGET_OBJECTS:output> $<TARGET_OBJECTS:playback> $<TARGET_OBJECTS:proto> $<TARGET_OBJECTS:quads> $<TARGET_OBJECTS:raster> $<TARGET_OBJECTS:resources> $<TARGET_OBJECTS:scheduler> $<TARGET_OBJECTS:tiles> $<TARGET_OBJECTS:trees> $<TARGET_OBJECTS:generated> ${TOOLCHAIN_OPTS_SOURCE_FILES})
+ADD_LIBRARY(cc SHARED $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:debug> $<TARGET_OBJECTS:input> $<TARGET_OBJECTS:layers> $<TARGET_OBJECTS:output> $<TARGET_OBJECTS:playback> $<TARGET_OBJECTS:proto> $<TARGET_OBJECTS:quads> $<TARGET_OBJECTS:raster> $<TARGET_OBJECTS:resources> $<TARGET_OBJECTS:scheduler> $<TARGET_OBJECTS:tiles> $<TARGET_OBJECTS:trees> $<TARGET_OBJECTS:surfaces> $<TARGET_OBJECTS:generated> ${TOOLCHAIN_OPTS_SOURCE_FILES})
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(cc ${link_libraries})
 

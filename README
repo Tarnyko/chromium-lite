@@ -160,6 +160,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  * Depends on :
    - base, skia, ipc, libjpeg-turbo, harfbuzz
    - x11, xi (x11)
+   - python (for building only)
  * Handles : intermediate drawing helper API between Views toolkit
              (see below) and Skia. Can easily convert to PNG/JPEG,
              draw text, set bounds...
@@ -173,6 +174,13 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
              we only build its Wayland implementation, though a
              DRM implementation (for ChromeOS ?) exists somewhere.
              You have no reason to compile Ozone under X11.
+
+04c) ui_accessibility
+
+ UI Accessibility helper library.
+ * Depends on :
+   - base, ui_gfx, gconf, atk
+   - python (for building only)
 
 04d) ui_events
 
@@ -252,3 +260,8 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  * Notes : hard-to-find third-parties such as QCMS (fork of
            Mozilla TinyCMS) and OTS (security layer for TrueType
            fonts decoding) are included directly inside the binary.
+
+09b) ui_compositor
+
+ UI Compositor helper library.
+ * Depends on : base, skia, ui_gfx, ui_gl, gpu, cc
