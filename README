@@ -14,14 +14,14 @@ by doing the following :
 - making debugging easier.
 
 
- How to install :
- --------------
+ How to clone the source :
+ -----------------------
 To grab the whole Chromium source I am using (it is around 12 GB,
 thus schedule accordingly) :
 
 $ git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
 $ export PATH="$PWD/depot_tools:$PATH"
-$ gclient config https://github.com/Tarnyko/chromium-lite --name=chromium-lite --deps-file ".DEPS.git"
+$ gclient config https://github.com/Tarnyko/chromium-lite --name=src/chrome/tools/test/reference_build/chrome_linux --deps-file "DEPS"
 $ gclient sync
 
  How to build :
@@ -53,9 +53,9 @@ $ patch -p0 < <patchfile>
 $ mkdir my_build ; cd my_build
 $ cmake ..
  (for Skia :
-$ cmake ..-DBACKEND=GLX -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
+$ cmake .. -DBACKEND=GLX -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  for others :
-$ cmake ..-DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
+$ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 )
 
 
