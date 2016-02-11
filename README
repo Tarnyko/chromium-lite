@@ -139,13 +139,6 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  * Depends on : base, sqlite3
  * Handles : a thin wrapper around SQLite3, which Google forked
              to add the custom "recoverVtableInit()" function.
-             
-02g) gin
-
- Gin helper library.
- * Depends on : base, v8
- * Handles : a set of utility functions on top of V8. Only used
-             at a very high level by Content Shell/Chromium.
 
 03a) net
 
@@ -297,7 +290,12 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
              Funny part is, even with Aura, Views still needs X11
              libraries for custom stuff :).
 
-11a) ui_views
+11a) ui_shell_dialogs
+
+ UI Shell Dialogs library.
+ * Depends on : base, skia, ui_strings, ui_base, ui_aura
+
+13a) ui_views
 
  UI Views toolkit.
  * Depends on :
@@ -310,6 +308,19 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
    UI libraries to create and handle buttons, menus, text fields,
    scrollbars, dialog boxes... and react to user input.
 
+-------------------
 
+ Optional packages :
+ *****************
+
+02g) gin
+
+ Gin helper library.
+ * Depends on : base, v8
+ * Handles : a set of utility functions on top of V8. Only used
+             at a high level by Content Shell.
+
+
+-------------------
 (NOTES : "sdch" is only used by "net", "gin" by "content_shell"...
          Merge them ?)

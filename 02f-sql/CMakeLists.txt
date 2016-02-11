@@ -12,6 +12,8 @@ INCLUDE(GNUInstallDirs)
 
 # Mandatory dependencies
 PKG_CHECK_MODULES(sqlite REQUIRED sqlite3)
+# TODO : Chromium uses forked "recoverVtableInit()" function,
+# unfork it !
 
 # Common definitions
 ADD_DEFINITIONS(-DSQL_IMPLEMENTATION)
