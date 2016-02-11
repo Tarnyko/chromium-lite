@@ -21,7 +21,8 @@ thus schedule accordingly) :
 
 $ git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
 $ export PATH="$PWD/depot_tools:$PATH"
-$ gclient config https://github.com/Tarnyko/chromium-lite.git --name=chromium-lite --deps-file DEPS
+$ gclient config https://github.com/Tarnyko/chromium-lite.git \
+ --name=chromium-lite --deps-file DEPS
 $ gclient sync --nohooks
 
  How to build :
@@ -33,7 +34,7 @@ $ gclient sync --nohooks
 02a-url) url
 02b-crypto) crypto
 02c-ipc) ipc
-02d-sdch) sdcp
+02d-sdch) sdch
 02e-gpu_command_buffer) gpu/command_buffer
 03a-net) net
 03d-ui) ui/gfx
@@ -46,7 +47,8 @@ $ gclient sync --nohooks
 08a-cc) cc
 09a-blink) third_party/WebKit/Source
 
- For each "recipe", please copy it this folder the "CMakeList.txt" file, and any .cmake and .patch file present.
+ For each "recipe", please copy it this folder the "CMakeList.txt" file,
+and any .cmake and .patch file present.
  Then, move to it, and apply the patches with :
 $ patch -p0 < <patchfile>
  Finally, build the package :
@@ -266,7 +268,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  Blink Web Engine, Google's fork of WebKit.
  * Depends on :
    - base, skia, v8, url, ui_gfx, gpu, cc
-   - libicui18n>=52, libicuuc>=52, harfbuzz
+   - libicui18n>=52, libicuuc>=52, harfbuzz>=0.9.22, libwebp>=0.4.0
    - python, gperf (for building only)
  * Handles : Web rendering.
  * Notes : hard-to-find third-parties such as QCMS (fork of
@@ -323,5 +325,11 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 
 
 -------------------
-(NOTES : "sdch" is only used by "net", "gin" by "content_shell"...
-         Merge them ?)
+
+(NOTES :
+ 1) "sdch" is only used by "net", "gin" by "content_shell"...
+
+ 2) CentOS7 users : the versions of libicu, harfbuzz and libwebp
+    shipped by your distribution are too old to build Blink :(.
+    You will find in the "z_centos7" updated RPMs, which have
+    been verified to work.
