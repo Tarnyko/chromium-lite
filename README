@@ -217,6 +217,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
            and required libyuv is pretty different from the version
            found publicly. We are thus putting "third_party/libwebm"
            and "third_party/libyuv" code directly in the binary.
+           PS : MIDI implementation could pull udev, but we avoid it.
 
 05b) ui_base
 

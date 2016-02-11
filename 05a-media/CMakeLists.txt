@@ -70,7 +70,7 @@ IF(BACKEND STREQUAL "X11")
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DMEDIA_IMPLEMENTATION -DUSE_AURA -DUSE_ALSA -DMEDIA_DISABLE_FFMPEG -DMEDIA_DISABLE_LIBVPX)
+ADD_DEFINITIONS(-DMEDIA_IMPLEMENTATION -DMIDI_IMPLEMENTATION -DUSE_ALSA -DMEDIA_DISABLE_FFMPEG -DMEDIA_DISABLE_LIBVPX -DUSE_AURA)
 # for libyuv
 ADD_DEFINITIONS(-DHAVE_JPEG)
 
@@ -106,6 +106,10 @@ ADD_LIBRARY(filters OBJECT filters/audio_clock.cc filters/audio_renderer_algorit
 # formats
 ADD_LIBRARY(formats OBJECT formats/common/offset_byte_queue.cc formats/webm/webm_audio_client.cc formats/webm/webm_cluster_parser.cc formats/webm/webm_constants.cc formats/webm/webm_content_encodings.cc formats/webm/webm_content_encodings_client.cc formats/webm/webm_crypto_helpers.cc formats/webm/webm_info_parser.cc formats/webm/webm_parser.cc formats/webm/webm_stream_parser.cc formats/webm/webm_tracks_parser.cc formats/webm/webm_video_client.cc formats/webm/webm_webvtt_parser.cc)
 
+# midi
+ADD_LIBRARY(midi OBJECT midi/midi_manager.cc midi/midi_message_queue.cc midi/midi_message_util.cc midi/midi_port_info.cc midi/midi_scheduler.cc midi/midi_switches.cc)
+# "midi/midi_manager_alsa.cc" requires "udev" and "-DUSE_UDEV"
+
 # renderers
 ADD_LIBRARY(renderers OBJECT renderers/audio_renderer_impl.cc renderers/default_renderer_factory.cc renderers/renderer_impl.cc renderers/skcanvas_video_renderer.cc renderers/video_renderer_impl.cc)
 
@@ -126,7 +130,7 @@ ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
 SET(include_dirs ${INCLUDE_DIRS} ${alsa_INCLUDE_DIRS} ${opus_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${deps_INCLUDE_DIRS} ${SKIA_SOURCE_DIR}/include/core ${SKIA_SOURCE_DIR}/include/utils ${SKIA_SOURCE_DIR}/include/gpu ${SKIA_EXT_DIR}/config ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${LIBYUV_DIR}/include ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/..)
 SET(link_libraries ${alsa_LIBRARIES} ${opus_LIBRARIES} ${backend_LIBRARIES} ${deps_LIBRARIES} -ljpeg)
 
-ADD_LIBRARY(media SHARED $<TARGET_OBJECTS:audio_alsa> $<TARGET_OBJECTS:audio> $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:capture> $<TARGET_OBJECTS:cdm> $<TARGET_OBJECTS:filters> $<TARGET_OBJECTS:formats> $<TARGET_OBJECTS:renderers> $<TARGET_OBJECTS:video> $<TARGET_OBJECTS:libwebm> $<TARGET_OBJECTS:libyuv> $<TARGET_OBJECTS:backend> ${TOOLCHAIN_OPTS_SOURCE_FILES})
+ADD_LIBRARY(media SHARED $<TARGET_OBJECTS:audio_alsa> $<TARGET_OBJECTS:audio> $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:capture> $<TARGET_OBJECTS:cdm> $<TARGET_OBJECTS:filters> $<TARGET_OBJECTS:formats> $<TARGET_OBJECTS:midi> $<TARGET_OBJECTS:renderers> $<TARGET_OBJECTS:video> $<TARGET_OBJECTS:libwebm> $<TARGET_OBJECTS:libyuv> $<TARGET_OBJECTS:backend> ${TOOLCHAIN_OPTS_SOURCE_FILES})
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(media ${link_libraries})
 
