@@ -96,6 +96,15 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
    - python (for building only)
  * Handles : JavaScript parsing, compilation and optimization.
 
+01d) mojo
+
+ Mojo IPC and bindings library.
+ * Depends on : base, url
+ * Handles : Mojo is an effort to describe interfaces in a generic
+             way in .mojom files, and automatically generate C++/
+             JavaScript/Java bindings for them. It is mostly used
+             by the "ipc" library (see below).
+
 02a) url
 
  URL parsing.
