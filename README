@@ -118,6 +118,14 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  * Depends on : base
  * Handles : socket-based message passing.
 
+02d) sql
+
+ SQL helper library.
+ * Depends on : base, sqlite3
+ * Handles : a thin wrapper around SQLite3, which Google forked
+             to add the custom "recoverVtableInit()" function
+             (but we avoid it by using a macro).
+
 02e) gpu_command_buffer
 
  GPU command helper library.
@@ -126,13 +134,6 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
              group GL commands and mark them...
  * Notes : we can not rely on system Mesa to build it, because
            it uses Chromium-specific GL headers definitions.
-
-02f) sql
-
- SQL helper library.
- * Depends on : base, sqlite3
- * Handles : a thin wrapper around SQLite3, which Google forked
-             to add the custom "recoverVtableInit()" function.
 
 03a) net
 
@@ -175,6 +176,18 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
              we only build its Wayland implementation, though a
              DRM implementation (for ChromeOS ?) exists somewhere.
              You have no reason to compile Ozone under X11.
+
+04b) storage
+
+ Storage library.
+ * Depends on : base, url, sql, net, leveldb
+ * Handles : on top of "sql", but with an added dependency to the
+             external leveldb package (why doesn't it live within
+             "sql" directly ?), storage is an abstraction layer
+             for browser database storage.
+ * Notes : storage requires headers from Google's leveldb fork in
+           "third_party/leveldatabase" to be built, but not at
+           runtime. Thus, we can rely on the system leveldb.
 
 04c) ui_accessibility
 

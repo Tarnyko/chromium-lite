@@ -120,7 +120,7 @@ ADD_LIBRARY(time OBJECT third_party/nspr/prtime.cc time/time.cc time/time_posix.
 ADD_LIBRARY(timer OBJECT timer/timer.cc timer/elapsed_timer.cc)
 
 # files
-ADD_LIBRARY(files OBJECT files/file.cc files/file_posix.cc files/file_path.cc files/file_path_constants.cc files/file_path_watcher.cc files/file_path_watcher_linux.cc files/file_tracing.cc files/file_enumerator.cc files/file_enumerator_posix.cc files/file_util.cc files/file_util_linux.cc files/file_util_posix.cc files/important_file_writer.cc files/memory_mapped_file.cc files/memory_mapped_file_posix.cc files/scoped_file.cc path_service.cc)
+ADD_LIBRARY(files OBJECT files/file.cc files/file_posix.cc files/file_path.cc files/file_path_constants.cc files/file_path_watcher.cc files/file_path_watcher_linux.cc files/file_tracing.cc files/file_enumerator.cc files/file_enumerator_posix.cc files/file_util.cc files/file_util_linux.cc files/file_util_posix.cc files/file_util_proxy.cc files/important_file_writer.cc files/memory_mapped_file.cc files/memory_mapped_file_posix.cc files/scoped_file.cc path_service.cc)
 
 # metrics
 ADD_LIBRARY(metrics OBJECT metrics/histogram.cc metrics/histogram_base.cc metrics/histogram_samples.cc metrics/sparse_histogram.cc metrics/metrics_hashes.cc metrics/sample_map.cc metrics/sample_vector.cc metrics/statistics_recorder.cc metrics/bucket_ranges.cc metrics/field_trial.cc)
