@@ -118,14 +118,6 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  * Depends on : base
  * Handles : socket-based message passing.
 
-02d) sdch
-
- SDCH library.
- * Depends on : base
- * Handles : SDCH is Google's implementation of the VCDIFF
-             format, based on open-vcdiff, and used for
-             delta encoding in HTTP communications.
-
 02e) gpu_command_buffer
 
  GPU command helper library.
@@ -146,7 +138,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 
  Net helper library.
  * Depends on :
-   - base, url, crypto, sdch, protobuf, libnss, libnspr
+   - base, url, crypto, protobuf, libnss, libnspr, open-vcdiff
    - python, protobuf-compiler (for building only)
  * Handles : this huge library is at the core of Chromium's
              recognition of various protocols (HTTP://, FTP://,
@@ -315,6 +307,14 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 
  Optional packages :
  *****************
+
+02d) sdch
+
+ SDCH library.
+ * Depends on : base
+ * Handles : SDCH is Google's implementation of the VCDIFF
+             format, based on open-vcdiff, and used for
+             delta encoding in HTTP communications.
 
 02g) gin
 

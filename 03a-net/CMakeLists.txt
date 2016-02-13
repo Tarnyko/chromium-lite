@@ -9,7 +9,6 @@ SET(PROJECT_NAME "Chromium - Net")
 # Variable paths for required third-parties
 SET(PROTOC_WRAPPER_DIR "${CMAKE_SOURCE_DIR}/..")
 SET(GRIT_DIR "${CMAKE_SOURCE_DIR}/..")
-SET(SDCH_DIR "${CMAKE_SOURCE_DIR}/../sdch")
 
 # CMake modules
 INCLUDE(FindPkgConfig)
@@ -20,6 +19,23 @@ INCLUDE(GNUInstallDirs)
 PKG_CHECK_MODULES(protobuf REQUIRED protobuf)
 PKG_CHECK_MODULES(nss REQUIRED nss)
 PKG_CHECK_MODULES(nspr REQUIRED nspr)
+
+# open-vcdiff
+IF(EXISTS "/usr/${CMAKE_INSTALL_INCLUDEDIR}/google/output_string.h")
+  SET(HAVE_OPENVCDIFF_H "1")
+ENDIF()
+IF(EXISTS "/usr/${CMAKE_INSTALL_LIBDIR}/libvcddec.so")
+  SET(HAVE_OPENVCDIFF_SO "1")
+ENDIF()
+IF(HAVE_OPENVCDIFF_H)
+  IF(HAVE_OPENVCDIFF_SO)
+    SET(HAVE_OPENVCDIFF "1")
+  ENDIF(HAVE_OPENVCDIFF_SO)
+ENDIF(HAVE_OPENVCDIFF_H)
+IF(NOT HAVE_OPENVCDIFF)
+  MESSAGE(FATAL_ERROR "\"google/output_string.h\" or \"libvcddec.so\" missing.
+    Please install the \"open-vcdiff-devel\" or \"libvcd*-dev\" packages !")
+ENDIF(NOT HAVE_OPENVCDIFF)
 
 FIND_PROGRAM(PYTHON_FOUND python)
 IF(NOT PYTHON_FOUND)
@@ -142,10 +158,10 @@ ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/net/quic/proto/cached_network_p
 
 
 # we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
-# SDCH and, for NSS, additional "third_party/nss" headers are required
+# for NSS, additional "third_party/nss" headers are required
 # PS : main "third_party/nss" headers need to be BEFORE system nss ones !
-SET(include_dirs ${INCLUDE_DIRS} ${protobuf_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/third_party/nss/ssl ${nss_INCLUDE_DIRS} ${nspr_INCLUDE_DIRS} ${SDCH_DIR}/open-vcdiff/src ${CMAKE_SOURCE_DIR}/third_party/nss/ssl/bodge ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/.. ${CMAKE_BINARY_DIR})
-SET(link_libraries ${protobuf_LIBRARIES} ${nss_LIBRARIES} ${nspr_LIBRARIES})
+SET(include_dirs ${INCLUDE_DIRS} ${protobuf_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/third_party/nss/ssl ${nss_INCLUDE_DIRS} ${nspr_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/third_party/nss/ssl/bodge ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/.. ${CMAKE_BINARY_DIR})
+SET(link_libraries ${protobuf_LIBRARIES} ${nss_LIBRARIES} ${nspr_LIBRARIES} -lvcddec)
 
 ADD_LIBRARY(net SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:cert> $<TARGET_OBJECTS:cookies> $<TARGET_OBJECTS:der> $<TARGET_OBJECTS:disk_cache> $<TARGET_OBJECTS:dns> $<TARGET_OBJECTS:filter> $<TARGET_OBJECTS:http> $<TARGET_OBJECTS:log> $<TARGET_OBJECTS:crssl> $<TARGET_OBJECTS:quic> $<TARGET_OBJECTS:proxy> $<TARGET_OBJECTS:socket> $<TARGET_OBJECTS:spdy> $<TARGET_OBJECTS:ssl> $<TARGET_OBJECTS:udp> $<TARGET_OBJECTS:url_request> $<TARGET_OBJECTS:websockets> $<TARGET_OBJECTS:proto_file> $<TARGET_OBJECTS:proto_ftp> $<TARGET_OBJECTS:generated> sdch/sdch_owner.cc third_party/mozilla_security_manager/nsKeygenHandler.cpp third_party/mozilla_security_manager/nsNSSCertificateDB.cpp third_party/mozilla_security_manager/nsPKCS12Blob.cpp)
 INCLUDE_DIRECTORIES(${include_dirs})
