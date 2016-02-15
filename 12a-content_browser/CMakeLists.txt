@@ -8,13 +8,21 @@ SET(PROJECT_NAME "Chromium - Content Browser")
 
 # Location of direct dependencies
 SET(TRACING_DIR "${CMAKE_SOURCE_DIR}/../components/tracing")
+SET(UI_ACCESSIBILITY_DIR "${CMAKE_SOURCE_DIR}/../ui/accessibility")
+SET(MOJO_SRC_DIR "${CMAKE_SOURCE_DIR}/../mojo")
+SET(BLINK_DIR "${CMAKE_SOURCE_DIR}/../third_party/WebKit")
 
 # Location of Skia source folders
 SET(SKIA_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../third_party/skia")
 SET(SKIA_EXT_DIR "${CMAKE_SOURCE_DIR}/../skia")
 
+# Location of Chromium-specific OpenGL headers
+SET(CHROMIUM_GL_DIR "${CMAKE_SOURCE_DIR}/../third_party/khronos")
+SET(CHROMIUM_GLES2_EXT_DIR "${CMAKE_SOURCE_DIR}/../gpu")
+
 # Variable paths for required third-parties
 SET(GRIT_DIR "${CMAKE_SOURCE_DIR}/..")
+SET(BUILD_DIR "${CMAKE_SOURCE_DIR}/..")
 
 # Verify a backend (X11/OZONE) has been chosen ; default to OZONE
 IF(NOT BACKEND)
@@ -49,6 +57,8 @@ ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
 ADD_DEFINITIONS(-DCONTENT_IMPLEMENTATION -DTRACING_IMPLEMENTATION -DUSE_AURA)
+# This is because we are including "inttypes.h" with a Mojo header
+ADD_DEFINITIONS(-D__STDC_FORMAT_MACROS)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
@@ -62,6 +72,23 @@ MESSAGE(STATUS "Generating .cc,.h,.pak from .grd...")
 EXECUTE_PROCESS(COMMAND mkdir -p content/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i content_resources.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR}/content --write-only-new=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+# PRE-GENERATION .MOJOM -> .CC,.H
+
+MESSAGE(STATUS "Generating .cc,.h files from .mojom...")
+
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/service_port_service.mojom --use_bundled_pylibs -d . -I. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/routed_service_provider.mojom --use_bundled_pylibs -d . -I. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py public/common/service_worker_event_status.mojom --use_bundled_pylibs -d . -I. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+# PRE-GENERATION WEBKIT_VERSION.H
+
+MESSAGE(STATUS "Generating webkit_vesion.h from webkit_version.h.in...")
+
+EXECUTE_PROCESS(COMMAND mkdir -p build/util/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+EXECUTE_PROCESS(COMMAND sh -c "python ${BUILD_DIR}/build/util/lastchange.py > ${CMAKE_BINARY_DIR}/LASTCHANGE.blink" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python ${BUILD_DIR}/build/util/version.py -f ${CMAKE_BINARY_DIR}/LASTCHANGE.blink ${BUILD_DIR}/build/util/webkit_version.h.in ${CMAKE_BINARY_DIR}/build/util/webkit_version.h WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
 # SOURCES FILE LIST
@@ -123,12 +150,17 @@ ADD_LIBRARY(net OBJECT common/net/url_fetcher.cc common/net/url_request_user_dat
 # service_worker
 ADD_LIBRARY(service_worker OBJECT common/service_worker/service_worker_client_info.cc common/service_worker/service_worker_status_code.cc common/service_worker/service_worker_types.cc common/service_worker/service_worker_type_converters.cc common/service_worker/service_worker_utils.cc)
 
+# generated (these are generated !)
+ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/content/common/service_port_service.mojom.cc ${CMAKE_BINARY_DIR}/content/common/routed_service_provider.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/service_worker_event_status.mojom.cc)
+
 
 # all files refer to "content/...", so we include ".." here
-SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${CMAKE_SOURCE_DIR}/..)
+# we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
+SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${SKIA_SOURCE_DIR}/include/utils ${SKIA_SOURCE_DIR}/include/gpu ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${BLINK_DIR} ${MOJO_SRC_DIR}/.. ${MOJO_SRC_DIR}/build ${MOJO_SRC_DIR}/build/mojo ${UI_ACCESSIBILITY_DIR}/build ${CMAKE_BINARY_DIR}/content ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/..)
+# TODO : "${MOJO_SRC_DIR}/${UI_ACCESSIBILITY_DIR}/build" here are HACKS !
 SET(link_libraries ${backend_LIBRARIES})
 
-ADD_LIBRARY(content_browser SHARED $<TARGET_OBJECTS:tracing> $<TARGET_OBJECTS:common> $<TARGET_OBJECTS:bluetooth> $<TARGET_OBJECTS:browser_plugin> $<TARGET_OBJECTS:cache_storage> $<TARGET_OBJECTS:dom_storage> $<TARGET_OBJECTS:cursors> $<TARGET_OBJECTS:gpu> $<TARGET_OBJECTS:gpu_client> $<TARGET_OBJECTS:gpu_media> $<TARGET_OBJECTS:indexed_db> $<TARGET_OBJECTS:input> $<TARGET_OBJECTS:media> $<TARGET_OBJECTS:mojo> $<TARGET_OBJECTS:net> $<TARGET_OBJECTS:service_worker> ${BACKEND_SOURCE_FILES})
+ADD_LIBRARY(content_browser SHARED $<TARGET_OBJECTS:tracing> $<TARGET_OBJECTS:common> $<TARGET_OBJECTS:bluetooth> $<TARGET_OBJECTS:browser_plugin> $<TARGET_OBJECTS:cache_storage> $<TARGET_OBJECTS:dom_storage> $<TARGET_OBJECTS:cursors> $<TARGET_OBJECTS:gpu> $<TARGET_OBJECTS:gpu_client> $<TARGET_OBJECTS:gpu_media> $<TARGET_OBJECTS:indexed_db> $<TARGET_OBJECTS:input> $<TARGET_OBJECTS:media> $<TARGET_OBJECTS:mojo> $<TARGET_OBJECTS:net> $<TARGET_OBJECTS:service_worker> $<TARGET_OBJECTS:generated> ${BACKEND_SOURCE_FILES})
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(content_browser ${link_libraries})
 
