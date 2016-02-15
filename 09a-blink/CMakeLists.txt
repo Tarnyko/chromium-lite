@@ -28,6 +28,7 @@ SET(CHROMIUM_GLES2_EXT_DIR "${CMAKE_SOURCE_DIR}/../../../gpu")
 SET(QCMS_DIR "${CMAKE_SOURCE_DIR}/../../../third_party/qcms")
 SET(OTS_DIR "${CMAKE_SOURCE_DIR}/../../../third_party/ots")
 SET(ICCJPEG_DIR "${CMAKE_SOURCE_DIR}/../../../third_party/iccjpeg")
+SET(NPAPI_DIR "${CMAKE_SOURCE_DIR}/../../../third_party/npapi")
 
 # Verify a backend (X11/OZONE) has been chosen ; default to OZONE
 IF(NOT BACKEND)
@@ -71,7 +72,7 @@ IF(BACKEND STREQUAL "X11")
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DBLINK_COMMON_IMPLEMENTATION=1 -DBLINK_PLATFORM_IMPLEMENTATION=1 -DINSIDE_BLINK -DUSE_AURA -DUSING_SYSTEM_ICU)
+ADD_DEFINITIONS(-DBLINK_IMPLEMENTATION=1 -DBLINK_COMMON_IMPLEMENTATION=1 -DBLINK_PLATFORM_IMPLEMENTATION=1 -DINSIDE_BLINK -DUSE_AURA -DUSING_SYSTEM_ICU)
 ADD_DEFINITIONS(-DWTF_IMPLEMENTATION=1)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
@@ -93,11 +94,15 @@ EXECUTE_PROCESS(COMMAND python build/scripts/make_css_property_names.py core/css
 EXECUTE_PROCESS(COMMAND python build/scripts/make_names.py platform/fonts/FontFamilyNames.in --output_dir ${CMAKE_BINARY_DIR}/platform WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python build/scripts/make_names.py core/events/EventTargetFactory.in --output_dir ${CMAKE_BINARY_DIR}/core WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python build/scripts/make_names.py core/events/EventTypeNames.in --output_dir ${CMAKE_BINARY_DIR}/core WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python build/scripts/make_names.py core/html/forms/InputTypeNames.in --output_dir ${CMAKE_BINARY_DIR}/core WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python build/scripts/make_names.py modules/EventTargetModulesFactory.in --output_dir ${CMAKE_BINARY_DIR}/modules WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python build/scripts/make_settings.py core/frame/Settings.in --output_dir ${CMAKE_BINARY_DIR}/core WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python build/scripts/make_element_factory.py core/html/HTMLTagNames.in core/html/HTMLAttributeNames.in --output_dir ${CMAKE_BINARY_DIR}/core WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python build/scripts/make_css_value_keywords.py core/css/CSSValueKeywords.in core/css/SVGCSSValueKeywords.in --output_dir ${CMAKE_BINARY_DIR}/core --gperf gperf WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python core/inspector/CodeGeneratorInspector.py devtools/protocol.json --output_dir ${CMAKE_BINARY_DIR}/core WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python core/inspector/CodeGeneratorInstrumentation.py core/inspector/InspectorInstrumentation.idl --output_dir ${CMAKE_BINARY_DIR}/core WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python build/scripts/make_element_type_helpers.py core/html/HTMLTagNames.in --output_dir ${CMAKE_BINARY_DIR}/core WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python build/scripts/make_media_feature_names.py core/css/MediaFeatureNames.in --output_dir ${CMAKE_BINARY_DIR}/core WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python build/scripts/make_runtime_features.py platform/RuntimeEnabledFeatures.in --output_dir ${CMAKE_BINARY_DIR}/platform WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 MESSAGE(STATUS "Generating .cpp from .gperf...")
@@ -132,8 +137,8 @@ EXECUTE_PROCESS(COMMAND sh -c "sed -i '/^$/d' core.lst" WORKING_DIRECTORY ${CMAK
 # We create a separate list with only dictionary .idl files, they will allow us
 # to generate the "UnionTypesCore.*" source files and also serve as input file
 # list for idl_compiler.py (so we can compile everything in one pass)
-EXECUTE_PROCESS(COMMAND sh -c "find core/ -name *.idl |grep -E 'Init.idl|Bag.idl|Options.idl|Properties.idl|Descriptors.idl|InternalDictionary' > ${CMAKE_BINARY_DIR}/dicts_core.lst" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-EXECUTE_PROCESS(COMMAND sh -c "find modules/ -name *.idl |grep -E 'Init.idl|Bag.idl|Options.idl|Descriptors.idl|InternalDictionary|MediaTrackConstraintSet.idl|ServicePortConnectResponse.idl|NFCMessage.idl' > ${CMAKE_BINARY_DIR}/dicts_modules.lst" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND sh -c "find core/ -name *.idl |grep -E 'Init.idl|Bag.idl|Options.idl|Properties.idl|Descriptors.idl|InternalDictionary|CanvasContextCreationAttributes.idl' > ${CMAKE_BINARY_DIR}/dicts_core.lst" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND sh -c "find modules/ -name *.idl |grep -E 'Init.idl|Bag.idl|Options.idl|Parameters.idl|Descriptor.idl|Range.idl|Attributes.idl|Data.idl|InternalDictionary|MediaTrackConstraintSet.idl|ServicePortConnectResponse.idl|NFCMessage.idl|NFCRecord.idl|FileSystemFlags.idl' |grep -E -v 'VREyeParameters.idl|IDBKeyRange.idl|BluetoothAdvertisingData.idl|PushMessageData.idl' > ${CMAKE_BINARY_DIR}/dicts_modules.lst" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 EXECUTE_PROCESS(COMMAND mkdir -p bindings/scripts/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 EXECUTE_PROCESS(COMMAND mkdir -p bindings/core/v8/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -152,6 +157,29 @@ EXECUTE_PROCESS(COMMAND python bindings/scripts/compute_interfaces_info_overall.
 # with "dicts.lst" as a last argument (see its generation above)
 EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/core/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --impl-output-dir ${CMAKE_BINARY_DIR}/bindings/core/v8 --generate-impl --write-file-only-if-changed 0 --target-component core ${CMAKE_BINARY_DIR}/dicts_core.lst WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/modules/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --impl-output-dir ${CMAKE_BINARY_DIR}/bindings/modules/v8 --generate-impl --write-file-only-if-changed 0 --target-component modules ${CMAKE_BINARY_DIR}/dicts_modules.lst WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+
+# THIS SHOULD BE AUTOMATED
+
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/core/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component core core/events/EventListenerOptions.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/core/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component core core/inspector/InspectorOverlayHost.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/core/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component core core/dom/ArrayBuffer.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/core/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component core core/dom/ArrayBufferView.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/core/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component core core/fileapi/Blob.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/core/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component core core/events/EventTarget.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/core/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component core core/inspector/DevToolsHost.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/core/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component core core/dom/ElementRegistrationOptions.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/core/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component core core/dom/Element.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/core/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component core core/dom/Node.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/modules/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component modules modules/mediastream/MediaTrackConstraintSet.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/modules/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component modules modules/nfc/NFCMessage.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/modules/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component modules modules/filesystem/DOMFileSystem.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/modules/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component modules modules/filesystem/DirectoryEntry.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/modules/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component modules modules/filesystem/Entry.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/modules/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component modules modules/filesystem/FileEntry.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/modules/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component modules modules/mediastream/MediaStreamTrack.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
 
 
 # SOURCES FILE LIST
@@ -186,7 +214,7 @@ ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/core/HTMLEntityTable.cpp ${CMAK
 
 # all files refer to "ui/...", so we include "../.." here
 # we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
-SET(include_dirs ${INCLUDE_DIRS} ${icu_INCLUDE_DIRS} ${harfbuzz_INCLUDE_DIRS} ${libwebp_INCLUDE_DIRS} ${BASE_DIR}/.. ${V8_DIR}/include ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${SKIA_SOURCE_DIR}/include/utils ${SKIA_SOURCE_DIR}/include/ports ${SKIA_SOURCE_DIR}/include/gpu ${SKIA_SOURCE_DIR}/include/effects ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${QCMS_DIR}/src ${OTS_DIR}/include ${ICCJPEG_DIR} ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/bindings/core/v8 ${CMAKE_BINARY_DIR}/bindings/modules/v8 ${CMAKE_SOURCE_DIR}/wtf ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/..)
+SET(include_dirs ${INCLUDE_DIRS} ${icu_INCLUDE_DIRS} ${harfbuzz_INCLUDE_DIRS} ${libwebp_INCLUDE_DIRS} ${BASE_DIR}/.. ${V8_DIR}/include ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${SKIA_SOURCE_DIR}/include/utils ${SKIA_SOURCE_DIR}/include/ports ${SKIA_SOURCE_DIR}/include/gpu ${SKIA_SOURCE_DIR}/include/effects ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${QCMS_DIR}/src ${OTS_DIR}/include ${ICCJPEG_DIR} ${NPAPI_DIR} ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/bindings/core/v8 ${CMAKE_BINARY_DIR}/bindings/modules/v8 ${CMAKE_SOURCE_DIR}/wtf ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/..)
 SET(link_libraries ${icu_LIBRARIES} ${harfbuzz_LIBRARIES} ${libwebp_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -ldl)
 
 ADD_LIBRARY(blink SHARED $<TARGET_OBJECTS:wtf> $<TARGET_OBJECTS:platform_common> $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:platform_heap> $<TARGET_OBJECTS:web> $<TARGET_OBJECTS:qcms> $<TARGET_OBJECTS:ots> $<TARGET_OBJECTS:iccjpeg> $<TARGET_OBJECTS:generated> ${TOOLCHAIN_OPTS_SOURCE_FILES})
