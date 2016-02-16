@@ -9,6 +9,7 @@ SET(PROJECT_NAME "Chromium - Content Browser")
 # Location of direct dependencies
 SET(TRACING_DIR "${CMAKE_SOURCE_DIR}/../components/tracing")
 SET(UI_ACCESSIBILITY_DIR "${CMAKE_SOURCE_DIR}/../ui/accessibility")
+SET(UI_MOJO_DIR "${CMAKE_SOURCE_DIR}/../ui/mojo")
 SET(MOJO_SRC_DIR "${CMAKE_SOURCE_DIR}/../mojo")
 SET(BLINK_DIR "${CMAKE_SOURCE_DIR}/../third_party/WebKit")
 
@@ -23,6 +24,7 @@ SET(CHROMIUM_GLES2_EXT_DIR "${CMAKE_SOURCE_DIR}/../gpu")
 # Variable paths for required third-parties
 SET(GRIT_DIR "${CMAKE_SOURCE_DIR}/..")
 SET(BUILD_DIR "${CMAKE_SOURCE_DIR}/..")
+SET(PROTOC_WRAPPER_DIR "${CMAKE_SOURCE_DIR}/..")
 
 # Verify a backend (X11/OZONE) has been chosen ; default to OZONE
 IF(NOT BACKEND)
@@ -43,15 +45,22 @@ ELSE()
   MESSAGE(STATUS "\"python\" found...")
 ENDIF(NOT PYTHON_FOUND)
 
+FIND_PROGRAM(PROTOC_FOUND protoc)
+IF(NOT PROTOC_FOUND)
+  MESSAGE(FATAL_ERROR "\"protoc\" is required, please install the \"protobuf-compiler\" package !")
+ELSE()
+  MESSAGE(STATUS "\"protoc\" found...")
+ENDIF(NOT PROTOC_FOUND)
+
 # Optional definitions
 IF(BACKEND STREQUAL "OZONE")
-  SET(BACKEND_SOURCE_FILES common/font_list_ozone.cc common/cursors/webcursor_ozone.cc common/gpu/gpu_memory_buffer_factory_ozone.cc common/gpu/gpu_memory_buffer_factory_ozone_native_pixmap.cc common/gpu/client/gpu_memory_buffer_impl_ozone.cc common/gpu/client/gpu_memory_buffer_impl_ozone_native_pixmap.cc)
+  SET(BACKEND_SOURCE_FILES common/font_list_ozone.cc common/cursors/webcursor_ozone.cc common/gpu/gpu_memory_buffer_factory_ozone.cc common/gpu/gpu_memory_buffer_factory_ozone_native_pixmap.cc common/gpu/client/gpu_memory_buffer_impl_ozone.cc common/gpu/client/gpu_memory_buffer_impl_ozone_native_pixmap.cc browser/power_save_blocker_ozone.cc)
   ADD_DEFINITIONS(-DUSE_OZONE)
 ENDIF(BACKEND STREQUAL "OZONE")
 
 IF(BACKEND STREQUAL "X11")
   PKG_CHECK_MODULES(backend REQUIRED x11 xcomposite)
-  SET(BACKEND_SOURCE_FILES common/cursors/webcursor_aurax11.cc)
+  SET(BACKEND_SOURCE_FILES common/cursors/webcursor_aurax11.cc browser/power_save_blocker_x11.cc)
   ADD_DEFINITIONS(-DUSE_X11)
 ENDIF(BACKEND STREQUAL "X11")
 
@@ -79,7 +88,23 @@ MESSAGE(STATUS "Generating .cc,.h files from .mojom...")
 
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/service_port_service.mojom --use_bundled_pylibs -d . -I. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/routed_service_provider.mojom --use_bundled_pylibs -d . -I. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/image_downloader/image_downloader.mojom --use_bundled_pylibs -d . -I.. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py public/common/service_worker_event_status.mojom --use_bundled_pylibs -d . -I. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py public/common/permission_status.mojom --use_bundled_pylibs -d . -I. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py public/common/background_sync.mojom --use_bundled_pylibs -d . -I. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/background_sync_service.mojom --use_bundled_pylibs -d . -I.. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py ${UI_MOJO_DIR}/geometry/geometry.mojom --use_bundled_pylibs -d .. -I. -o ${CMAKE_BINARY_DIR} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+# PRE-GENERATION .PROTO -> .CC,.H,.PY
+
+MESSAGE(STATUS "Generating .cc,.h,.py files from .proto...")
+
+EXECUTE_PROCESS(COMMAND mkdir -p content/browser/background_sync/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+EXECUTE_PROCESS(COMMAND ${PROTOC_WRAPPER_DIR}/tools/protoc_wrapper/protoc_wrapper.py --proto-in-dir browser/background_sync --proto-in-file background_sync.proto --use-system-protobuf=1 -- protoc --cpp_out ${CMAKE_BINARY_DIR}/content/browser/background_sync WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+
+
 
 # PRE-GENERATION WEBKIT_VERSION.H
 
@@ -98,6 +123,90 @@ ADD_LIBRARY(tracing OBJECT ${TRACING_DIR}/child_memory_dump_manager_delegate_imp
 
 # common
 ADD_LIBRARY(common OBJECT public/common/child_process_host_delegate.cc public/common/color_suggestion.cc public/common/common_param_traits.cc public/common/content_client.cc public/common/content_constants.cc public/common/content_features.cc public/common/content_switches.cc public/common/context_menu_params.cc public/common/drop_data.cc public/common/favicon_url.cc public/common/file_chooser_file_info.cc public/common/file_chooser_params.cc public/common/frame_navigate_params.cc public/common/geoposition.cc public/common/manifest.cc public/common/menu_item.cc public/common/message_port_types.cc public/common/navigator_connect_client.cc public/common/page_state.cc public/common/platform_notification_data.cc public/common/presentation_constants.cc public/common/push_messaging_status.cc public/common/referrer.cc public/common/renderer_preferences.cc public/common/resource_devtools_info.cc public/common/resource_response.cc public/common/resource_response_info.cc public/common/resource_type.cc public/common/sandboxed_process_launcher_delegate.cc public/common/signed_certificate_timestamp_id_and_status.cc public/common/speech_recognition_result.cc public/common/ssl_status.cc public/common/url_constants.cc public/common/url_utils.cc public/common/web_preferences.cc public/common/webplugininfo.cc public/common/window_container_type.cc common/appcache_interfaces.cc common/ax_content_node_data.cc common/cc_messages.cc common/child_process_host_impl.cc common/child_process_sandbox_support_impl_linux.cc common/child_process_sandbox_support_impl_shm_linux.cc common/content_constants_internal.cc common/content_ipc_logging.cc common/content_message_generator.cc common/content_param_traits.cc common/content_paths.cc common/content_switches_internal.cc common/cross_site_document_classifier.cc common/discardable_shared_memory_heap.cc common/font_config_ipc_linux.cc common/font_list.cc common/frame_param.cc common/frame_replication_state.cc common/gamepad_param_traits.cc common/gamepad_user_gesture.cc common/generic_shared_memory_id_generator.cc common/geofencing_types.cc common/host_discardable_shared_memory_manager.cc common/host_shared_bitmap_manager.cc common/in_process_child_thread_params.cc common/inter_process_time_ticks_converter.cc common/message_router.cc common/navigation_params.cc common/one_writer_seqlock.cc common/origin_util.cc common/page_state_serialization.cc common/page_zoom.cc common/process_type.cc common/resource_messages.cc common/resource_request_body.cc common/savable_url_schemes.cc common/send_zygote_child_ping_linux.cc common/service_port_type_converters.cc common/set_process_title.cc common/set_process_title_linux.cc common/site_isolation_policy.cc common/ssl_status_serialization.cc common/swapped_out_messages.cc common/url_schemes.cc common/user_agent.cc common/webplugin_geometry.cc common/websocket.cc)
+
+# browser
+ADD_LIBRARY(browser OBJECT public/browser/ax_event_notification_details.cc public/browser/background_sync_parameters.cc public/browser/background_tracing_config.cc public/browser/bluetooth_chooser.cc public/browser/browser_child_process_host_delegate.cc public/browser/browser_child_process_host_iterator.cc public/browser/browser_child_process_observer.cc public/browser/browser_main_parts.cc public/browser/browser_message_filter.cc public/browser/browser_plugin_guest_delegate.cc public/browser/browser_plugin_guest_manager.cc public/browser/content_browser_client.cc public/browser/desktop_media_id.cc public/browser/download_manager_delegate.cc public/browser/download_url_parameters.cc public/browser/favicon_status.cc public/browser/interstitial_page_delegate.cc public/browser/javascript_dialog_manager.cc public/browser/load_from_memory_cache_details.cc public/browser/media_device_id.cc public/browser/navigation_controller.cc public/browser/navigation_details.cc public/browser/navigation_handle.cc public/browser/navigation_throttle.cc public/browser/notification_registrar.cc public/browser/page_navigator.cc public/browser/presentation_session.cc public/browser/presentation_session_message.cc public/browser/push_messaging_service.cc public/browser/resource_dispatcher_host_delegate.cc public/browser/resource_request_details.cc public/browser/screen_orientation_provider.cc public/browser/security_style_explanations.cc public/browser/service_worker_usage_info.cc public/browser/speech_recognition_session_config.cc public/browser/speech_recognition_session_context.cc public/browser/speech_recognition_session_preamble.cc public/browser/stream_info.cc public/browser/tracing_delegate.cc public/browser/url_data_source.cc public/browser/web_contents.cc public/browser/web_contents_delegate.cc public/browser/web_contents_observer.cc public/browser/web_contents_view_delegate.cc public/browser/web_ui_controller.cc browser/bad_message.cc browser/browser_child_process_host_impl.cc browser/browser_context.cc browser/browser_ipc_logging.cc browser/browser_main.cc browser/browser_main_loop.cc browser/browser_main_runner.cc browser/browser_process_sub_thread.cc browser/browser_shutdown_profile_dumper.cc browser/browser_thread_impl.cc browser/browser_url_handler_impl.cc browser/browsing_instance.cc browser/byte_stream.cc browser/cert_store_impl.cc browser/child_process_launcher.cc browser/child_process_security_policy_impl.cc browser/font_list_async.cc browser/histogram_controller.cc browser/histogram_internals_request_job.cc browser/histogram_message_filter.cc browser/histogram_synchronizer.cc browser/host_zoom_level_context.cc browser/host_zoom_map_impl.cc browser/manifest/manifest_manager_host.cc browser/message_port_message_filter.cc browser/message_port_provider.cc browser/mime_registry_message_filter.cc browser/navigator_connect/navigator_connect_context_impl.cc browser/navigator_connect/service_port_service_impl.cc browser/notification_service_impl.cc browser/power_monitor_message_broadcaster.cc browser/power_save_blocker_impl.cc browser/profiler_controller_impl.cc browser/profiler_message_filter.cc browser/quota_dispatcher_host.cc)
+
+# browser_accessibility
+ADD_LIBRARY(browser_accessibility OBJECT browser/accessibility/accessibility_mode_helper.cc browser/accessibility/accessibility_tree_formatter.cc browser/accessibility/accessibility_tree_formatter_blink.cc browser/accessibility/ax_tree_id_registry.cc browser/accessibility/browser_accessibility.cc browser/accessibility/browser_accessibility_manager.cc browser/accessibility/browser_accessibility_state_impl.cc browser/accessibility/one_shot_accessibility_tree_search.cc)
+
+# browser_appcache
+ADD_LIBRARY(browser_appcache OBJECT browser/appcache/appcache.cc browser/appcache/appcache_backend_impl.cc browser/appcache/appcache_database.cc browser/appcache/appcache_disk_cache.cc browser/appcache/appcache_dispatcher_host.cc browser/appcache/appcache_frontend_proxy.cc browser/appcache/appcache_group.cc browser/appcache/appcache_histograms.cc browser/appcache/appcache_host.cc browser/appcache/appcache_interceptor.cc browser/appcache/appcache_internals_ui.cc browser/appcache/appcache_manifest_parser.cc browser/appcache/appcache_quota_client.cc browser/appcache/appcache_request_handler.cc browser/appcache/appcache_response.cc browser/appcache/appcache_service_impl.cc browser/appcache/appcache_storage.cc browser/appcache/appcache_storage_impl.cc browser/appcache/appcache_update_job.cc browser/appcache/appcache_url_request_job.cc browser/appcache/appcache_working_set.cc browser/appcache/chrome_appcache_service.cc)
+
+# browser_background_sync
+ADD_LIBRARY(browser_background_sync OBJECT browser/background_sync/background_sync_context_impl.cc browser/background_sync/background_sync_manager.cc browser/background_sync/background_sync_metrics.cc browser/background_sync/background_sync_network_observer.cc browser/background_sync/background_sync_power_observer.cc browser/background_sync/background_sync_registration.cc browser/background_sync/background_sync_registration_handle.cc browser/background_sync/background_sync_registration_options.cc browser/background_sync/background_sync_service_impl.cc)
+
+# browser_bluetooth
+ADD_LIBRARY(browser_bluetooth OBJECT browser/bluetooth/bluetooth_dispatcher_host.cc browser/bluetooth/bluetooth_metrics.cc browser/bluetooth/first_device_bluetooth_chooser.cc)
+
+# browser_browser_plugin
+ADD_LIBRARY(browser_browser_plugin OBJECT browser/browser_plugin/browser_plugin_embedder.cc browser/browser_plugin/browser_plugin_guest.cc browser/browser_plugin/browser_plugin_message_filter.cc)
+
+# browser_cache_storage
+ADD_LIBRARY(browser_cache_storage OBJECT browser/cache_storage/cache_storage.cc browser/cache_storage/cache_storage_blob_to_disk_cache.cc browser/cache_storage/cache_storage_cache.cc browser/cache_storage/cache_storage_context_impl.cc browser/cache_storage/cache_storage_dispatcher_host.cc browser/cache_storage/cache_storage_manager.cc browser/cache_storage/cache_storage_quota_client.cc browser/cache_storage/cache_storage_scheduler.cc)
+
+# browser_device_monitor
+ADD_LIBRARY(browser_device_monitor OBJECT browser/device_monitor_udev.cc)
+
+# browser_device_sensors
+ADD_LIBRARY(browser_device_sensors OBJECT browser/device_sensors/data_fetcher_shared_memory_base.cc browser/device_sensors/data_fetcher_shared_memory_default.cc browser/device_sensors/device_inertial_sensor_service.cc browser/device_sensors/device_light_message_filter.cc browser/device_sensors/device_motion_message_filter.cc browser/device_sensors/device_orientation_absolute_message_filter.cc browser/device_sensors/device_orientation_message_filter.cc)
+
+# browser_devtools
+ADD_LIBRARY(browser_devtools OBJECT browser/devtools/browser_devtools_agent_host.cc browser/devtools/devtools_agent_host_impl.cc browser/devtools/devtools_frame_trace_recorder.cc browser/devtools/devtools_frontend_host_impl.cc browser/devtools/devtools_io_context.cc browser/devtools/devtools_manager.cc browser/devtools/devtools_netlog_observer.cc browser/devtools/devtools_protocol_handler.cc browser/devtools/forwarding_agent_host.cc browser/devtools/protocol/color_picker.cc browser/devtools/protocol/devtools_protocol_client.cc browser/devtools/protocol/dom_handler.cc browser/devtools/protocol/emulation_handler.cc browser/devtools/protocol/input_handler.cc browser/devtools/protocol/inspector_handler.cc browser/devtools/protocol/io_handler.cc browser/devtools/protocol/memory_handler.cc browser/devtools/protocol/network_handler.cc browser/devtools/protocol/page_handler.cc browser/devtools/protocol/security_handler.cc browser/devtools/protocol/service_worker_handler.cc browser/devtools/protocol/system_info_handler.cc browser/devtools/protocol/tethering_handler.cc browser/devtools/protocol/tracing_handler.cc browser/devtools/render_frame_devtools_agent_host.cc browser/devtools/service_worker_devtools_agent_host.cc browser/devtools/service_worker_devtools_manager.cc browser/devtools/shared_worker_devtools_agent_host.cc browser/devtools/shared_worker_devtools_manager.cc browser/devtools/worker_devtools_agent_host.cc)
+
+# browser_dom_storage
+ADD_LIBRARY(browser_dom_storage OBJECT browser/dom_storage/dom_storage_area.cc browser/dom_storage/dom_storage_context_impl.cc browser/dom_storage/dom_storage_context_wrapper.cc browser/dom_storage/dom_storage_database.cc browser/dom_storage/dom_storage_host.cc browser/dom_storage/dom_storage_message_filter.cc browser/dom_storage/dom_storage_namespace.cc browser/dom_storage/dom_storage_session.cc browser/dom_storage/dom_storage_task_runner.cc browser/dom_storage/local_storage_database_adapter.cc browser/dom_storage/session_storage_database.cc browser/dom_storage/session_storage_database_adapter.cc browser/dom_storage/session_storage_namespace_impl.cc)
+
+# browser_download
+ADD_LIBRARY(browser_download OBJECT browser/download/base_file.cc browser/download/base_file_linux.cc browser/download/base_file_posix.cc browser/download/download_create_info.cc browser/download/download_file_factory.cc browser/download/download_file_impl.cc browser/download/download_interrupt_reasons_impl.cc browser/download/download_item_impl.cc browser/download/download_item_impl_delegate.cc browser/download/download_manager_impl.cc browser/download/download_net_log_parameters.cc browser/download/download_request_core.cc browser/download/download_request_handle.cc browser/download/download_resource_handler.cc browser/download/download_stats.cc browser/download/drag_download_file.cc browser/download/drag_download_util.cc browser/download/file_metadata_linux.cc browser/download/mhtml_generation_manager.cc browser/download/rate_estimator.cc browser/download/save_file.cc browser/download/save_file_manager.cc browser/download/save_file_resource_handler.cc browser/download/save_item.cc browser/download/save_package.cc browser/download/save_types.cc browser/download/url_downloader.cc)
+
+# browser_fileapi
+ADD_LIBRARY(browser_fileapi OBJECT browser/fileapi/blob_storage_host.cc browser/fileapi/browser_file_system_helper.cc browser/fileapi/chrome_blob_storage_context.cc browser/fileapi/fileapi_message_filter.cc browser/fileapi/upload_file_system_file_element_reader.cc)
+
+# browser_frame_host
+ADD_LIBRARY(browser_frame_host OBJECT browser/frame_host/cross_process_frame_connector.cc browser/frame_host/cross_site_transferring_request.cc browser/frame_host/debug_urls.cc browser/frame_host/frame_mojo_shell.cc browser/frame_host/frame_navigation_entry.cc browser/frame_host/frame_tree.cc browser/frame_host/frame_tree_node.cc browser/frame_host/interstitial_page_impl.cc browser/frame_host/interstitial_page_navigator_impl.cc browser/frame_host/navigation_controller_impl.cc browser/frame_host/navigation_entry_impl.cc browser/frame_host/navigation_entry_screenshot_manager.cc browser/frame_host/navigation_handle_impl.cc browser/frame_host/navigation_request.cc browser/frame_host/navigation_request_info.cc browser/frame_host/navigator.cc browser/frame_host/navigator_delegate.cc browser/frame_host/navigator_impl.cc browser/frame_host/render_frame_host_delegate.cc browser/frame_host/render_frame_host_factory.cc browser/frame_host/render_frame_host_impl.cc browser/frame_host/render_frame_host_manager.cc browser/frame_host/render_frame_message_filter.cc browser/frame_host/render_frame_proxy_host.cc browser/frame_host/render_widget_host_view_child_frame.cc browser/frame_host/render_widget_host_view_guest.cc)
+
+# browser_gamepad
+ADD_LIBRARY(browser_gamepad OBJECT browser/gamepad/gamepad_data_fetcher.cc browser/gamepad/gamepad_platform_data_fetcher_linux.cc browser/gamepad/gamepad_provider.cc browser/gamepad/gamepad_service.cc browser/gamepad/gamepad_standard_mappings.cc browser/gamepad/gamepad_standard_mappings_linux.cc)
+
+# browser_geofencing
+ADD_LIBRARY(browser_geofencing OBJECT browser/geofencing/geofencing_dispatcher_host.cc browser/geofencing/geofencing_manager.cc browser/geofencing/geofencing_service.cc browser/geofencing/mock_geofencing_service.cc)
+
+# browser_geolocation
+ADD_LIBRARY(browser_geolocation OBJECT browser/geolocation/empty_wifi_data_provider.cc browser/geolocation/geolocation_provider_impl.cc browser/geolocation/geolocation_service_context.cc browser/geolocation/geolocation_service_impl.cc browser/geolocation/location_arbitrator_impl.cc browser/geolocation/location_provider_base.cc browser/geolocation/network_location_provider.cc browser/geolocation/network_location_request.cc browser/geolocation/wifi_data.cc browser/geolocation/wifi_data_provider.cc browser/geolocation/wifi_data_provider_common.cc browser/geolocation/wifi_data_provider_linux.cc browser/geolocation/wifi_data_provider_manager.cc)
+
+# browser_gpu
+ADD_LIBRARY(browser_gpu OBJECT browser/gpu/browser_gpu_channel_host_factory.cc browser/gpu/browser_gpu_memory_buffer_manager.cc browser/gpu/compositor_util.cc browser/gpu/gpu_data_manager_impl.cc browser/gpu/gpu_data_manager_impl_private.cc browser/gpu/gpu_internals_ui.cc browser/gpu/gpu_process_host.cc browser/gpu/gpu_process_host_ui_shim.cc browser/gpu/gpu_surface_tracker.cc browser/gpu/shader_disk_cache.cc)
+
+# browser_indexed_db
+ADD_LIBRARY(browser_indexedb_db OBJECT browser/indexed_db/indexed_db_active_blob_registry.cc browser/indexed_db/indexed_db_backing_store.cc browser/indexed_db/indexed_db_blob_info.cc browser/indexed_db/indexed_db_callbacks.cc browser/indexed_db/indexed_db_class_factory.cc browser/indexed_db/indexed_db_connection.cc browser/indexed_db/indexed_db_context_impl.cc browser/indexed_db/indexed_db_cursor.cc browser/indexed_db/indexed_db_database.cc browser/indexed_db/indexed_db_database_callbacks.cc browser/indexed_db/indexed_db_database_error.cc browser/indexed_db/indexed_db_dispatcher_host.cc browser/indexed_db/indexed_db_factory_impl.cc browser/indexed_db/indexed_db_index_writer.cc browser/indexed_db/indexed_db_internals_ui.cc browser/indexed_db/indexed_db_leveldb_coding.cc browser/indexed_db/indexed_db_metadata.cc browser/indexed_db/indexed_db_pending_connection.cc browser/indexed_db/indexed_db_quota_client.cc browser/indexed_db/indexed_db_transaction.cc browser/indexed_db/indexed_db_transaction_coordinator.cc browser/indexed_db/indexed_db_value.cc browser/indexed_db/leveldb/leveldb_database.cc browser/indexed_db/leveldb/leveldb_env.cc browser/indexed_db/leveldb/leveldb_iterator_impl.cc browser/indexed_db/leveldb/leveldb_transaction.cc browser/indexed_db/leveldb/leveldb_write_batch.cc)
+
+# browser_loader
+ADD_LIBRARY(browser_loader OBJECT browser/loader/async_resource_handler.cc browser/loader/async_revalidation_driver.cc browser/loader/async_revalidation_manager.cc browser/loader/certificate_resource_handler.cc browser/loader/cross_site_resource_handler.cc browser/loader/detachable_resource_handler.cc browser/loader/layered_resource_handler.cc browser/loader/mime_type_resource_handler.cc browser/loader/navigation_resource_handler.cc browser/loader/navigation_resource_throttle.cc browser/loader/navigation_url_loader.cc browser/loader/navigation_url_loader_impl.cc browser/loader/navigation_url_loader_impl_core.cc browser/loader/power_save_block_resource_throttle.cc browser/loader/redirect_to_file_resource_handler.cc browser/loader/resource_buffer.cc browser/loader/resource_dispatcher_host_impl.cc browser/loader/resource_handler.cc browser/loader/resource_loader.cc browser/loader/resource_message_delegate.cc browser/loader/resource_message_filter.cc browser/loader/resource_request_info_impl.cc browser/loader/resource_scheduler.cc browser/loader/resource_scheduler_filter.cc browser/loader/stream_resource_handler.cc browser/loader/stream_writer.cc browser/loader/sync_resource_handler.cc browser/loader/stream_writer.cc browser/loader/sync_resource_handler.cc browser/loader/temporary_file_stream.cc browser/loader/throttling_resource_handler.cc browser/loader/upload_data_stream_builder.cc)
+
+# browser_media
+ADD_LIBRARY(browser_media OBJECT browser/media/capture/audio_mirroring_manager.cc browser/media/capture/cursor_renderer_aura.cc browser/media/capture/web_contents_audio_input_stream.cc browser/media/capture/web_contents_audio_muter.cc browser/media/capture/web_contents_capture_util.cc browser/media/capture/web_contents_tracker.cc browser/media/capture/web_contents_video_capture_device.cc browser/media/capture/window_activity_tracker_aura.cc browser/media/media_internals.cc browser/media/media_internals_handler.cc browser/media/media_internals_proxy.cc browser/media/media_internals_ui.cc browser/media/media_web_contents_observer.cc browser/media/midi_host.cc browser/media/webrtc_identity_store.cc browser/media/webrtc_identity_store_backend.cc)
+
+# browser_memory
+ADD_LIBRARY(browser_memory OBJECT browser/memory/memory_message_filter.cc browser/memory/memory_pressure_controller.cc)
+
+# browser_mojo
+ADD_LIBRARY(browser_mojo OBJECT browser/mojo/mojo_app_connection_impl.cc browser/mojo/mojo_application_host.cc browser/mojo/mojo_shell_context.cc)
+
+# browser_net
+ADD_LIBRARY(browser_net OBJECT browser/net/browser_online_state_observer.cc browser/net/network_errors_listing_ui.cc browser/net/quota_policy_cookie_store.cc browser/net/view_blob_internals_job_factory.cc browser/net/view_http_cache_job_factory.cc)
+
+# browser_notifications
+ADD_LIBRARY(browser_notifications OBJECT browser/notifications/notification_database.cc browser/notifications/notification_database_data_conversions.cc browser/notifications/notification_event_dispatcher_impl.cc browser/notifications/notification_id_generator.cc browser/notifications/notification_message_filter.cc browser/notifications/page_notification_delegate.cc browser/notifications/platform_notification_context_impl.cc)
+
+# browser_permissions
+ADD_LIBRARY(browser_permissions OBJECT browser/permissions/permission_service_context.cc browser/permissions/permission_service_impl.cc)
+
+# browser_presentation
+ADD_LIBRARY(browser_presentation OBJECT browser/presentation/presentation_service_impl.cc browser/presentation/presentation_type_converters.cc)
+
+# browser_push_messaging
+ADD_LIBRARY(browser_push_messaging OBJECT browser/push_messaging/push_messaging_message_filter.cc browser/push_messaging/push_messaging_router.cc)
 
 # bluetooth
 ADD_LIBRARY(bluetooth OBJECT common/bluetooth/bluetooth_device.cc common/bluetooth/bluetooth_scan_filter.cc)
@@ -151,12 +260,12 @@ ADD_LIBRARY(net OBJECT common/net/url_fetcher.cc common/net/url_request_user_dat
 ADD_LIBRARY(service_worker OBJECT common/service_worker/service_worker_client_info.cc common/service_worker/service_worker_status_code.cc common/service_worker/service_worker_types.cc common/service_worker/service_worker_type_converters.cc common/service_worker/service_worker_utils.cc)
 
 # generated (these are generated !)
-ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/content/common/service_port_service.mojom.cc ${CMAKE_BINARY_DIR}/content/common/routed_service_provider.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/service_worker_event_status.mojom.cc)
+ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/content/common/service_port_service.mojom.cc ${CMAKE_BINARY_DIR}/content/common/routed_service_provider.mojom.cc ${CMAKE_BINARY_DIR}/content/common/image_downloader/image_downloader.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/service_worker_event_status.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/permission_status.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/background_sync.mojom.cc ${CMAKE_BINARY_DIR}/content/common/background_sync_service.mojom.cc ${CMAKE_BINARY_DIR}/ui/mojo/geometry/geometry.mojom.cc ${CMAKE_BINARY_DIR}/content/browser/background_sync/background_sync.pb.cc)
 
 
 # all files refer to "content/...", so we include ".." here
 # we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
-SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${SKIA_SOURCE_DIR}/include/utils ${SKIA_SOURCE_DIR}/include/gpu ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${BLINK_DIR} ${MOJO_SRC_DIR}/.. ${MOJO_SRC_DIR}/build ${MOJO_SRC_DIR}/build/mojo ${UI_ACCESSIBILITY_DIR}/build ${CMAKE_BINARY_DIR}/content ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/..)
+SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${SKIA_SOURCE_DIR}/include/utils ${SKIA_SOURCE_DIR}/include/gpu ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${BLINK_DIR} ${MOJO_SRC_DIR}/.. ${MOJO_SRC_DIR}/build ${MOJO_SRC_DIR}/build/mojo ${SKIA_SRC_DIR}/build ${UI_ACCESSIBILITY_DIR}/build ${CMAKE_BINARY_DIR}/content ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/..)
 # TODO : "${MOJO_SRC_DIR}/${UI_ACCESSIBILITY_DIR}/build" here are HACKS !
 SET(link_libraries ${backend_LIBRARIES})
 

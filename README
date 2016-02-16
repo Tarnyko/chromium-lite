@@ -82,6 +82,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
    - libjpeg-turbo, libpng12, libgif, libwebp (image formats)
    - freetype, fontconfig (font drawing)
    - egl, glesv2 (wayland) / gl, glu, x11 (x11) / osmesa (software)
+   - python (for building only)
  * Handles : basic drawing, text drawing, image formats conversion,
              GL acceleration and shaders.
  * Notes : upstream Skia is in "third_party/skia", but Chromium needs
@@ -124,7 +125,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 02c) ipc
 
  IPC helper library.
- * Depends on : base
+ * Depends on : base, mojo
  * Handles : socket-based message passing.
 
 02d) sql
