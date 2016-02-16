@@ -75,19 +75,14 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
            in "third_party/icu"; to avoid this, we patch 1 file and use
            the forked headers for the other one ("net" requires it).
 
-01b) skia
+01b) mojo
 
- Low-level drawing API (somewhat equivalent to Cairo or EFL Evas).
- * Depends on :
-   - libjpeg-turbo, libpng12, libgif, libwebp (image formats)
-   - freetype, fontconfig (font drawing)
-   - egl, glesv2 (wayland) / gl, glu, x11 (x11) / osmesa (software)
-   - python (for building only)
- * Handles : basic drawing, text drawing, image formats conversion,
-             GL acceleration and shaders.
- * Notes : upstream Skia is in "third_party/skia", but Chromium needs
-           additional source files in "skia/ext", and also specific
-           macros (look for "Chromium-specific" in CMakeLists.txt)
+ Mojo IPC and bindings library.
+ * Depends on : base
+ * Handles : Mojo is an effort to describe interfaces in a generic
+             way in .mojom files, and automatically generate C++/
+             JavaScript/Java bindings for them. It is mostly used
+             by the "ipc" and "content_browser" libraries (see below).
 
 01c) v8
 
@@ -97,14 +92,22 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
    - python (for building only)
  * Handles : JavaScript parsing, compilation and optimization.
 
-01d) mojo
+01d) skia
 
- Mojo IPC and bindings library.
- * Depends on : base, url
- * Handles : Mojo is an effort to describe interfaces in a generic
-             way in .mojom files, and automatically generate C++/
-             JavaScript/Java bindings for them. It is mostly used
-             by the "ipc" library (see below).
+ Low-level drawing API (somewhat equivalent to Cairo or EFL Evas).
+ * Depends on :
+   - mojo
+   - libjpeg-turbo, libpng12, libgif, libwebp (image formats)
+   - freetype, fontconfig (font drawing)
+   - egl, glesv2 (wayland) / gl, glu, x11 (x11) / osmesa (software)
+   - python (for building only)
+ * Handles : basic drawing, text drawing, image formats conversion,
+             GL acceleration and shaders.
+ * Notes : upstream Skia is in "third_party/skia", but Chromium needs
+           additional source files in "skia/ext", and also specific
+           macros (look for "Chromium-specific" in CMakeLists.txt)
+           It requires Mojo, just to build a few Mojo bindings which
+           will be used later by "content_browser" (see below).
 
 02a) url
 
@@ -126,7 +129,10 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 
  IPC helper library.
  * Depends on : base, mojo
- * Handles : socket-based message passing.
+ * Handles : socket-based message passing. Although it can be
+             be built without Mojo support (see above), its
+             Mojo bindings are heavily used by final
+             "content_browser" (see below) to do IPC stuff.
 
 02d) sql
 
@@ -286,6 +292,9 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
    - libicui18n>=52, libicuuc>=52, harfbuzz>=0.9.22, libwebp>=0.4.0
    - python, gperf (for building only)
  * Handles : Web rendering.
+             Bindings with the V8 JavaScript engine (see above) are
+             written in .idl files, and then converted to C++ at
+             build time to be compiled in the final binary.
  * Notes : hard-to-find third-parties such as QCMS (fork of
            Mozilla TinyCMS) and OTS (security layer for TrueType
            fonts decoding) are included directly inside the binary.
@@ -313,6 +322,16 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  UI Shell Dialogs library.
  * Depends on : base, skia, ui_strings, ui_base, ui_aura
 
+12a) content_browser
+
+ Content Browser library.
+ * Depends on : base, mojo, skia, url, ipc, net, ui_gfx, storage,
+                ui_accessibility, ui_events, media, ui_base, ui_gl,
+                gpu, cc, blink, ui_shell_dialogs, 
+ * Handles : Content Browser is the "real" browser code; it
+             leverages Blink, which itself leverages V8 (see above)
+             to do HTML/CSS/JS rendering.
+
 13a) ui_views
 
  UI Views toolkit.
@@ -325,6 +344,8 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
    Elementary or QtWidgets. It leverages the whole lower-level
    UI libraries to create and handle buttons, menus, text fields,
    scrollbars, dialog boxes... and react to user input.
+   Built with "content_browser" support (see above), it features
+   the most-wanted WebView widget !
 
 -------------------
 

@@ -65,7 +65,7 @@ IF(BACKEND STREQUAL "X11")
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DCONTENT_IMPLEMENTATION -DTRACING_IMPLEMENTATION -DUSE_AURA)
+ADD_DEFINITIONS(-DCONTENT_IMPLEMENTATION -DTRACING_IMPLEMENTATION -DUSE_AURA -DUSE_DEFAULT_RENDER_THEME)
 # This is because we are including "inttypes.h" with a Mojo header
 ADD_DEFINITIONS(-D__STDC_FORMAT_MACROS)
 
@@ -103,7 +103,17 @@ EXECUTE_PROCESS(COMMAND mkdir -p content/browser/background_sync/ WORKING_DIRECT
 
 EXECUTE_PROCESS(COMMAND ${PROTOC_WRAPPER_DIR}/tools/protoc_wrapper/protoc_wrapper.py --proto-in-dir browser/background_sync --proto-in-file background_sync.proto --use-system-protobuf=1 -- protoc --cpp_out ${CMAKE_BINARY_DIR}/content/browser/background_sync WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
+EXECUTE_PROCESS(COMMAND mkdir -p content/browser/cache_storage/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
+EXECUTE_PROCESS(COMMAND ${PROTOC_WRAPPER_DIR}/tools/protoc_wrapper/protoc_wrapper.py --proto-in-dir browser/cache_storage --proto-in-file cache_storage.proto --use-system-protobuf=1 -- protoc --cpp_out ${CMAKE_BINARY_DIR}/content/browser/cache_storage WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+# PRE-GENERATION .CC,.H FROM .JSON
+
+MESSAGE(STATUS "Generating .cc,.h files from .json...")
+
+EXECUTE_PROCESS(COMMAND mkdir -p content/browser/devtools/protocol/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+EXECUTE_PROCESS(COMMAND python browser/devtools/protocol/devtools_protocol_handler_generator.py ${BLINK_DIR}/Source/devtools/protocol.json browser/devtools/browser_protocol.json ${CMAKE_BINARY_DIR}/content/browser/devtools/protocol/devtools_protocol_dispatcher.cc ${CMAKE_BINARY_DIR}/content/browser/devtools/protocol/devtools_protocol_dispatcher.h WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
 # PRE-GENERATION WEBKIT_VERSION.H
@@ -146,7 +156,8 @@ ADD_LIBRARY(browser_browser_plugin OBJECT browser/browser_plugin/browser_plugin_
 ADD_LIBRARY(browser_cache_storage OBJECT browser/cache_storage/cache_storage.cc browser/cache_storage/cache_storage_blob_to_disk_cache.cc browser/cache_storage/cache_storage_cache.cc browser/cache_storage/cache_storage_context_impl.cc browser/cache_storage/cache_storage_dispatcher_host.cc browser/cache_storage/cache_storage_manager.cc browser/cache_storage/cache_storage_quota_client.cc browser/cache_storage/cache_storage_scheduler.cc)
 
 # browser_device_monitor
-ADD_LIBRARY(browser_device_monitor OBJECT browser/device_monitor_udev.cc)
+#ADD_LIBRARY(browser_device_monitor OBJECT browser/device_monitor_udev.cc)
+# TODO : this requires UDev
 
 # browser_device_sensors
 ADD_LIBRARY(browser_device_sensors OBJECT browser/device_sensors/data_fetcher_shared_memory_base.cc browser/device_sensors/data_fetcher_shared_memory_default.cc browser/device_sensors/device_inertial_sensor_service.cc browser/device_sensors/device_light_message_filter.cc browser/device_sensors/device_motion_message_filter.cc browser/device_sensors/device_orientation_absolute_message_filter.cc browser/device_sensors/device_orientation_message_filter.cc)
@@ -260,7 +271,7 @@ ADD_LIBRARY(net OBJECT common/net/url_fetcher.cc common/net/url_request_user_dat
 ADD_LIBRARY(service_worker OBJECT common/service_worker/service_worker_client_info.cc common/service_worker/service_worker_status_code.cc common/service_worker/service_worker_types.cc common/service_worker/service_worker_type_converters.cc common/service_worker/service_worker_utils.cc)
 
 # generated (these are generated !)
-ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/content/common/service_port_service.mojom.cc ${CMAKE_BINARY_DIR}/content/common/routed_service_provider.mojom.cc ${CMAKE_BINARY_DIR}/content/common/image_downloader/image_downloader.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/service_worker_event_status.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/permission_status.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/background_sync.mojom.cc ${CMAKE_BINARY_DIR}/content/common/background_sync_service.mojom.cc ${CMAKE_BINARY_DIR}/ui/mojo/geometry/geometry.mojom.cc ${CMAKE_BINARY_DIR}/content/browser/background_sync/background_sync.pb.cc)
+ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/content/common/service_port_service.mojom.cc ${CMAKE_BINARY_DIR}/content/common/routed_service_provider.mojom.cc ${CMAKE_BINARY_DIR}/content/common/image_downloader/image_downloader.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/service_worker_event_status.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/permission_status.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/background_sync.mojom.cc ${CMAKE_BINARY_DIR}/content/common/background_sync_service.mojom.cc ${CMAKE_BINARY_DIR}/ui/mojo/geometry/geometry.mojom.cc ${CMAKE_BINARY_DIR}/content/browser/background_sync/background_sync.pb.cc ${CMAKE_BINARY_DIR}/content/browser/devtools/protocol/devtools_protocol_dispatcher.cc)
 
 
 # all files refer to "content/...", so we include ".." here
