@@ -52,7 +52,7 @@ and any .cmake and .patch file present.
  Then, move to it, and apply the patches with :
 $ patch -p0 < <patchfile>
  Finally, build the package :
-$ mkdir my_build ; cd my_build
+$ mkdir Build ; cd Build
 $ cmake ..
  (for Skia :
 $ cmake .. -DBACKEND=GLX -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
@@ -78,7 +78,9 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 01b) mojo
 
  Mojo IPC and bindings library.
- * Depends on : base
+ * Depends on :
+   - base, url
+   - python (for building only)
  * Handles : Mojo is an effort to describe interfaces in a generic
              way in .mojom files, and automatically generate C++/
              JavaScript/Java bindings for them. It is mostly used
@@ -133,7 +135,9 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 02c) ipc
 
  IPC helper library.
- * Depends on : base, mojo
+ * Depends on :
+   - base, mojo
+   - python (for building only)
  * Handles : socket-based message passing. Although it can be
              be built without Mojo support (see above), its
              Mojo bindings are heavily used by final
@@ -177,7 +181,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
            thus we patch a few sources to remove it - and also
            include forked headers from "third_party/nss".
 
-03d) ui_gfx
+03b) ui_gfx
 
  UI Gfx helper library.
  * Depends on :
@@ -253,14 +257,14 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  * Depends on :
    - base, skia, url, net, ui_gfx, ui_events, ui_strings, ui_resources
 
-06b) ui_gl
+06a) ui_gl
 
  UI GL helper library.
  * Depends on :
    - base, skia, gpu_command_buffer, ui_gfx, ui_base
  * Handles : various OpenGL utility functions.
 
-07b) gpu
+07a) gpu
 
  GPU library.
  * Depends on :
@@ -349,7 +353,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  UI Views toolkit.
  * Depends on :
    - base, skia, url, ui_gfx, ui_accessibility, ui_events, ui_base,
-     ui_compositor, ui_aura, ui_strings, ui_resoruces
+     ui_compositor, ui_aura, ui_strings, ui_resources
    - ozone (wayland) / x11, xext, xrandr, atk (x11)
    - libicu
  * Views is the real Chromium toolkit, feature-equivalent to GTK+,

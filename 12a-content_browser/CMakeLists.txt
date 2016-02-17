@@ -356,7 +356,7 @@ ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/content/common/service_port_ser
 # all files refer to "content/...", so we include ".." here
 # we put LEVELDB_EXT_DIR first, because the fork has specific required headers/values
 # we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
-SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SRC_DIR}/include/core ${SKIA_SRC_DIR}/include/utils ${SKIA_SRC_DIR}/include/gpu ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${BLINK_DIR} ${MOJO_SRC_DIR}/.. ${ANGLE_SRC_DIR}/src ${LEVELDB_EXT_DIR}/src ${LEVELDB_EXT_DIR}/src/include ${deps_INCLUDE_DIRS} ${MOJO_SRC_DIR}/build ${MOJO_SRC_DIR}/build/mojo ${SKIA_SRC_DIR}/build ${SKIA_SRC_DIR}/build/skia ${UI_ACCESSIBILITY_DIR}/build ${CMAKE_BINARY_DIR}/content ${CMAKE_BINARY_DIR}/blink ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/..)
+SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SRC_DIR}/include/core ${SKIA_SRC_DIR}/include/utils ${SKIA_SRC_DIR}/include/gpu ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${BLINK_DIR} ${MOJO_SRC_DIR}/.. ${ANGLE_SRC_DIR}/src ${LEVELDB_EXT_DIR}/src ${LEVELDB_EXT_DIR}/src/include ${deps_INCLUDE_DIRS} ${MOJO_SRC_DIR}/Build ${MOJO_SRC_DIR}/Build/mojo ${SKIA_SRC_DIR}/Build ${SKIA_SRC_DIR}/Build/skia ${UI_ACCESSIBILITY_DIR}/Build ${CMAKE_BINARY_DIR}/content ${CMAKE_BINARY_DIR}/blink ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/..)
 # TODO : "${MOJO_SRC_DIR}/${UI_ACCESSIBILITY_DIR}/build" here are HACKS !
 SET(link_libraries ${backend_LIBRARIES})
 

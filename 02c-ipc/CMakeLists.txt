@@ -51,8 +51,8 @@ ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ipc/mojo/client_channel.mojom.c
 
 # all files refer to "ipc/...", so we include ".." here
 # we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
-SET(include_dirs ${INCLUDE_DIRS} ${MOJO_SRC_DIR} ${MOJO_SRC_DIR}/build ${MOJO_SRC_DIR}/build/mojo ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/ipc ${CMAKE_SOURCE_DIR}/..)
-# TODO : "${MOJO_SRC_DIR}/build" here is a HACK ! remove this when we use .pc files
+SET(include_dirs ${INCLUDE_DIRS} ${MOJO_SRC_DIR} ${MOJO_SRC_DIR}/Build ${MOJO_SRC_DIR}/Build/mojo ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/ipc ${CMAKE_SOURCE_DIR}/..)
+# TODO : "${MOJO_SRC_DIR}/Build" here is a HACK ! remove this when we use .pc files
 
 ADD_LIBRARY(ipc SHARED $<TARGET_OBJECTS:core> $<TARGET_OBJECTS:mojo> $<TARGET_OBJECTS:generated>)
 INCLUDE_DIRECTORIES(${include_dirs})

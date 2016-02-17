@@ -10,9 +10,8 @@ SET(PROJECT_NAME "Chromium - UI Views")
 SET(NATIVE_THEME_DIR "${CMAKE_SOURCE_DIR}/../native_theme")
 SET(TOUCH_SELECTION_DIR "${CMAKE_SOURCE_DIR}/../touch_selection")
 SET(DISPLAY_UTIL_DIR "${CMAKE_SOURCE_DIR}/../display/util")
-SET(UI_ACCESSIBILITY_DIR "${CMAKE_SOURCE_DIR}/../accessibility/build")
-SET(UI_GFX_DIR "${CMAKE_SOURCE_DIR}/../gfx/build")
-# TODO : these are HACKS ! remove them when use .pc files !
+SET(UI_ACCESSIBILITY_DIR "${CMAKE_SOURCE_DIR}/../accessibility")
+SET(UI_GFX_DIR "${CMAKE_SOURCE_DIR}/../gfx")
 
 # Variable paths for required third-parties
 SET(GRIT_DIR "${CMAKE_SOURCE_DIR}/../..")
@@ -113,7 +112,8 @@ ADD_LIBRARY(misc OBJECT accessible_pane_view.cc background.cc border.cc button_d
 
 
 # all files refer to "ui/...", so we include "../.." here
-SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../.. ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${UI_ACCESSIBILITY_DIR} ${UI_GFX_DIR})
+SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../.. ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${UI_ACCESSIBILITY_DIR}/Build ${UI_GFX_DIR}/Build)
+# TODO : "${UI_*_DIR}/Build" are HACKs ! remove them when use .pc files !
 SET(link_libraries ${backend_LIBRARIES})
 
 ADD_LIBRARY(ui_views SHARED $<TARGET_OBJECTS:native_theme> $<TARGET_OBJECTS:touch_selection> $<TARGET_OBJECTS:accessibility> $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:bubble> $<TARGET_OBJECTS:controls> $<TARGET_OBJECTS:corewm> $<TARGET_OBJECTS:focus> $<TARGET_OBJECTS:layout> $<TARGET_OBJECTS:linuxui> $<TARGET_OBJECTS:touchui> $<TARGET_OBJECTS:widget> $<TARGET_OBJECTS:window> $<TARGET_OBJECTS:misc> ${BACKEND_SOURCE_FILES})
