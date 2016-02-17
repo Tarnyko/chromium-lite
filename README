@@ -327,7 +327,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  Content Browser library.
  * Depends on : base, mojo, skia, url, ipc, net, ui_gfx, storage,
                 ui_accessibility, ui_events, media, ui_base, ui_gl,
-                gpu, cc, blink, ui_shell_dialogs, 
+                gpu, cc, blink, ui_shell_dialogs
  * Handles : Content Browser is the "real" browser code; it
              leverages Blink, which itself leverages V8 (see above)
              to do HTML/CSS/JS rendering.

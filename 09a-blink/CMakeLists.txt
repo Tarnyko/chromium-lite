@@ -161,6 +161,19 @@ EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CM
 EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/modules/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --impl-output-dir ${CMAKE_BINARY_DIR}/bindings/modules/v8 --generate-impl --write-file-only-if-changed 0 --target-component modules ${CMAKE_BINARY_DIR}/dicts_modules.lst WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
+# DEVTOOLS GENERATION
+
+EXECUTE_PROCESS(COMMAND mkdir -p resources/inspector/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+EXECUTE_PROCESS(COMMAND mkdir -p devtools/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+EXECUTE_PROCESS(COMMAND python devtools/scripts/generate_supported_css.py core/CSS/CSSProperties.in ${CMAKE_BINARY_DIR}/resources/inspector/SupportedCSSProperties.js WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python devtools/scripts/CodeGeneratorFrontend.py devtools/protocol.json --output_js_dir ${CMAKE_BINARY_DIR}/resources/inspector WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python devtools/scripts/build_applications.py inspector toolbox --input_path devtools/front_end --output_path ${CMAKE_BINARY_DIR}/resources/inspector --debug 1 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+EXECUTE_PROCESS(COMMAND sh -c "find devtools/front_end -name *.js -o -name *.css -o -name *.json > ${CMAKE_BINARY_DIR}/static.lst" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python devtools/scripts/generate_devtools_grd.py ${CMAKE_BINARY_DIR}/resources/inspector/InspectorBackendCommands.js ${CMAKE_BINARY_DIR}/resources/inspector/SupportedCSSProperties.js ${CMAKE_BINARY_DIR}/resources/inspector/inspector.html ${CMAKE_BINARY_DIR}/resources/inspector/toolbox.html devtools/front_end/devtools.js --static_files_list ${CMAKE_BINARY_DIR}/static.lst --relative_path_dirs devtools/front_end ${CMAKE_BINARY_DIR}/resources/inspector --images devtools/front_end/Images --output ${CMAKE_BINARY_DIR}/devtools/devtools_resources.grd WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+
 # THIS SHOULD BE AUTOMATED
 
 EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/core/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component core core/events/EventListenerOptions.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
