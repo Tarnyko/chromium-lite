@@ -1,0 +1,81 @@
+--- nss_util.h	2016-02-17 12:16:18.334387278 +0000
++++ nss_util.h	2016-02-17 12:17:15.475206695 +0000
+@@ -27,6 +27,15 @@
+ // process goes multithreaded. This does not initialise NSS. For test, see
+ // EnsureNSSInit.
+ CRYPTO_EXPORT void EarlySetupForNSSInit();
++
++// Load NSS library files. This function has no effect on Mac and Windows.
++// This loads the necessary NSS library files so that NSS can be initialized
++// after loading additional library files is disallowed, for example when the
++// sandbox is active.
++//
++// Note that this does not load libnssckbi.so which contains the root
++// certificates.
++CRYPTO_EXPORT void LoadNSSLibraries();
+ #endif
+ 
+ // Initialize NRPR if it isn't already initialized.  This function is
+--- nss_util.cc	2016-02-17 12:17:40.963572386 +0000
++++ nss_util.cc	2016-02-17 12:19:21.636017855 +0000
+@@ -905,6 +905,60 @@
+   g_nss_singleton.Get();
+ }
+ 
++void LoadNSSLibraries() {
++  // Some NSS libraries are linked dynamically so load them here.
++#if defined(USE_NSS_CERTS)
++  // Try to search for multiple directories to load the libraries.
++  std::vector<base::FilePath> paths;
++
++  // Use relative path to Search PATH for the library files.
++  paths.push_back(base::FilePath());
++
++  // For Debian derivatives NSS libraries are located here.
++  paths.push_back(base::FilePath("/usr/lib/nss"));
++
++  // Ubuntu 11.10 (Oneiric) and Debian Wheezy place the libraries here.
++#if defined(ARCH_CPU_X86_64)
++  paths.push_back(base::FilePath("/usr/lib/x86_64-linux-gnu/nss"));
++#elif defined(ARCH_CPU_X86)
++  paths.push_back(base::FilePath("/usr/lib/i386-linux-gnu/nss"));
++#elif defined(ARCH_CPU_ARMEL)
++#if defined(__ARM_PCS_VFP)
++  paths.push_back(base::FilePath("/usr/lib/arm-linux-gnueabihf/nss"));
++#else
++  paths.push_back(base::FilePath("/usr/lib/arm-linux-gnueabi/nss"));
++#endif  // defined(__ARM_PCS_VFP)
++#elif defined(ARCH_CPU_MIPSEL)
++  paths.push_back(base::FilePath("/usr/lib/mipsel-linux-gnu/nss"));
++#endif  // defined(ARCH_CPU_X86_64)
++
++  // A list of library files to load.
++  std::vector<std::string> libs;
++  libs.push_back("libsoftokn3.so");
++  libs.push_back("libfreebl3.so");
++
++  // For each combination of library file and path, check for existence and
++  // then load.
++  size_t loaded = 0;
++  for (size_t i = 0; i < libs.size(); ++i) {
++    for (size_t j = 0; j < paths.size(); ++j) {
++      base::FilePath path = paths[j].Append(libs[i]);
++      base::NativeLibrary lib = base::LoadNativeLibrary(path, NULL);
++      if (lib) {
++        ++loaded;
++        break;
++      }
++    }
++  }
++
++  if (loaded == libs.size()) {
++    VLOG(3) << "NSS libraries loaded.";
++  } else {
++    LOG(ERROR) << "Failed to load NSS libraries.";
++  }
++#endif  // defined(USE_NSS_CERTS)
++}
++
+ bool CheckNSSVersion(const char* version) {
+   return !!NSS_VersionCheck(version);
+ }

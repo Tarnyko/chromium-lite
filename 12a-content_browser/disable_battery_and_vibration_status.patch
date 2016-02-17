@@ -1,0 +1,54 @@
+--- browser/browser_main_loop.cc	2016-02-16 05:11:58.532520564 +0000
++++ browser/browser_main_loop.cc	2016-02-16 05:12:28.785948225 +0000
+@@ -63,7 +63,7 @@
+ #include "content/public/common/content_switches.h"
+ #include "content/public/common/main_function_params.h"
+ #include "content/public/common/result_codes.h"
+-#include "device/battery/battery_status_service.h"
++//#include "device/battery/battery_status_service.h"
+ #include "ipc/ipc_channel.h"
+ #include "media/audio/audio_manager.h"
+ #include "media/base/media.h"
+@@ -1154,12 +1154,14 @@
+     TRACE_EVENT0("shutdown", "BrowserMainLoop::Subsystem:SensorService");
+     DeviceInertialSensorService::GetInstance()->Shutdown();
+   }
++#if 0
+ #if !defined(OS_ANDROID)
+   {
+     TRACE_EVENT0("shutdown", "BrowserMainLoop::Subsystem:BatteryStatusService");
+     device::BatteryStatusService::GetInstance()->Shutdown();
+   }
+ #endif
++#endif
+   {
+     TRACE_EVENT0("shutdown", "BrowserMainLoop::Subsystem:DeleteDataSources");
+     URLDataManager::DeleteDataSources();
+--- browser/renderer_host/render_process_host_impl.cc	2016-02-17 10:35:19.988993274 +0000
++++ browser/renderer_host/render_process_host_impl.cc	2016-02-17 10:39:58.044078220 +0000
+@@ -149,8 +149,10 @@
+ #include "content/public/common/result_codes.h"
+ #include "content/public/common/sandboxed_process_launcher_delegate.h"
+ #include "content/public/common/url_constants.h"
++#if 0
+ #include "device/battery/battery_monitor_impl.h"
+ #include "device/vibration/vibration_manager_impl.h"
++#endif
+ #include "gpu/GLES2/gl2extchromium.h"
+ #include "gpu/command_buffer/client/gpu_switches.h"
+ #include "gpu/command_buffer/common/gles2_cmd_utils.h"
+@@ -1034,12 +1036,14 @@
+ 
+ void RenderProcessHostImpl::RegisterMojoServices() {
+ #if !defined(OS_ANDROID)
++#if 0
+   mojo_application_host_->service_registry()->AddService(
+       base::Bind(&device::BatteryMonitorImpl::Create));
+ 
+   mojo_application_host_->service_registry()->AddService(
+       base::Bind(&device::VibrationManagerImpl::Create));
+ #endif
++#endif
+ 
+   mojo_application_host_->service_registry()->AddService(
+       base::Bind(&PermissionServiceContext::CreateService,

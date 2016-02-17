@@ -8,6 +8,7 @@ SET(PROJECT_NAME "Chromium - Content Browser")
 
 # Location of direct dependencies
 SET(TRACING_DIR "${CMAKE_SOURCE_DIR}/../components/tracing")
+SET(TRACING_EXT_DIR "${CMAKE_SOURCE_DIR}/../third_party/catapult/tracing")
 SET(UI_ACCESSIBILITY_DIR "${CMAKE_SOURCE_DIR}/../ui/accessibility")
 SET(UI_MOJO_DIR "${CMAKE_SOURCE_DIR}/../ui/mojo")
 SET(MOJO_SRC_DIR "${CMAKE_SOURCE_DIR}/../mojo")
@@ -16,7 +17,7 @@ SET(ANGLE_SRC_DIR "${CMAKE_SOURCE_DIR}/../third_party/angle")
 SET(BLINK_DIR "${CMAKE_SOURCE_DIR}/../third_party/WebKit")
 
 # Location of Skia source folders
-SET(SKIA_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../third_party/skia")
+SET(SKIA_SRC_DIR "${CMAKE_SOURCE_DIR}/../third_party/skia")
 SET(SKIA_EXT_DIR "${CMAKE_SOURCE_DIR}/../skia")
 
 # Location of Chromium-specific OpenGL headers
@@ -40,7 +41,8 @@ INCLUDE(FindPkgConfig)
 INCLUDE(GNUInstallDirs)
 
 # Mandatory dependencies
-PKG_CHECK_MODULES(leveldb REQUIRED leveldb)
+PKG_CHECK_MODULES(deps REQUIRED leveldb gconf-2.0 atk)
+# TODO : pull these dependencies with .pc files !
 
 FIND_PROGRAM(PYTHON_FOUND python)
 IF(NOT PYTHON_FOUND)
@@ -72,11 +74,27 @@ ENDIF(BACKEND STREQUAL "X11")
 ADD_DEFINITIONS(-DCONTENT_IMPLEMENTATION -DTRACING_IMPLEMENTATION -DUSE_AURA -DUSE_DEFAULT_RENDER_THEME)
 # This is because we are including "inttypes.h" with a Mojo header
 ADD_DEFINITIONS(-D__STDC_FORMAT_MACROS)
+# Required for our BoringSSL->NSS patch
+ADD_DEFINITIONS(-DUSE_NSS_CERTS)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
 ENDIF()
 
+
+# PRE-GENERATION .HTML,.JS
+
+MESSAGE(STATUS "Generating .html,.js...")
+
+EXECUTE_PROCESS(COMMAND mkdir -p content/browser/tracing WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+EXECUTE_PROCESS(COMMAND python ${TRACING_EXT_DIR}/bin/generate_about_tracing_contents --outdir ${CMAKE_BINARY_DIR}/content/browser/tracing WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+# PRE-GENERATION .HTML,.JS -> .GRD
+
+MESSAGE(STATUS "Generating .grd from .html,.js...")
+
+EXECUTE_PROCESS(COMMAND python browser/tracing/generate_trace_viewer_grd.py ${CMAKE_BINARY_DIR}/content/browser/tracing/about_tracing.html ${CMAKE_BINARY_DIR}/content/browser/tracing/about_tracing.js --output ${CMAKE_BINARY_DIR}/content/browser/tracing/tracing_resources.grd WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 # PRE-GENERATION .GRD -> .CC,.H,.PAK
 
@@ -87,6 +105,7 @@ EXECUTE_PROCESS(COMMAND mkdir -p blink/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i content_resources.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR}/content --write-only-new=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i ${BLINK_DIR}/Source/builz/devtools/devtools_resources.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR}/blink --write-only-new=0 -D SHARED_INTERMEDIATE_DIR=${BLINK_DIR}/Source/builz WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i ${CMAKE_BINARY_DIR}/content/browser/tracing/tracing_resources.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR}/content/browser/tracing --write-only-new=0 -D SHARED_INTERMEDIATE_DIR=${CMAKE_BINARY_DIR} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 # PRE-GENERATION .MOJOM -> .CC,.H
 
@@ -95,16 +114,18 @@ MESSAGE(STATUS "Generating .cc,.h files from .mojom...")
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/service_port_service.mojom --use_bundled_pylibs -d . -I. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/routed_service_provider.mojom --use_bundled_pylibs -d . -I. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/permission_service.mojom --use_bundled_pylibs -d . -I.. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/wake_lock_service.mojom --use_bundled_pylibs -d . -I.. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/application_setup.mojom --use_bundled_pylibs -d . -I.. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/presentation/presentation_service.mojom --use_bundled_pylibs -d . -I.. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/image_downloader/image_downloader.mojom --use_bundled_pylibs -d . -I.. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/service_worker/embedded_worker_setup.mojom --use_bundled_pylibs -d . -I.. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py public/common/service_worker_event_status.mojom --use_bundled_pylibs -d . -I. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py public/common/permission_status.mojom --use_bundled_pylibs -d . -I. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py public/common/mojo_geoposition.mojom --use_bundled_pylibs -d . -I.. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py public/common/background_sync.mojom --use_bundled_pylibs -d . -I. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/background_sync_service.mojom --use_bundled_pylibs -d . -I.. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/geolocation_service.mojom --use_bundled_pylibs -d . -I.. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/wake_lock_service.mojom --use_bundled_pylibs -d . -I.. -o ${CMAKE_BINARY_DIR}/content WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py common/process_control.mojom --use_bundled_pylibs -d .. -I.. -I${MOJO_SRC_DIR}/services -o ${CMAKE_BINARY_DIR} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py ${UI_MOJO_DIR}/geometry/geometry.mojom --use_bundled_pylibs -d .. -I. -o ${CMAKE_BINARY_DIR} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 # PRE-GENERATION .PROTO -> .CC,.H,.PY
@@ -118,6 +139,18 @@ EXECUTE_PROCESS(COMMAND ${PROTOC_WRAPPER_DIR}/tools/protoc_wrapper/protoc_wrappe
 EXECUTE_PROCESS(COMMAND mkdir -p content/browser/cache_storage/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 EXECUTE_PROCESS(COMMAND ${PROTOC_WRAPPER_DIR}/tools/protoc_wrapper/protoc_wrapper.py --proto-in-dir browser/cache_storage --proto-in-file cache_storage.proto --use-system-protobuf=1 -- protoc --cpp_out ${CMAKE_BINARY_DIR}/content/browser/cache_storage WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+EXECUTE_PROCESS(COMMAND mkdir -p content/browser/notifications/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+EXECUTE_PROCESS(COMMAND ${PROTOC_WRAPPER_DIR}/tools/protoc_wrapper/protoc_wrapper.py --proto-in-dir browser/notifications --proto-in-file notification_database_data.proto --use-system-protobuf=1 -- protoc --cpp_out ${CMAKE_BINARY_DIR}/content/browser/notifications WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+EXECUTE_PROCESS(COMMAND mkdir -p content/browser/service_worker/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+EXECUTE_PROCESS(COMMAND ${PROTOC_WRAPPER_DIR}/tools/protoc_wrapper/protoc_wrapper.py --proto-in-dir browser/service_worker --proto-in-file service_worker_database.proto --use-system-protobuf=1 -- protoc --cpp_out ${CMAKE_BINARY_DIR}/content/browser/service_worker WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+EXECUTE_PROCESS(COMMAND mkdir -p content/browser/speech/proto/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+EXECUTE_PROCESS(COMMAND ${PROTOC_WRAPPER_DIR}/tools/protoc_wrapper/protoc_wrapper.py --proto-in-dir browser/speech/proto --proto-in-file google_streaming_api.proto --use-system-protobuf=1 -- protoc --cpp_out ${CMAKE_BINARY_DIR}/content/browser/speech/proto WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 # PRE-GENERATION .CC,.H FROM .JSON
 
@@ -147,7 +180,7 @@ ADD_LIBRARY(tracing OBJECT ${TRACING_DIR}/child_memory_dump_manager_delegate_imp
 ADD_LIBRARY(common OBJECT public/common/child_process_host_delegate.cc public/common/color_suggestion.cc public/common/common_param_traits.cc public/common/content_client.cc public/common/content_constants.cc public/common/content_features.cc public/common/content_switches.cc public/common/context_menu_params.cc public/common/drop_data.cc public/common/favicon_url.cc public/common/file_chooser_file_info.cc public/common/file_chooser_params.cc public/common/frame_navigate_params.cc public/common/geoposition.cc public/common/manifest.cc public/common/menu_item.cc public/common/message_port_types.cc public/common/navigator_connect_client.cc public/common/page_state.cc public/common/platform_notification_data.cc public/common/presentation_constants.cc public/common/push_messaging_status.cc public/common/referrer.cc public/common/renderer_preferences.cc public/common/resource_devtools_info.cc public/common/resource_response.cc public/common/resource_response_info.cc public/common/resource_type.cc public/common/sandboxed_process_launcher_delegate.cc public/common/signed_certificate_timestamp_id_and_status.cc public/common/speech_recognition_result.cc public/common/ssl_status.cc public/common/url_constants.cc public/common/url_utils.cc public/common/web_preferences.cc public/common/webplugininfo.cc public/common/window_container_type.cc common/appcache_interfaces.cc common/ax_content_node_data.cc common/cc_messages.cc common/child_process_host_impl.cc common/child_process_sandbox_support_impl_linux.cc common/child_process_sandbox_support_impl_shm_linux.cc common/content_constants_internal.cc common/content_ipc_logging.cc common/content_message_generator.cc common/content_param_traits.cc common/content_paths.cc common/content_switches_internal.cc common/cross_site_document_classifier.cc common/discardable_shared_memory_heap.cc common/font_config_ipc_linux.cc common/font_list.cc common/frame_param.cc common/frame_replication_state.cc common/gamepad_param_traits.cc common/gamepad_user_gesture.cc common/generic_shared_memory_id_generator.cc common/geofencing_types.cc common/host_discardable_shared_memory_manager.cc common/host_shared_bitmap_manager.cc common/in_process_child_thread_params.cc common/inter_process_time_ticks_converter.cc common/message_router.cc common/navigation_params.cc common/one_writer_seqlock.cc common/origin_util.cc common/page_state_serialization.cc common/page_zoom.cc common/process_type.cc common/resource_messages.cc common/resource_request_body.cc common/savable_url_schemes.cc common/send_zygote_child_ping_linux.cc common/service_port_type_converters.cc common/set_process_title.cc common/set_process_title_linux.cc common/site_isolation_policy.cc common/ssl_status_serialization.cc common/swapped_out_messages.cc common/url_schemes.cc common/user_agent.cc common/webplugin_geometry.cc common/websocket.cc)
 
 # browser
-ADD_LIBRARY(browser OBJECT public/browser/ax_event_notification_details.cc public/browser/background_sync_parameters.cc public/browser/background_tracing_config.cc public/browser/bluetooth_chooser.cc public/browser/browser_child_process_host_delegate.cc public/browser/browser_child_process_host_iterator.cc public/browser/browser_child_process_observer.cc public/browser/browser_main_parts.cc public/browser/browser_message_filter.cc public/browser/browser_plugin_guest_delegate.cc public/browser/browser_plugin_guest_manager.cc public/browser/content_browser_client.cc public/browser/desktop_media_id.cc public/browser/download_manager_delegate.cc public/browser/download_url_parameters.cc public/browser/favicon_status.cc public/browser/interstitial_page_delegate.cc public/browser/javascript_dialog_manager.cc public/browser/load_from_memory_cache_details.cc public/browser/media_device_id.cc public/browser/navigation_controller.cc public/browser/navigation_details.cc public/browser/navigation_handle.cc public/browser/navigation_throttle.cc public/browser/notification_registrar.cc public/browser/page_navigator.cc public/browser/presentation_session.cc public/browser/presentation_session_message.cc public/browser/push_messaging_service.cc public/browser/resource_dispatcher_host_delegate.cc public/browser/resource_request_details.cc public/browser/screen_orientation_provider.cc public/browser/security_style_explanations.cc public/browser/service_worker_usage_info.cc public/browser/speech_recognition_session_config.cc public/browser/speech_recognition_session_context.cc public/browser/speech_recognition_session_preamble.cc public/browser/stream_info.cc public/browser/tracing_delegate.cc public/browser/url_data_source.cc public/browser/web_contents.cc public/browser/web_contents_delegate.cc public/browser/web_contents_observer.cc public/browser/web_contents_view_delegate.cc public/browser/web_ui_controller.cc browser/bad_message.cc browser/browser_child_process_host_impl.cc browser/browser_context.cc browser/browser_ipc_logging.cc browser/browser_main.cc browser/browser_main_loop.cc browser/browser_main_runner.cc browser/browser_process_sub_thread.cc browser/browser_shutdown_profile_dumper.cc browser/browser_thread_impl.cc browser/browser_url_handler_impl.cc browser/browsing_instance.cc browser/byte_stream.cc browser/cert_store_impl.cc browser/child_process_launcher.cc browser/child_process_security_policy_impl.cc browser/file_descriptor_info_impl.cc browser/font_list_async.cc browser/histogram_controller.cc browser/histogram_internals_request_job.cc browser/histogram_message_filter.cc browser/histogram_synchronizer.cc browser/host_zoom_level_context.cc browser/host_zoom_map_impl.cc browser/manifest/manifest_manager_host.cc browser/message_port_message_filter.cc browser/message_port_provider.cc browser/mime_registry_message_filter.cc browser/navigator_connect/navigator_connect_context_impl.cc browser/navigator_connect/service_port_service_impl.cc browser/notification_service_impl.cc browser/power_monitor_message_broadcaster.cc browser/power_save_blocker_impl.cc browser/profiler_controller_impl.cc browser/profiler_message_filter.cc browser/quota_dispatcher_host.cc browser/resolve_proxy_msg_helper.cc browser/resource_context_impl.cc browser/screen_orientation/screen_orientation_dispatcher_host_impl.cc browser/signed_certificate_timestamp_store_impl.cc browser/site_instance_impl.cc)
+ADD_LIBRARY(browser OBJECT public/browser/ax_event_notification_details.cc public/browser/background_sync_parameters.cc public/browser/background_tracing_config.cc public/browser/bluetooth_chooser.cc public/browser/browser_child_process_host_delegate.cc public/browser/browser_child_process_host_iterator.cc public/browser/browser_child_process_observer.cc public/browser/browser_main_parts.cc public/browser/browser_message_filter.cc public/browser/browser_plugin_guest_delegate.cc public/browser/browser_plugin_guest_manager.cc public/browser/content_browser_client.cc public/browser/desktop_media_id.cc public/browser/download_manager_delegate.cc public/browser/download_url_parameters.cc public/browser/favicon_status.cc public/browser/interstitial_page_delegate.cc public/browser/javascript_dialog_manager.cc public/browser/load_from_memory_cache_details.cc public/browser/media_device_id.cc public/browser/navigation_controller.cc public/browser/navigation_details.cc public/browser/navigation_handle.cc public/browser/navigation_throttle.cc public/browser/notification_registrar.cc public/browser/page_navigator.cc public/browser/presentation_session.cc public/browser/presentation_session_message.cc public/browser/push_messaging_service.cc public/browser/resource_dispatcher_host_delegate.cc public/browser/resource_request_details.cc public/browser/screen_orientation_provider.cc public/browser/security_style_explanations.cc public/browser/service_worker_usage_info.cc public/browser/speech_recognition_session_config.cc public/browser/speech_recognition_session_context.cc public/browser/speech_recognition_session_preamble.cc public/browser/stream_info.cc public/browser/tracing_delegate.cc public/browser/url_data_source.cc public/browser/web_contents.cc public/browser/web_contents_delegate.cc public/browser/web_contents_observer.cc public/browser/web_contents_view_delegate.cc public/browser/web_ui_controller.cc browser/bad_message.cc browser/browser_child_process_host_impl.cc browser/browser_context.cc browser/browser_ipc_logging.cc browser/browser_main.cc browser/browser_main_loop.cc browser/browser_main_runner.cc browser/browser_process_sub_thread.cc browser/browser_shutdown_profile_dumper.cc browser/browser_thread_impl.cc browser/browser_url_handler_impl.cc browser/browsing_instance.cc browser/byte_stream.cc browser/cert_store_impl.cc browser/child_process_launcher.cc browser/child_process_security_policy_impl.cc browser/file_descriptor_info_impl.cc browser/font_list_async.cc browser/histogram_controller.cc browser/histogram_internals_request_job.cc browser/histogram_message_filter.cc browser/histogram_synchronizer.cc browser/host_zoom_level_context.cc browser/host_zoom_map_impl.cc browser/manifest/manifest_manager_host.cc browser/message_port_message_filter.cc browser/message_port_provider.cc browser/mime_registry_message_filter.cc browser/navigator_connect/navigator_connect_context_impl.cc browser/navigator_connect/service_port_service_impl.cc browser/notification_service_impl.cc browser/power_monitor_message_broadcaster.cc browser/power_save_blocker_impl.cc browser/profiler_controller_impl.cc browser/profiler_message_filter.cc browser/quota_dispatcher_host.cc browser/resolve_proxy_msg_helper.cc browser/resource_context_impl.cc browser/screen_orientation/screen_orientation_dispatcher_host_impl.cc browser/signed_certificate_timestamp_store_impl.cc browser/site_instance_impl.cc browser/storage_partition_impl.cc browser/storage_partition_impl_map.cc browser/time_zone_monitor.cc browser/time_zone_monitor_linux.cc browser/user_metrics.cc browser/utility_process_host_impl.cc browser/startup_task_runner.cc browser/zygote_host/zygote_host_impl_linux.cc zygote/zygote_linux.cc zygote/zygote_main_linux.cc)
 
 # browser_accessibility
 ADD_LIBRARY(browser_accessibility OBJECT browser/accessibility/accessibility_mode_helper.cc browser/accessibility/accessibility_tree_formatter.cc browser/accessibility/accessibility_tree_formatter_blink.cc browser/accessibility/ax_tree_id_registry.cc browser/accessibility/browser_accessibility.cc browser/accessibility/browser_accessibility_manager.cc browser/accessibility/browser_accessibility_state_impl.cc browser/accessibility/one_shot_accessibility_tree_search.cc)
@@ -171,7 +204,7 @@ ADD_LIBRARY(browser_cache_storage OBJECT browser/cache_storage/cache_storage.cc 
 ADD_LIBRARY(browser_compositor OBJECT browser/compositor/browser_compositor_output_surface.cc browser/compositor/buffer_queue.cc browser/compositor/delegated_frame_host.cc browser/compositor/gpu_browser_compositor_output_surface.cc browser/compositor/gpu_process_transport_factory.cc browser/compositor/gpu_surfaceless_browser_compositor_output_surface.cc browser/compositor/image_transport_factory.cc browser/compositor/offscreen_browser_compositor_output_surface.cc browser/compositor/owned_mailbox.cc browser/compositor/reflector_impl.cc browser/compositor/reflector_texture.cc browser/compositor/resize_lock.cc browser/compositor/software_browser_compositor_output_surface.cc browser/compositor/surface_utils.cc browser/context_factory.cc)
 
 # browser_device_monitor
-#ADD_LIBRARY(browser_device_monitor OBJECT browser/device_monitor_udev.cc)
+#ADD_LIBRARY(browser_device_monitor OBJECT browser/device_monitor_udev.cc browser/udev_linux.cc)
 # TODO : this requires UDev
 
 # browser_device_sensors
@@ -244,6 +277,27 @@ ADD_LIBRARY(browser_service_worker OBJECT browser/service_worker/embedded_worker
 # browser_shared_worker
 ADD_LIBRARY(browser_shared_worker OBJECT browser/shared_worker/shared_worker_host.cc browser/shared_worker/shared_worker_instance.cc browser/shared_worker/shared_worker_message_filter.cc browser/shared_worker/shared_worker_service_impl.cc browser/shared_worker/worker_document_set.cc browser/shared_worker/worker_storage_partition.cc)
 
+# browser_speech
+ADD_LIBRARY(browser_speech OBJECT browser/speech/audio_buffer.cc browser/speech/audio_encoder.cc browser/speech/chunked_byte_buffer.cc browser/speech/endpointer/endpointer.cc browser/speech/endpointer/energy_endpointer.cc browser/speech/endpointer/energy_endpointer_params.cc browser/speech/google_one_shot_remote_engine.cc browser/speech/google_streaming_remote_engine.cc browser/speech/speech_recognition_dispatcher_host.cc browser/speech/speech_recognition_engine.cc browser/speech/speech_recognition_manager_impl.cc browser/speech/speech_recognizer_impl.cc)
+
+# browser_ssl
+ADD_LIBRARY(browser_ssl OBJECT browser/ssl/ssl_cert_error_handler.cc browser/ssl/ssl_client_auth_handler.cc browser/ssl/ssl_error_handler.cc browser/ssl/ssl_manager.cc browser/ssl/ssl_policy.cc browser/ssl/ssl_policy_backend.cc browser/ssl/ssl_request_info.cc)
+
+# browser_streams
+ADD_LIBRARY(browser_streams OBJECT browser/streams/stream.cc browser/streams/stream_context.cc browser/streams/stream_handle_impl.cc browser/streams/stream_registry.cc browser/streams/stream_url_request_job.cc)
+
+# browser_tracing
+ADD_LIBRARY(browser_tracing OBJECT browser/tracing/background_tracing_config_impl.cc browser/tracing/background_tracing_manager_impl.cc browser/tracing/background_tracing_rule.cc browser/tracing/battor_power_trace_provider.cc browser/tracing/file_tracing_provider_impl.cc browser/tracing/power_tracing_agent.cc browser/tracing/trace_message_filter.cc browser/tracing/tracing_controller_impl.cc browser/tracing/tracing_controller_impl_data_sinks.cc browser/tracing/tracing_ui.cc)
+
+# browser_wakelock
+ADD_LIBRARY(browser_wakelock OBJECT browser/wake_lock/wake_lock_service_context.cc browser/wake_lock/wake_lock_service_impl.cc)
+
+# browser_webcontents
+ADD_LIBRARY(browser_webcontents OBJECT browser/web_contents/web_contents_impl.cc browser/web_contents/web_contents_view_guest.cc browser/web_contents/web_contents_view_aura.cc browser/web_contents/aura/gesture_nav_simple.cc browser/web_contents/aura/overscroll_navigation_overlay.cc browser/web_contents/aura/overscroll_window_animation.cc browser/web_contents/aura/overscroll_window_delegate.cc browser/web_contents/aura/shadow_layer_delegate.cc)
+
+# browser_webui
+ADD_LIBRARY(browser_webui OBJECT browser/webui/content_web_ui_controller_factory.cc browser/webui/generic_handler.cc browser/webui/shared_resources_data_source.cc browser/webui/url_data_manager.cc browser/webui/url_data_manager_backend.cc browser/webui/url_data_source_impl.cc browser/webui/web_ui_controller_factory_registry.cc browser/webui/web_ui_data_source_impl.cc browser/webui/web_ui_impl.cc browser/webui/web_ui_message_handler.cc)
+
 # bluetooth
 ADD_LIBRARY(bluetooth OBJECT common/bluetooth/bluetooth_device.cc common/bluetooth/bluetooth_scan_filter.cc)
 
@@ -296,13 +350,13 @@ ADD_LIBRARY(net OBJECT common/net/url_fetcher.cc common/net/url_request_user_dat
 ADD_LIBRARY(service_worker OBJECT common/service_worker/service_worker_client_info.cc common/service_worker/service_worker_status_code.cc common/service_worker/service_worker_types.cc common/service_worker/service_worker_type_converters.cc common/service_worker/service_worker_utils.cc)
 
 # generated (these are generated !)
-ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/content/common/service_port_service.mojom.cc ${CMAKE_BINARY_DIR}/content/common/routed_service_provider.mojom.cc ${CMAKE_BINARY_DIR}/content/common/presentation/presentation_service.mojom.cc ${CMAKE_BINARY_DIR}/content/common/wake_lock_service.mojom.cc ${CMAKE_BINARY_DIR}/content/common/application_setup.mojom.cc ${CMAKE_BINARY_DIR}/content/common/image_downloader/image_downloader.mojom.cc ${CMAKE_BINARY_DIR}/content/common/geolocation_service.mojom.cc ${CMAKE_BINARY_DIR}/content/common/permission_service.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/service_worker_event_status.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/permission_status.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/mojo_geoposition.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/background_sync.mojom.cc ${CMAKE_BINARY_DIR}/ui/mojo/geometry/geometry.mojom.cc ${CMAKE_BINARY_DIR}/content/browser/background_sync/background_sync.pb.cc ${CMAKE_BINARY_DIR}/content/browser/devtools/protocol/devtools_protocol_dispatcher.cc ${CMAKE_BINARY_DIR}/blink/grit/devtools_resources_map.cc)
+ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/content/common/service_port_service.mojom.cc ${CMAKE_BINARY_DIR}/content/common/routed_service_provider.mojom.cc ${CMAKE_BINARY_DIR}/content/common/presentation/presentation_service.mojom.cc ${CMAKE_BINARY_DIR}/content/common/wake_lock_service.mojom.cc ${CMAKE_BINARY_DIR}/content/common/application_setup.mojom.cc ${CMAKE_BINARY_DIR}/content/common/process_control.mojom.cc ${CMAKE_BINARY_DIR}/content/common/image_downloader/image_downloader.mojom.cc ${CMAKE_BINARY_DIR}/content/common/service_worker/embedded_worker_setup.mojom.cc ${CMAKE_BINARY_DIR}/content/common/geolocation_service.mojom.cc ${CMAKE_BINARY_DIR}/content/common/permission_service.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/service_worker_event_status.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/permission_status.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/mojo_geoposition.mojom.cc ${CMAKE_BINARY_DIR}/content/public/common/background_sync.mojom.cc ${CMAKE_BINARY_DIR}/ui/mojo/geometry/geometry.mojom.cc ${CMAKE_BINARY_DIR}/content/browser/background_sync/background_sync.pb.cc ${CMAKE_BINARY_DIR}/content/browser/cache_storage/cache_storage.pb.cc ${CMAKE_BINARY_DIR}/content/browser/notifications/notification_database_data.pb.cc ${CMAKE_BINARY_DIR}/content/browser/service_worker/service_worker_database.pb.cc ${CMAKE_BINARY_DIR}/content/browser/speech/proto/google_streaming_api.pb.cc ${CMAKE_BINARY_DIR}/content/browser/devtools/protocol/devtools_protocol_dispatcher.cc ${CMAKE_BINARY_DIR}/blink/grit/devtools_resources_map.cc)
 
 
 # all files refer to "content/...", so we include ".." here
 # we put LEVELDB_EXT_DIR first, because the fork has specific required headers/values
 # we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
-SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${SKIA_SOURCE_DIR}/include/utils ${SKIA_SOURCE_DIR}/include/gpu ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${BLINK_DIR} ${MOJO_SRC_DIR}/.. ${ANGLE_SRC_DIR}/src ${LEVELDB_EXT_DIR}/src ${LEVELDB_EXT_DIR}/src/include ${leveldb_INCLUDE_DIRS} ${MOJO_SRC_DIR}/build ${MOJO_SRC_DIR}/build/mojo ${SKIA_SRC_DIR}/build ${UI_ACCESSIBILITY_DIR}/build ${CMAKE_BINARY_DIR}/content ${CMAKE_BINARY_DIR}/blink ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/..)
+SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SRC_DIR}/include/core ${SKIA_SRC_DIR}/include/utils ${SKIA_SRC_DIR}/include/gpu ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${BLINK_DIR} ${MOJO_SRC_DIR}/.. ${ANGLE_SRC_DIR}/src ${LEVELDB_EXT_DIR}/src ${LEVELDB_EXT_DIR}/src/include ${deps_INCLUDE_DIRS} ${MOJO_SRC_DIR}/build ${MOJO_SRC_DIR}/build/mojo ${SKIA_SRC_DIR}/build ${SKIA_SRC_DIR}/build/skia ${UI_ACCESSIBILITY_DIR}/build ${CMAKE_BINARY_DIR}/content ${CMAKE_BINARY_DIR}/blink ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/..)
 # TODO : "${MOJO_SRC_DIR}/${UI_ACCESSIBILITY_DIR}/build" here are HACKS !
 SET(link_libraries ${backend_LIBRARIES})
 

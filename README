@@ -124,6 +124,11 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  * Notes : there are 2 implementations : NSS and OpenSSL.
            The OpenSSL one, despite its name, only works with
            Google-forked BoringSSL, thus we use NSS instead.
+           We also patch it to backport the "LoadNSSLibraries"
+           function, which is used a lot later by one of our
+           NSS-related patches for "content_browser" (see below,
+           and see https://chromium.googlesource.com/chromium
+              /src/+/ee55ed44da66cc54b3d5ab295485b7bbf3c0716a).
 
 02c) ipc
 
@@ -331,6 +336,13 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  * Handles : Content Browser is the "real" browser code; it
              leverages Blink, which itself leverages V8 (see above)
              to do HTML/CSS/JS rendering.
+ * Notes : the Zygote (Linux process pre-forking) source file tries
+           to use a Google BoringSSL call, we patch it back to NSS
+           (see https://chromium.googlesource.com/chromium/src/+
+               /10eda64c1a5c673dcdca74fbb774f522dc253ad7), which
+           also requires a patch directly in "crypto" (see above).
+           We also remove calls to low-level battery and vibration
+           monitors libraries, which we do not build nor need.
 
 13a) ui_views
 
