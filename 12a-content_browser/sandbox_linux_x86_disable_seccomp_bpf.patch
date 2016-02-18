@@ -1,0 +1,17 @@
+--- common/sandbox_linux/sandbox_seccomp_bpf_linux.cc	2016-02-18 01:37:14.592180454 +0000
++++ common/sandbox_linux/sandbox_seccomp_bpf_linux.cc	2016-02-18 01:37:58.568807399 +0000
+@@ -45,14 +45,6 @@
+ using sandbox::bpf_dsl::Allow;
+ using sandbox::bpf_dsl::ResultExpr;
+ 
+-#else
+-
+-// Make sure that seccomp-bpf does not get disabled by mistake. Also make sure
+-// that we think twice about this when adding a new architecture.
+-#if !defined(ARCH_CPU_ARM64)
+-#error "Seccomp-bpf disabled on supported architecture!"
+-#endif  // !defined(ARCH_CPU_ARM64)
+-
+ #endif  //
+ 
+ namespace content {

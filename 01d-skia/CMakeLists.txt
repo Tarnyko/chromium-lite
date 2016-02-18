@@ -160,7 +160,7 @@ ADD_LIBRARY(gpu-gl OBJECT src/gpu/gl/SkGLContext.cpp src/gpu/gl/GrGLAssembleInte
 ADD_LIBRARY(gpu-gl-backend OBJECT src/gpu/gl/GrGLDefaultInterface_native.cpp ${BACKEND_SOURCE_FILES})
 
 # ports
-ADD_LIBRARY(ports OBJECT src/ports/SkDebug_stdio.cpp src/fonts/SkFontMgr_indirect.cpp src/fonts/SkRemotableFontMgr.cpp src/ports/SkFontMgr_fontconfig.cpp src/ports/SkFontMgr_fontconfig_factory.cpp src/ports/SkGlobalInitialization_default.cpp src/ports/SkMemory_malloc.cpp src/ports/SkOSFile_posix.cpp src/ports/SkOSFile_stdio.cpp src/ports/SkOSLibrary_posix.cpp src/ports/SkDiscardableMemory_none.cpp src/ports/SkTime_Unix.cpp src/ports/SkTLS_pthread.cpp src/ports/SkFontHost_FreeType.cpp src/ports/SkFontHost_FreeType_common.cpp src/ports/SkFontMgr_custom.cpp src/ports/SkImageGenerator_skia.cpp)
+ADD_LIBRARY(ports OBJECT src/ports/SkDebug_stdio.cpp src/fonts/SkFontMgr_indirect.cpp src/fonts/SkRemotableFontMgr.cpp src/ports/SkFontMgr_fontconfig.cpp src/ports/SkFontMgr_fontconfig_factory.cpp src/ports/SkFontConfigInterface_direct.cpp src/ports/SkFontConfigInterface_direct_factory.cpp src/ports/SkFontHost_fontconfig.cpp src/ports/SkGlobalInitialization_default.cpp src/ports/SkMemory_malloc.cpp src/ports/SkOSFile_posix.cpp src/ports/SkOSFile_stdio.cpp src/ports/SkOSLibrary_posix.cpp src/ports/SkTime_Unix.cpp src/ports/SkTLS_pthread.cpp src/ports/SkFontHost_FreeType.cpp src/ports/SkFontHost_FreeType_common.cpp src/ports/SkFontMgr_custom.cpp src/ports/SkImageGenerator_skia.cpp)
 
 # sfnt
 ADD_LIBRARY(sfnt OBJECT src/sfnt/SkOTTable_name.cpp src/sfnt/SkOTUtils.cpp)
@@ -169,7 +169,7 @@ ADD_LIBRARY(sfnt OBJECT src/sfnt/SkOTTable_name.cpp src/sfnt/SkOTUtils.cpp)
 ADD_LIBRARY(opts OBJECT ${TOOLCHAIN_OPTS_SOURCE_FILES})
 
 # ext (This is Chromium-specific !)
-ADD_LIBRARY(ext OBJECT ${SKIA_EXT_DIR}/ext/analysis_canvas.cc ${SKIA_EXT_DIR}/ext/opacity_filter_canvas.cc ${SKIA_EXT_DIR}/ext/platform_canvas.cc ${SKIA_EXT_DIR}/ext/platform_device.cc ${SKIA_EXT_DIR}/ext/platform_device_linux.cc ${SKIA_EXT_DIR}/ext/bitmap_platform_device_skia.cc ${SKIA_EXT_DIR}/ext/convolver.cc ${SKIA_EXT_DIR}/ext/image_operations.cc ${SKIA_EXT_DIR}/ext/google_logging.cc)
+ADD_LIBRARY(ext OBJECT ${SKIA_EXT_DIR}/ext/analysis_canvas.cc ${SKIA_EXT_DIR}/ext/opacity_filter_canvas.cc ${SKIA_EXT_DIR}/ext/platform_canvas.cc ${SKIA_EXT_DIR}/ext/platform_device.cc ${SKIA_EXT_DIR}/ext/platform_device_linux.cc ${SKIA_EXT_DIR}/ext/bitmap_platform_device_skia.cc ${SKIA_EXT_DIR}/ext/convolver.cc ${SKIA_EXT_DIR}/ext/event_tracer_impl.cc ${SKIA_EXT_DIR}/ext/image_operations.cc ${SKIA_EXT_DIR}/ext/skia_utils_base.cc ${SKIA_EXT_DIR}/ext/skia_memory_dump_provider.cc ${SKIA_EXT_DIR}/ext/skia_trace_memory_dump_impl.cc ${SKIA_EXT_DIR}/ext/google_logging.cc ${SKIA_EXT_DIR}/ext/SkDiscardableMemory_chrome.cc)
 
 # generated (These are generated !)
 ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/skia/public/interfaces/bitmap.mojom.cc)

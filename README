@@ -164,7 +164,8 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 
  Net helper library.
  * Depends on :
-   - base, url, crypto, protobuf, libnss, libnspr, open-vcdiff
+   - base, url, crypto, sql
+   - protobuf, libnss, libnspr, open-vcdiff
    - python, protobuf-compiler (for building only)
  * Handles : this huge library is at the core of Chromium's
              recognition of various protocols (HTTP://, FTP://,
@@ -313,7 +314,17 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  UI Compositor helper library.
  * Depends on : base, skia, ui_gfx, ui_gl, gpu, cc
 
-10a) ui_aura
+10a) gpu_blink
+
+ GPU Blink library.
+ * Depends on : base, skia, ui_gfx, ui_gl, gpu, cc, blink
+
+10b) ui_events_blink
+
+ UI Events Blink library.
+ * Depends on : ui_gfx, ui_events, cc, blink
+
+10c) ui_aura
 
  UI Aura library.
  * Depends on : base, skia, ui_gfx, ui_events, ui_base,
@@ -336,7 +347,8 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  Content Browser library.
  * Depends on : base, mojo, skia, url, ipc, net, ui_gfx, storage,
                 ui_accessibility, ui_events, media, ui_base, ui_gl,
-                gpu, cc, blink, ui_shell_dialogs
+                gpu, cc, blink, gpu_blink, ui_events_blink,
+                ui_aura, ui_shell_dialogs
  * Handles : Content Browser is the "real" browser code; it
              leverages Blink, which itself leverages V8 (see above)
              to do HTML/CSS/JS rendering.
@@ -347,6 +359,8 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
            also requires a patch directly in "crypto" (see above).
            We also remove calls to low-level battery and vibration
            monitors libraries, which we do not build nor need.
+           We build the Tracing and Sandbox libraries directly in
+           the binary, because it is the only one requiring it.
 
 13a) ui_views
 

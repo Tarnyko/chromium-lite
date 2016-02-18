@@ -166,7 +166,7 @@ EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CM
 EXECUTE_PROCESS(COMMAND mkdir -p resources/inspector/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 EXECUTE_PROCESS(COMMAND mkdir -p devtools/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-EXECUTE_PROCESS(COMMAND python devtools/scripts/generate_supported_css.py core/CSS/CSSProperties.in ${CMAKE_BINARY_DIR}/resources/inspector/SupportedCSSProperties.js WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python devtools/scripts/generate_supported_css.py core/css/CSSProperties.in ${CMAKE_BINARY_DIR}/resources/inspector/SupportedCSSProperties.js WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python devtools/scripts/CodeGeneratorFrontend.py devtools/protocol.json --output_js_dir ${CMAKE_BINARY_DIR}/resources/inspector WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND python devtools/scripts/build_applications.py inspector toolbox --input_path devtools/front_end --output_path ${CMAKE_BINARY_DIR}/resources/inspector --debug 1 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 

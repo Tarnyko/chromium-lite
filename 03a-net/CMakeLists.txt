@@ -153,6 +153,9 @@ ADD_LIBRARY(proto_file OBJECT base/directory_lister.cc url_request/file_protocol
 # proto_ftp ("ftp://" protocol)
 ADD_LIBRARY(proto_ftp OBJECT ftp/ftp_auth_cache.cc ftp/ftp_ctrl_response_buffer.cc ftp/ftp_directory_listing_parser.cc ftp/ftp_directory_listing_parser_ls.cc ftp/ftp_directory_listing_parser_vms.cc ftp/ftp_directory_listing_parser_windows.cc ftp/ftp_network_layer.cc ftp/ftp_network_session.cc ftp/ftp_network_transaction.cc ftp/ftp_response_info.cc ftp/ftp_server_type_histograms.cc ftp/ftp_util.cc url_request/ftp_protocol_handler.cc url_request/url_request_ftp_job.cc)
 
+# extras
+ADD_LIBRARY(extras OBJECT extras/sqlite/sqlite_channel_id_store.cc extras/sqlite/sqlite_persistent_cookie_store.cc)
+
 # generated (these are generated !)
 ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/net/quic/proto/cached_network_parameters.pb.cc ${CMAKE_BINARY_DIR}/net/quic/proto/source_address_token.pb.cc)
 
@@ -163,7 +166,7 @@ ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/net/quic/proto/cached_network_p
 SET(include_dirs ${INCLUDE_DIRS} ${protobuf_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/third_party/nss/ssl ${nss_INCLUDE_DIRS} ${nspr_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/third_party/nss/ssl/bodge ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/.. ${CMAKE_BINARY_DIR})
 SET(link_libraries ${protobuf_LIBRARIES} ${nss_LIBRARIES} ${nspr_LIBRARIES} -lvcddec)
 
-ADD_LIBRARY(net SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:cert> $<TARGET_OBJECTS:cookies> $<TARGET_OBJECTS:der> $<TARGET_OBJECTS:disk_cache> $<TARGET_OBJECTS:dns> $<TARGET_OBJECTS:filter> $<TARGET_OBJECTS:http> $<TARGET_OBJECTS:log> $<TARGET_OBJECTS:crssl> $<TARGET_OBJECTS:quic> $<TARGET_OBJECTS:proxy> $<TARGET_OBJECTS:socket> $<TARGET_OBJECTS:spdy> $<TARGET_OBJECTS:ssl> $<TARGET_OBJECTS:udp> $<TARGET_OBJECTS:url_request> $<TARGET_OBJECTS:websockets> $<TARGET_OBJECTS:proto_file> $<TARGET_OBJECTS:proto_ftp> $<TARGET_OBJECTS:generated> sdch/sdch_owner.cc third_party/mozilla_security_manager/nsKeygenHandler.cpp third_party/mozilla_security_manager/nsNSSCertificateDB.cpp third_party/mozilla_security_manager/nsPKCS12Blob.cpp)
+ADD_LIBRARY(net SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:cert> $<TARGET_OBJECTS:cookies> $<TARGET_OBJECTS:der> $<TARGET_OBJECTS:disk_cache> $<TARGET_OBJECTS:dns> $<TARGET_OBJECTS:filter> $<TARGET_OBJECTS:http> $<TARGET_OBJECTS:log> $<TARGET_OBJECTS:crssl> $<TARGET_OBJECTS:quic> $<TARGET_OBJECTS:proxy> $<TARGET_OBJECTS:socket> $<TARGET_OBJECTS:spdy> $<TARGET_OBJECTS:ssl> $<TARGET_OBJECTS:udp> $<TARGET_OBJECTS:url_request> $<TARGET_OBJECTS:websockets> $<TARGET_OBJECTS:proto_file> $<TARGET_OBJECTS:proto_ftp> $<TARGET_OBJECTS:extras> $<TARGET_OBJECTS:generated> sdch/sdch_owner.cc third_party/mozilla_security_manager/nsKeygenHandler.cpp third_party/mozilla_security_manager/nsNSSCertificateDB.cpp third_party/mozilla_security_manager/nsPKCS12Blob.cpp)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(net ${link_libraries})
 
