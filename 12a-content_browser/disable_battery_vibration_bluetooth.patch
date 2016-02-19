@@ -52,3 +52,40 @@
  
    mojo_application_host_->service_registry()->AddService(
        base::Bind(&PermissionServiceContext::CreateService,
+--- browser/renderer_host/render_process_host_impl.cc	2016-02-19 09:20:38.842843738 +0000
++++ browser/renderer_host/render_process_host_impl.cc	2016-02-19 09:21:45.610796325 +0000
+@@ -1028,10 +1028,12 @@
+ #endif
+   AddFilter(new GeofencingDispatcherHost(
+       storage_partition_impl_->GetGeofencingManager()));
++#if 0
+   if (browser_command_line.HasSwitch(switches::kEnableWebBluetooth)) {
+     bluetooth_dispatcher_host_ = new BluetoothDispatcherHost(GetID());
+     AddFilter(bluetooth_dispatcher_host_.get());
+   }
++#endif
+ }
+ 
+ void RenderProcessHostImpl::RegisterMojoServices() {
+@@ -2671,8 +2673,10 @@
+   audio_renderer_host()->GetOutputControllers(callback);
+ }
+ 
++#if 0
+ BluetoothDispatcherHost* RenderProcessHostImpl::GetBluetoothDispatcherHost() {
+   return bluetooth_dispatcher_host_.get();
+ }
++#endif
+ 
+ }  // namespace content
+--- common/content_message_generator.h	2016-02-19 09:43:49.488678639 +0000
++++ common/content_message_generator.h	2016-02-19 09:43:55.136759181 +0000
+@@ -8,7 +8,7 @@
+ 
+ #include "content/common/accessibility_messages.h"
+ #include "content/common/appcache_messages.h"
+-#include "content/common/bluetooth/bluetooth_messages.h"
++//#include "content/common/bluetooth/bluetooth_messages.h"
+ #include "content/common/browser_plugin/browser_plugin_messages.h"
+ #include "content/common/cache_storage/cache_storage_messages.h"
+ #include "content/common/cc_messages.h"

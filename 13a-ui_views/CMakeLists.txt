@@ -7,7 +7,6 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 SET(PROJECT_NAME "Chromium - UI Views")
 
 # Location of direct dependencies
-SET(TOUCH_SELECTION_DIR "${CMAKE_SOURCE_DIR}/../touch_selection")
 SET(DISPLAY_UTIL_DIR "${CMAKE_SOURCE_DIR}/../display/util")
 SET(UI_ACCESSIBILITY_DIR "${CMAKE_SOURCE_DIR}/../accessibility")
 SET(UI_GFX_DIR "${CMAKE_SOURCE_DIR}/../gfx")
@@ -51,7 +50,7 @@ IF(BACKEND STREQUAL "X11")
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DVIEWS_IMPLEMENTATION -DUI_TOUCH_SELECTION_IMPLEMENTATION -DTOOLKIT_VIEWS=1 -DUSE_AURA)
+ADD_DEFINITIONS(-DVIEWS_IMPLEMENTATION -DTOOLKIT_VIEWS=1 -DUSE_AURA)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
@@ -66,9 +65,6 @@ EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i views_resources.grd bu
 
 
 # SOURCES FILE LIST
-
-# touch_selection
-ADD_LIBRARY(touch_selection OBJECT ${TOUCH_SELECTION_DIR}/longpress_drag_selector.cc ${TOUCH_SELECTION_DIR}/touch_handle.cc ${TOUCH_SELECTION_DIR}/touch_handle_drawable_aura.cc ${TOUCH_SELECTION_DIR}/touch_selection_controller.cc ${TOUCH_SELECTION_DIR}/touch_selection_menu_runner.cc)
 
 # accessibility
 ADD_LIBRARY(accessibility OBJECT accessibility/native_view_accessibility.cc accessibility/ax_aura_obj_cache.cc accessibility/ax_view_obj_wrapper.cc accessibility/ax_widget_obj_wrapper.cc accessibility/ax_window_obj_wrapper.cc)
@@ -112,7 +108,7 @@ SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../
 # TODO : "${UI_*_DIR}/Build" are HACKs ! remove them when use .pc files !
 SET(link_libraries ${backend_LIBRARIES})
 
-ADD_LIBRARY(ui_views SHARED $<TARGET_OBJECTS:touch_selection> $<TARGET_OBJECTS:accessibility> $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:bubble> $<TARGET_OBJECTS:controls> $<TARGET_OBJECTS:corewm> $<TARGET_OBJECTS:focus> $<TARGET_OBJECTS:layout> $<TARGET_OBJECTS:linuxui> $<TARGET_OBJECTS:touchui> $<TARGET_OBJECTS:widget> $<TARGET_OBJECTS:window> $<TARGET_OBJECTS:misc> ${BACKEND_SOURCE_FILES})
+ADD_LIBRARY(ui_views SHARED $<TARGET_OBJECTS:accessibility> $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:bubble> $<TARGET_OBJECTS:controls> $<TARGET_OBJECTS:corewm> $<TARGET_OBJECTS:focus> $<TARGET_OBJECTS:layout> $<TARGET_OBJECTS:linuxui> $<TARGET_OBJECTS:touchui> $<TARGET_OBJECTS:widget> $<TARGET_OBJECTS:window> $<TARGET_OBJECTS:misc> ${BACKEND_SOURCE_FILES})
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ui_views ${link_libraries})
 

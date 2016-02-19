@@ -1,0 +1,29 @@
+--- browser/speech/speech_recognition_manager_impl.cc	2016-02-19 11:01:55.686540687 +0000
++++ browser/speech/speech_recognition_manager_impl.cc	2016-02-19 11:03:47.911142137 +0000
+@@ -11,8 +11,8 @@
+ #include "content/browser/browser_main_loop.h"
+ #include "content/browser/renderer_host/media/media_stream_manager.h"
+ #include "content/browser/renderer_host/media/media_stream_ui_proxy.h"
+-#include "content/browser/speech/google_one_shot_remote_engine.h"
+-#include "content/browser/speech/google_streaming_remote_engine.h"
++//#include "content/browser/speech/google_one_shot_remote_engine.h"
++//#include "content/browser/speech/google_streaming_remote_engine.h"
+ #include "content/browser/speech/speech_recognition_engine.h"
+ #include "content/browser/speech/speech_recognizer_impl.h"
+ #include "content/public/browser/browser_thread.h"
+@@ -138,6 +138,7 @@
+   remote_engine_config.auth_scope = config.auth_scope;
+   remote_engine_config.preamble = config.preamble;
+ 
++#if 0
+   SpeechRecognitionEngine* google_remote_engine;
+   if (config.is_legacy_api) {
+     google_remote_engine =
+@@ -155,6 +156,7 @@
+       config.continuous,
+       config.interim_results,
+       google_remote_engine);
++#endif
+ #else
+   session->recognizer = new SpeechRecognizerImplAndroid(this, session_id);
+ #endif

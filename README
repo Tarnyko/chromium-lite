@@ -213,7 +213,9 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
              for browser database storage.
  * Notes : storage requires headers from Google's leveldb fork in
            "third_party/leveldatabase" to be built, but not at
-           runtime. Thus, we can rely on the system leveldb.
+           runtime. This allows us to rely on system leveldb.
+           We also build additional Chromium-specific sources,
+           which require the R2 ("third_party/r2") as well.
 
 04c) ui_accessibility
 
@@ -337,7 +339,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
              Funny part is, even with Aura, Views still needs X11
              libraries for custom stuff :).
 
-11a) ui_shell_dialogs
+11c) ui_shell_dialogs
 
  UI Shell Dialogs library.
  * Depends on : base, skia, ui_strings, ui_base, ui_aura
@@ -345,10 +347,13 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 12a) content_browser
 
  Content Browser library.
- * Depends on : base, mojo, skia, url, ipc, net, ui_gfx, storage,
-                ui_accessibility, ui_events, media, ui_base, ui_gl,
-                gpu, cc, blink, gpu_blink, ui_events_blink,
-                ui_aura, ui_shell_dialogs
+ * Depends on :
+   - base, mojo, skia, url, ipc, net, ui_gfx, storage,
+     ui_accessibility, ui_events, media, ui_base, ui_gl,
+     gpu, cc, blink, gpu_blink, ui_events_blink, ui_aura,
+     ui_touch_selection, ui_snapshot, ui_shell_dialogs
+   - ozone (wayland) / x11, xcomposite, pangocairo (x11)
+   - minizip
  * Handles : Content Browser is the "real" browser code; it
              leverages Blink, which itself leverages V8 (see above)
              to do HTML/CSS/JS rendering.
@@ -357,10 +362,15 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
            (see https://chromium.googlesource.com/chromium/src/+
                /10eda64c1a5c673dcdca74fbb774f522dc253ad7), which
            also requires a patch directly in "crypto" (see above).
-           We also remove calls to low-level battery and vibration
-           monitors libraries, which we do not build nor need.
-           We build the Tracing and Sandbox libraries directly in
-           the binary, because it is the only one requiring it.
+            We also remove calls to low-level battery, vibration,
+           and bluetooth libraries, which we do not build nor need.
+            This is a forked call to "zip::ZipWithFilterCallback",
+           we build 1 file from a fork of zlib ("third_party/zlib")
+           to have that.
+            The "net" code uses additional functions than the ones
+           "net/mime_util.cc", thus we have an extra "mime_util.cc",
+            We build the Scheduler, Tracing, Sandbox and Google APIs
+           third-parties directly in the binary.
 
 13a) ui_views
 

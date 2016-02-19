@@ -1,0 +1,23 @@
+--- ../components/url_formatter/url_formatter.cc	2016-02-19 07:22:44.038346561 +0000
++++ ../components/url_formatter/url_formatter.cc	2016-02-19 07:24:02.894466118 +0000
+@@ -18,11 +18,20 @@
+ #include "base/strings/utf_offset_string_conversions.h"
+ #include "base/strings/utf_string_conversions.h"
+ #include "base/synchronization/lock.h"
++
++#include <unicode/uidna.h>
++#include <unicode/uniset.h>
++#include <unicode/uscript.h>
++#include <unicode/regex.h>
++#include <unicode/ulocdata.h>
++#if 0
+ #include "third_party/icu/source/common/unicode/uidna.h"
+ #include "third_party/icu/source/common/unicode/uniset.h"
+ #include "third_party/icu/source/common/unicode/uscript.h"
+ #include "third_party/icu/source/i18n/unicode/regex.h"
+ #include "third_party/icu/source/i18n/unicode/ulocdata.h"
++#endif
++
+ #include "url/gurl.h"
+ #include "url/third_party/mozilla/url_parse.h"
+ 

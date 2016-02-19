@@ -95,7 +95,7 @@ ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/mojo/public/interfaces/bindings
 # we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
 SET(include_dirs ${INCLUDE_DIRS} ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/mojo ${CMAKE_SOURCE_DIR}/..)
 
-ADD_LIBRARY(mojo SHARED $<TARGET_OBJECTS:common> $<TARGET_OBJECTS:environment> $<TARGET_OBJECTS:message_pump> $<TARGET_OBJECTS:bindings> $<TARGET_OBJECTS:application> $<TARGET_OBJECTS:shell> $<TARGET_OBJECTS:converters> $<TARGET_OBJECTS:edk> $<TARGET_OBJECTS:edk_ext> $<TARGET_OBJECTS:generated>)
+ADD_LIBRARY(mojo SHARED $<TARGET_OBJECTS:common> $<TARGET_OBJECTS:environment> $<TARGET_OBJECTS:message_pump> $<TARGET_OBJECTS:bindings> $<TARGET_OBJECTS:application> $<TARGET_OBJECTS:shell> $<TARGET_OBJECTS:converters> $<TARGET_OBJECTS:edk> $<TARGET_OBJECTS:edk_ext> $<TARGET_OBJECTS:generated> public/js/constants.cc)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(mojo ${link_libraries})
 
