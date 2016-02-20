@@ -171,15 +171,18 @@ ADD_LIBRARY(opts OBJECT ${TOOLCHAIN_OPTS_SOURCE_FILES})
 # ext (This is Chromium-specific !)
 ADD_LIBRARY(ext OBJECT ${SKIA_EXT_DIR}/ext/analysis_canvas.cc ${SKIA_EXT_DIR}/ext/opacity_filter_canvas.cc ${SKIA_EXT_DIR}/ext/platform_canvas.cc ${SKIA_EXT_DIR}/ext/platform_device.cc ${SKIA_EXT_DIR}/ext/platform_device_linux.cc ${SKIA_EXT_DIR}/ext/bitmap_platform_device_skia.cc ${SKIA_EXT_DIR}/ext/convolver.cc ${SKIA_EXT_DIR}/ext/event_tracer_impl.cc ${SKIA_EXT_DIR}/ext/image_operations.cc ${SKIA_EXT_DIR}/ext/skia_utils_base.cc ${SKIA_EXT_DIR}/ext/skia_memory_dump_provider.cc ${SKIA_EXT_DIR}/ext/skia_trace_memory_dump_impl.cc ${SKIA_EXT_DIR}/ext/google_logging.cc ${SKIA_EXT_DIR}/ext/SkDiscardableMemory_chrome.cc)
 
+# mojo_skia
+ADD_LIBRARY(mojo_skia OBJECT ${SKIA_EXT_DIR}/public/type_converters.cc)
+
 # generated (These are generated !)
 ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/skia/public/interfaces/bitmap.mojom.cc)
 
 
-SET(include_dirs ${INCLUDE_DIRS} ${freetype_INCLUDE_DIRS} ${fontconfig_INCLUDE_DIRS} ${libpng12_INCLUDE_DIRS} ${libwebp_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include/config ${CMAKE_SOURCE_DIR}/include/private ${CMAKE_SOURCE_DIR}/include/c ${CMAKE_SOURCE_DIR}/src/core ${CMAKE_SOURCE_DIR}/include/core ${CMAKE_SOURCE_DIR}/src/utils ${CMAKE_SOURCE_DIR}/include/utils ${CMAKE_SOURCE_DIR}/src/gpu ${CMAKE_SOURCE_DIR}/include/gpu ${CMAKE_SOURCE_DIR}/src/image ${CMAKE_SOURCE_DIR}/include/images ${CMAKE_SOURCE_DIR}/include/pathops ${CMAKE_SOURCE_DIR}/include/ports ${CMAKE_SOURCE_DIR}/src/opts ${CMAKE_SOURCE_DIR}/src/sfnt ${CMAKE_SOURCE_DIR}/include/pipe ${CMAKE_SOURCE_DIR}/include/effects ${CMAKE_SOURCE_DIR}/src/lazy ${CMAKE_SOURCE_DIR}/third_party/etc1 ${CMAKE_SOURCE_DIR}/third_party/ktx ${SKIA_EXT_DIR}/.. ${MOJO_SRC_DIR}/Build ${MOJO_SRC_DIR}/Build/mojo ${CMAKE_BINARY_DIR}/skia)
+SET(include_dirs ${INCLUDE_DIRS} ${freetype_INCLUDE_DIRS} ${fontconfig_INCLUDE_DIRS} ${libpng12_INCLUDE_DIRS} ${libwebp_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include/config ${CMAKE_SOURCE_DIR}/include/private ${CMAKE_SOURCE_DIR}/include/c ${CMAKE_SOURCE_DIR}/src/core ${CMAKE_SOURCE_DIR}/include/core ${CMAKE_SOURCE_DIR}/src/utils ${CMAKE_SOURCE_DIR}/include/utils ${CMAKE_SOURCE_DIR}/src/gpu ${CMAKE_SOURCE_DIR}/include/gpu ${CMAKE_SOURCE_DIR}/src/image ${CMAKE_SOURCE_DIR}/include/images ${CMAKE_SOURCE_DIR}/include/pathops ${CMAKE_SOURCE_DIR}/include/ports ${CMAKE_SOURCE_DIR}/src/opts ${CMAKE_SOURCE_DIR}/src/sfnt ${CMAKE_SOURCE_DIR}/include/pipe ${CMAKE_SOURCE_DIR}/include/effects ${CMAKE_SOURCE_DIR}/src/lazy ${CMAKE_SOURCE_DIR}/third_party/etc1 ${CMAKE_SOURCE_DIR}/third_party/ktx ${SKIA_EXT_DIR}/.. ${MOJO_SRC_DIR}/Build ${MOJO_SRC_DIR}/Build/mojo ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/skia)
 # TODO : "${MOJO_SRC_DIR}/Build" is a HACK ! Fix this once we use .pc files
 SET(link_libraries ${freetype_LIBRARIES} ${fontconfig_LIBRARIES} ${libpng12_LIBRARIES} ${libwebp_LIBRARIES} ${backend_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -ljpeg -lgif)
 
-ADD_LIBRARY(skia SHARED $<TARGET_OBJECTS:core> $<TARGET_OBJECTS:core-ext> $<TARGET_OBJECTS:etc1> $<TARGET_OBJECTS:utils> $<TARGET_OBJECTS:ktx> $<TARGET_OBJECTS:images> $<TARGET_OBJECTS:effects> $<TARGET_OBJECTS:gpu> $<TARGET_OBJECTS:gpu-gl> $<TARGET_OBJECTS:gpu-gl-backend> $<TARGET_OBJECTS:ports> $<TARGET_OBJECTS:sfnt> $<TARGET_OBJECTS:opts> $<TARGET_OBJECTS:ext> $<TARGET_OBJECTS:generated>)
+ADD_LIBRARY(skia SHARED $<TARGET_OBJECTS:core> $<TARGET_OBJECTS:core-ext> $<TARGET_OBJECTS:etc1> $<TARGET_OBJECTS:utils> $<TARGET_OBJECTS:ktx> $<TARGET_OBJECTS:images> $<TARGET_OBJECTS:effects> $<TARGET_OBJECTS:gpu> $<TARGET_OBJECTS:gpu-gl> $<TARGET_OBJECTS:gpu-gl-backend> $<TARGET_OBJECTS:ports> $<TARGET_OBJECTS:sfnt> $<TARGET_OBJECTS:opts> $<TARGET_OBJECTS:ext> $<TARGET_OBJECTS:mojo_skia> $<TARGET_OBJECTS:generated>)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(skia ${link_libraries})
 

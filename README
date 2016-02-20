@@ -303,8 +303,9 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  Blink Web Engine, Google's fork of WebKit.
  * Depends on :
    - base, v8, url, skia, ui_gfx, gpu, cc
-   - libicui18n>=52, libicuuc>=52, harfbuzz>=0.9.22, libwebp>=0.4.0
-   - python, gperf (for building only)
+   - libicui18n>=52, libicuuc>=52, harfbuzz>=0.9.22, libwebp>=0.4.0,
+     libxml2, libxslt
+   - python, gperf, bison (for building only)
  * Handles : Web rendering.
              Bindings with the V8 JavaScript engine (see above) are
              written in .idl files, and then converted to C++ at

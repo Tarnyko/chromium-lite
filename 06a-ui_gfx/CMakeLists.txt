@@ -6,6 +6,10 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 SET(PROJECT_NAME "Chromium - UI Gfx")
 
+# Location of direct dependencies
+SET(MOJO_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../mojo")
+SET(UI_MOJO_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../mojo")
+
 # Location of Skia source folders
 SET(SKIA_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../third_party/skia")
 SET(SKIA_EXT_DIR "${CMAKE_SOURCE_DIR}/../../skia")
@@ -62,12 +66,20 @@ IF(BACKEND STREQUAL "X11")
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DGFX_IMPLEMENTATION -DGFX_IPC_IMPLEMENTATION -DUSE_AURA -DUSE_SYSTEM_LIBJPEG)
+ADD_DEFINITIONS(-DGFX_IMPLEMENTATION -DGFX_IPC_IMPLEMENTATION -DMOJO_GEOMETRY_IMPLEMENTATION -DUSE_AURA -DUSE_SYSTEM_LIBJPEG)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
 ENDIF()
 
+
+# PRE-GENERATION .MOJOM -> .CC,.H
+
+MESSAGE(STATUS "Generating .cc,.h files from .mojom...")
+
+EXECUTE_PROCESS(COMMAND mkdir -p ui/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+EXECUTE_PROCESS(COMMAND python ${MOJO_SOURCE_DIR}/public/tools/bindings/mojom_bindings_generator.py ${UI_MOJO_SOURCE_DIR}/geometry/geometry.mojom --use_bundled_pylibs -d .. -I. -o ${CMAKE_BINARY_DIR}/ui WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 # PRE-GENERATION .ICON -> .CC,.H
 
@@ -108,16 +120,20 @@ ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
 # misc
 ADD_LIBRARY(misc OBJECT blit.cc buffer_format_util.cc canvas.cc canvas_skia.cc color_analysis.cc color_profile.cc color_utils.cc display.cc display_change_notifier.cc display_observer.cc favicon_size.cc generic_shared_memory_id.cc gfx_paths.cc gpu_memory_buffer.cc interpolated_transform.cc nine_image_painter.cc paint_throbber.cc paint_vector_icon.cc path.cc screen.cc screen_aura.cc scrollbar_size.cc selection_model.cc sequential_id_generator.cc shadow_value.cc skbitmap_operations.cc skia_util.cc switches.cc text_elider.cc text_utils.cc text_utils_skia.cc transform.cc transform_util.cc ui_gfx_exports.cc utf16_indexing.cc)
 
+# mojo_geometry
+ADD_LIBRARY(mojo_geometry OBJECT ${MOJO_SOURCE_DIR}/converters/geometry/geometry_type_converters.cc)
+
 # generated (these are generated !)
-ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ui/gfx/vector_icons.cc)
+ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ui/mojo/geometry/geometry.mojom.cc ${CMAKE_BINARY_DIR}/ui/gfx/vector_icons.cc)
 
 
 # all files refer to "ui/...", so we include "../.." here
 # we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
-SET(include_dirs ${INCLUDE_DIRS} ${harfbuzz_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../.. ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${CMAKE_BINARY_DIR})
+SET(include_dirs ${INCLUDE_DIRS} ${harfbuzz_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../.. ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${MOJO_SOURCE_DIR}/Build ${MOJO_SOURCE_DIR}/Build/mojo ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/ui)
+# TODO : "${MOJO_SOURCE_DIR}/Build" is a HACK ! Fix this once we use .pc files
 SET(link_libraries ${harfbuzz_LIBRARIES} ${backend_LIBRARIES} -ljpeg)
 
-ADD_LIBRARY(ui_gfx SHARED $<TARGET_OBJECTS:geometry> $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:codec> $<TARGET_OBJECTS:image> $<TARGET_OBJECTS:font> $<TARGET_OBJECTS:range> $<TARGET_OBJECTS:ipc> $<TARGET_OBJECTS:backend> $<TARGET_OBJECTS:misc> $<TARGET_OBJECTS:generated>)
+ADD_LIBRARY(ui_gfx SHARED $<TARGET_OBJECTS:geometry> $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:codec> $<TARGET_OBJECTS:image> $<TARGET_OBJECTS:font> $<TARGET_OBJECTS:range> $<TARGET_OBJECTS:ipc> $<TARGET_OBJECTS:backend> $<TARGET_OBJECTS:misc> $<TARGET_OBJECTS:mojo_geometry> $<TARGET_OBJECTS:generated>)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ui_gfx ${link_libraries})
 
