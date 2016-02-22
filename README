@@ -251,9 +251,9 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  Media library.
  * Depends on :
    - base, url, crypto, gpu_command_buffer, skia, ui_gfx, ui_events
-   - yasm (for building on x86/x86_64 only)
    - alsa, opus
    - ozone (wayland) / x11, xdamage, xext, xfixes, xtst (x11)
+   - yasm (for building on x86/x86_64 only)
  * Handles :
  * Notes : "libwebm" and "libyuv" are supposed to be dependecies,
            but libwebm .RPM/.DEB packages are nowhere to be found,
@@ -306,6 +306,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
    - libicui18n>=52, libicuuc>=52, harfbuzz>=0.9.22, libwebp>=0.4.0,
      libxml2, libxslt
    - python, gperf, bison (for building only)
+   - yasm (for building on x86/x86_64 only)
  * Handles : Web rendering.
              Bindings with the V8 JavaScript engine (see above) are
              written in .idl files, and then converted to C++ at
