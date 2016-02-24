@@ -112,7 +112,15 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
              to add the custom "recoverVtableInit()" function
              (but we avoid it by using a macro).
 
-02d) gpu_command_buffer
+02d) gin
+
+ Gin helper library.
+ * Depends on : base, v8
+ * Handles : a set of utility functions on top of V8. Mostly
+             used by Blink for wrapping V8 generated bindings,
+             and at a high level by Content Shell.
+
+02e) gpu_command_buffer
 
  GPU command helper library.
  * Depends on : base
@@ -302,7 +310,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 
  Blink Web Engine, Google's fork of WebKit.
  * Depends on :
-   - base, v8, url, skia, ui_gfx, gpu, cc
+   - base, v8, url, gin, skia, ui_gfx, gpu, cc
    - libicui18n>=52, libicuuc>=52, harfbuzz>=0.9.22, libwebp>=0.4.0,
      libxml2, libxslt
    - python, gperf, bison (for building only)
@@ -396,20 +404,13 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  Optional packages :
  *****************
 
-02e) sdch
+02f) sdch
 
  SDCH library.
  * Depends on : base
  * Handles : SDCH is Google's implementation of the VCDIFF
              format, based on open-vcdiff, and used for
              delta encoding in HTTP communications.
-
-02f) gin
-
- Gin helper library.
- * Depends on : base, v8
- * Handles : a set of utility functions on top of V8. Only used
-             at a high level by Content Shell.
 
 
 -------------------
