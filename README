@@ -391,12 +391,24 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
             We build the Scheduler, Tracing, Sandbox and Google APIs
            third-parties directly in the binary.
 
-16a) ui_views
+16a) ui_content_accelerators
+
+ UI Content Accelerators library.
+ * Depends on : ui_events, ui_base, blink, content_browser
+
+16b) ui_web_dialogs
+
+ UI Web Dialogs library.
+ * Depends on : base, skia, content_browser
+
+17a) ui_views
 
  UI Views toolkit.
  * Depends on :
    - base, url, skia, ui_gfx, ui_accessibility, ui_events, ui_base,
-     ui_compositor, ui_aura, ui_strings, ui_resources
+     ui_compositor, ui_aura, ui_shell_dialogs,
+     ui_strings, ui_resources,
+     content_browser, ui_content_accelerators, ui_web_dialogs
    - ozone (wayland) / x11, xext, xrandr, atk (x11)
    - libicu
  * Views is the real Chromium toolkit, feature-equivalent to GTK+,

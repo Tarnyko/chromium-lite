@@ -50,7 +50,7 @@ IF(BACKEND STREQUAL "X11")
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DVIEWS_IMPLEMENTATION -DTOOLKIT_VIEWS=1 -DUSE_AURA)
+ADD_DEFINITIONS(-DVIEWS_IMPLEMENTATION -DWEBVIEW_IMPLEMENTATION -DTOOLKIT_VIEWS=1 -DUSE_AURA)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
@@ -77,6 +77,9 @@ ADD_LIBRARY(bubble OBJECT bubble/bubble_window_targeter.cc bubble/bubble_border.
 
 # controls
 ADD_LIBRARY(controls OBJECT controls/button/blue_button.cc controls/button/button.cc controls/button/checkbox.cc controls/button/custom_button.cc controls/button/image_button.cc controls/button/label_button.cc controls/button/label_button_border.cc controls/button/menu_button.cc controls/button/radio_button.cc controls/combobox/combobox.cc controls/focusable_border.cc controls/glow_hover_controller.cc controls/image_view.cc controls/label.cc controls/link.cc controls/menu/display_change_listener_aura.cc controls/menu/menu_config.cc controls/menu/menu_config_linux.cc controls/menu/menu_controller.cc controls/menu/menu_delegate.cc controls/menu/menu_event_dispatcher.cc controls/menu/menu_key_event_handler.cc controls/menu/menu_message_loop_aura.cc controls/menu/menu_host.cc controls/menu/menu_host_root_view.cc controls/menu/menu_image_util.cc controls/menu/menu_item_view.cc controls/menu/menu_listener.cc controls/menu/menu_model_adapter.cc controls/menu/menu_runner.cc controls/menu/menu_runner_impl.cc controls/menu/menu_runner_impl_adapter.cc controls/menu/menu_scroll_view_container.cc controls/menu/menu_separator_views.cc controls/menu/submenu_view.cc controls/message_box_view.cc controls/native/native_view_host.cc controls/native/native_view_host_aura.cc controls/prefix_selector.cc controls/progress_bar.cc controls/resize_area.cc controls/scroll_view.cc controls/scrollbar/base_scroll_bar.cc controls/scrollbar/base_scroll_bar_button.cc controls/scrollbar/base_scroll_bar_thumb.cc controls/scrollbar/kennedy_scroll_bar.cc controls/scrollbar/native_scroll_bar.cc controls/scrollbar/native_scroll_bar_views.cc controls/scrollbar/overlay_scroll_bar.cc controls/scrollbar/scroll_bar.cc controls/separator.cc controls/single_split_view.cc controls/slide_out_view.cc controls/slider.cc controls/styled_label.cc controls/tabbed_pane/tabbed_pane.cc controls/table/table_header.cc controls/table/table_utils.cc controls/table/table_view.cc controls/textfield/textfield.cc controls/textfield/textfield_controller.cc controls/textfield/textfield_model.cc controls/throbber.cc controls/tree/tree_view.cc controls/tree/tree_view_controller.cc)
+
+# controls_webview
+ADD_LIBRARY(controls_webview OBJECT controls/webview/unhandled_keyboard_event_handler.cc controls/webview/unhandled_keyboard_event_handler_default.cc controls/webview/web_dialog_view.cc controls/webview/webview.cc) 
 
 # corewm
 ADD_LIBRARY(corewm OBJECT corewm/tooltip_aura.cc corewm/tooltip_controller.cc)
@@ -108,7 +111,7 @@ SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../
 # TODO : "${UI_*_DIR}/Build" are HACKs ! remove them when use .pc files !
 SET(link_libraries ${backend_LIBRARIES})
 
-ADD_LIBRARY(ui_views SHARED $<TARGET_OBJECTS:accessibility> $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:bubble> $<TARGET_OBJECTS:controls> $<TARGET_OBJECTS:corewm> $<TARGET_OBJECTS:focus> $<TARGET_OBJECTS:layout> $<TARGET_OBJECTS:linuxui> $<TARGET_OBJECTS:touchui> $<TARGET_OBJECTS:widget> $<TARGET_OBJECTS:window> $<TARGET_OBJECTS:misc> ${BACKEND_SOURCE_FILES})
+ADD_LIBRARY(ui_views SHARED $<TARGET_OBJECTS:accessibility> $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:bubble> $<TARGET_OBJECTS:controls> $<TARGET_OBJECTS:controls_webview> $<TARGET_OBJECTS:corewm> $<TARGET_OBJECTS:focus> $<TARGET_OBJECTS:layout> $<TARGET_OBJECTS:linuxui> $<TARGET_OBJECTS:touchui> $<TARGET_OBJECTS:widget> $<TARGET_OBJECTS:window> $<TARGET_OBJECTS:misc> ${BACKEND_SOURCE_FILES})
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ui_views ${link_libraries})
 
