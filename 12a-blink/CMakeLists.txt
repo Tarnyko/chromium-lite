@@ -33,6 +33,9 @@ SET(ICCJPEG_DIR "${CMAKE_SOURCE_DIR}/../../../third_party/iccjpeg")
 SET(NPAPI_DIR "${CMAKE_SOURCE_DIR}/../../../third_party/npapi")
 # OTS depends on WOFF2 which depends on Brotli
 
+# Variable paths for required third-parties
+SET(GRIT_DIR "${CMAKE_SOURCE_DIR}/../../..")
+
 # Verify a backend (X11/OZONE) has been chosen ; default to OZONE
 IF(NOT BACKEND)
   MESSAGE(STATUS "Option \"-DBACKEND=<X11/OZONE>\" not passed; defaulting to OZONE...")
@@ -92,6 +95,15 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11 -Wno-c++0x-compat)
 ENDIF()
 
+
+# PRE-GENERATION .GRD -> .CC,.H,.PAK
+
+MESSAGE(STATUS "Generating .pak from .grd...")
+
+EXECUTE_PROCESS(COMMAND mkdir -p blink/public/resources/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i public/blink_image_resources.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR}/blink/public/resources --write-only-new=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..)
+EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i public/blink_resources.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR}/blink/public/resources --write-only-new=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..)
 
 # PRE-GENERATION .IN,.GPERF -> .CC,.H
 

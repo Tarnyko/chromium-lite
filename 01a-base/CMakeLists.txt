@@ -9,6 +9,9 @@ SET(PROJECT_NAME "Chromium - Base")
 # Location of libicu fork (required by i18n sources)
 SET(ICU_FORK_DIR "${CMAKE_SOURCE_DIR}/../third_party/icu")
 
+# Location of build tools dir (required for generating "debugging_flags.h")
+SET(BUILD_TOOLS_DIR "${CMAKE_SOURCE_DIR}/../build")
+
 # Verify a backend (X11/OZONE) has been chosen ; default to OZONE
 IF(NOT BACKEND)
   MESSAGE(STATUS "Option \"-DBACKEND=<X11/OZONE>\" not passed; defaulting to OZONE...")
@@ -25,6 +28,13 @@ INCLUDE(GNUInstallDirs)
 FIND_PACKAGE(Threads)
 PKG_CHECK_MODULES(libevent REQUIRED libevent)
 PKG_CHECK_MODULES(icui18n REQUIRED icu-i18n)
+
+FIND_PROGRAM(PYTHON_FOUND python)
+IF(NOT PYTHON_FOUND)
+  MESSAGE(FATAL_ERROR "\"python\" is required, please install it !")
+ELSE()
+  MESSAGE(STATUS "\"python\" found...")
+ENDIF(NOT PYTHON_FOUND)
 
 # Optional dependencies and definitions
 IF(BACKEND STREQUAL "OZONE")
@@ -43,6 +53,16 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF()
 
 
+# PRE-GENERATION DEBUGGING_FLAGS.H (NEEDED BY "debug/profiler.cc")
+
+MESSAGE(STATUS "Generating debugging_flags.h...")
+
+EXECUTE_PROCESS(COMMAND mkdir -p base/debug WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+EXECUTE_PROCESS(COMMAND sh -c "echo --flags ENABLE_PROFILING=0 > buildflag_header.rsp" WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+EXECUTE_PROCESS(COMMAND python ${BUILD_TOOLS_DIR}/write_buildflag_header.py --output base/debug/debugging_flags.h --rulename _base_debugging_flags --gen-dir ${CMAKE_BINARY_DIR} --definitions ${CMAKE_BINARY_DIR}/buildflag_header.rsp WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+
 # SOURCES FILE LIST, PER SECTION
 
 # switches
@@ -55,7 +75,7 @@ ADD_LIBRARY(command_line OBJECT command_line.cc)
 ADD_LIBRARY(strings OBJECT third_party/icu/icu_utf.cc third_party/dmg_fp/g_fmt.cc third_party/dmg_fp/dtoa.cc strings/utf_string_conversion_utils.cc strings/utf_string_conversions.cc strings/utf_offset_string_conversions.cc strings/latin1_string_conversions.cc strings/string16.cc strings/string_piece.cc strings/string_util.cc strings/string_util_constants.cc strings/string_split.cc strings/stringprintf.cc strings/safe_sprintf.cc strings/sys_string_conversions_posix.cc strings/string_number_conversions.cc strings/pattern.cc json/string_escape.cc json/json_writer.cc json/json_reader.cc json/json_parser.cc json/json_file_value_serializer.cc json/json_string_value_serializer.cc json/json_value_converter.cc)
 
 # logging
-ADD_LIBRARY(logging OBJECT logging.cc trace_event/trace_log.cc trace_event/trace_log_constants.cc trace_event/trace_config.cc trace_event/trace_buffer.cc trace_event/trace_event_impl.cc trace_event/tracing_agent.cc trace_event/malloc_dump_provider.cc trace_event/process_memory_totals_dump_provider.cc  trace_event/trace_event_synthetic_delay.cc trace_event/trace_event_system_stats_monitor.cc trace_event/trace_event_memory_overhead.cc trace_event/memory_dump_manager.cc trace_event/memory_dump_request_args.cc trace_event/process_memory_dump.cc trace_event/memory_dump_session_state.cc trace_event/memory_allocator_dump.cc trace_event/process_memory_maps.cc trace_event/process_memory_totals.cc trace_event/heap_profiler_heap_dump_writer.cc trace_event/heap_profiler_stack_frame_deduplicator.cc trace_event/heap_profiler_type_name_deduplicator.cc trace_event/heap_profiler_allocation_context.cc trace_event/heap_profiler_allocation_context_tracker.cc trace_event/process_memory_maps_dump_provider.cc trace_event/memory_allocator_dump_guid.cc trace_event/trace_sampling_thread.cc trace_event/trace_event_argument.cc)
+ADD_LIBRARY(logging OBJECT logging.cc trace_event/trace_log.cc trace_event/trace_log_constants.cc trace_event/trace_config.cc trace_event/trace_buffer.cc trace_event/trace_event_impl.cc trace_event/tracing_agent.cc trace_event/malloc_dump_provider.cc trace_event/process_memory_totals_dump_provider.cc  trace_event/trace_event_synthetic_delay.cc trace_event/trace_event_system_stats_monitor.cc trace_event/trace_event_memory_overhead.cc trace_event/memory_dump_manager.cc trace_event/memory_dump_request_args.cc trace_event/process_memory_dump.cc trace_event/memory_dump_session_state.cc trace_event/memory_allocator_dump.cc trace_event/process_memory_maps.cc trace_event/process_memory_totals.cc trace_event/heap_profiler_allocation_register.cc trace_event/heap_profiler_allocation_register_posix.cc trace_event/heap_profiler_heap_dump_writer.cc trace_event/heap_profiler_stack_frame_deduplicator.cc trace_event/heap_profiler_type_name_deduplicator.cc trace_event/heap_profiler_allocation_context.cc trace_event/heap_profiler_allocation_context_tracker.cc trace_event/process_memory_maps_dump_provider.cc trace_event/memory_allocator_dump_guid.cc trace_event/trace_sampling_thread.cc trace_event/trace_event_argument.cc)
 
 # i18n
 ADD_LIBRARY(i18n OBJECT i18n/base_i18n_switches.cc i18n/bidi_line_iterator.cc i18n/break_iterator.cc i18n/build_utf8_validator_tables.cc i18n/case_conversion.cc i18n/char_iterator.cc i18n/file_util_icu.cc i18n/i18n_constants.cc i18n/icu_encoding_detection.cc i18n/icu_string_conversions.cc i18n/icu_util.cc i18n/message_formatter.cc i18n/number_formatting.cc i18n/rtl.cc i18n/streaming_utf8_validator.cc i18n/string_compare.cc i18n/string_search.cc i18n/time_formatting.cc i18n/timezone.cc i18n/utf8_validator_tables.cc)
@@ -63,7 +83,7 @@ ADD_LIBRARY(i18n OBJECT i18n/base_i18n_switches.cc i18n/bidi_line_iterator.cc i1
 # which only exists in the "third_party/icu" fork
 
 # debug
-ADD_LIBRARY(debug OBJECT debug/debugger.cc debug/debugger_posix.cc debug/crash_logging.cc debug/dump_without_crashing.cc debug/stack_trace.cc debug/stack_trace_posix.cc debug/task_annotator.cc debug/alias.cc)
+ADD_LIBRARY(debug OBJECT debug/debugger.cc debug/debugger_posix.cc debug/profiler.cc debug/crash_logging.cc debug/dump_without_crashing.cc debug/stack_trace.cc debug/stack_trace_posix.cc debug/task_annotator.cc debug/alias.cc)
 
 # lock
 ADD_LIBRARY(lock OBJECT synchronization/lock.cc synchronization/lock_impl_posix.cc synchronization/waitable_event_posix.cc synchronization/waitable_event_watcher_posix.cc synchronization/condition_variable_posix.cc synchronization/cancellation_flag.cc)
@@ -164,7 +184,8 @@ ADD_LIBRARY(misc OBJECT barrier_closure.cc big_endian.cc build_time.cc feature_l
 
 # all files refer to "base/...", so we include ".." here
 # we refer to ICU_FORK_DIR, because it contains the "uformattable.h" header
-SET(include_dirs ${INCLUDE_DIRS} ${libevent_INCLUDE_DIRS} ${icui18n_INCLUDE_DIRS} ${ICU_FORK_DIR}/source/i18n ${CMAKE_SOURCE_DIR}/..)
+# we include CMAKE_BINARY_DIR because generated .h files are inside
+SET(include_dirs ${INCLUDE_DIRS} ${libevent_INCLUDE_DIRS} ${icui18n_INCLUDE_DIRS} ${ICU_FORK_DIR}/source/i18n ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/..)
 SET(link_libraries ${libevent_LIBRARIES} ${icui18n_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -lrt -ldl)
 
 ADD_LIBRARY(base SHARED $<TARGET_OBJECTS:switches> $<TARGET_OBJECTS:command_line> $<TARGET_OBJECTS:strings> $<TARGET_OBJECTS:logging> $<TARGET_OBJECTS:i18n> $<TARGET_OBJECTS:debug> $<TARGET_OBJECTS:lock> $<TARGET_OBJECTS:memory> $<TARGET_OBJECTS:messageloop> $<TARGET_OBJECTS:nativelibrary> $<TARGET_OBJECTS:version> $<TARGET_OBJECTS:vlog> $<TARGET_OBJECTS:pickle> $<TARGET_OBJECTS:paths> $<TARGET_OBJECTS:atexit> $<TARGET_OBJECTS:callback> $<TARGET_OBJECTS:lazyinstance> $<TARGET_OBJECTS:posix> $<TARGET_OBJECTS:prefs> $<TARGET_OBJECTS:sysinfo> $<TARGET_OBJECTS:systemmonitor> $<TARGET_OBJECTS:threading> $<TARGET_OBJECTS:xdg> $<TARGET_OBJECTS:time> $<TARGET_OBJECTS:timer> $<TARGET_OBJECTS:files> $<TARGET_OBJECTS:metrics> $<TARGET_OBJECTS:randutil> $<TARGET_OBJECTS:hash> $<TARGET_OBJECTS:base64> $<TARGET_OBJECTS:md5> $<TARGET_OBJECTS:sha1> $<TARGET_OBJECTS:values> $<TARGET_OBJECTS:powermonitor> $<TARGET_OBJECTS:process> $<TARGET_OBJECTS:profiler> $<TARGET_OBJECTS:environment> $<TARGET_OBJECTS:misc> third_party/dynamic_annotations/dynamic_annotations.c)

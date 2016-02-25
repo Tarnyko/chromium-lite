@@ -67,7 +67,9 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 01a) base
 
  General-purpose toolkit (somewhat equivalent to GNOME GLib or QtCore).
- * Depends on : libevent, libicui18n
+ * Depends on :
+   - libevent, libicui18n
+   - python (for building only)
  * Handles : logging, callbacks, string and numeral conversions,
              command line arguments, file and directory operations,
              message loops, threads, time and date...
@@ -365,15 +367,20 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
      gpu, cc, blink, gpu_blink, ui_events_blink, ui_aura,
      ui_touch_selection, ui_snapshot, ui_shell_dialogs
    - ozone (wayland) / x11, xcomposite, pangocairo (x11)
-   - minizip
+   - libnss, minizip
  * Handles : Content Browser is the "real" browser code; it
              leverages Blink, which itself leverages V8 (see above)
              to do HTML/CSS/JS rendering.
  * Notes : the Zygote (Linux process pre-forking) source file tries
            to use a Google BoringSSL call, we patch it back to NSS
            (see https://chromium.googlesource.com/chromium/src/+
-               /10eda64c1a5c673dcdca74fbb774f522dc253ad7), which
+               /10eda64c1a5c673dcdca74fbb774f522dc253ad7); this
            also requires a patch directly in "crypto" (see above).
+            The "child" subcomponent uses another component named
+           "webcrypto" which has been totally switched to BoringSSL
+           (see https://chromium.googlesource.com/chromium/src/+
+               /039e410f3023fe89b5156500e6f6e323b7221f88); we
+           backport its full former NSS implementation.
             We also remove calls to low-level battery, vibration,
            and bluetooth libraries, which we do not build nor need.
             This is a forked call to "zip::ZipWithFilterCallback",

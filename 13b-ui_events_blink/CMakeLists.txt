@@ -6,6 +6,9 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 SET(PROJECT_NAME "Chromium - UI Events Blink")
 
+# Location of direct dependencies
+SET(UI_GESTURES_DIR "${CMAKE_SOURCE_DIR}/../gestures")
+
 # Verify a backend (X11/OZONE) has been chosen ; default to OZONE
 IF(NOT BACKEND)
   MESSAGE(STATUS "Option \"-DBACKEND=<X11/OZONE>\" not passed; defaulting to OZONE...")
@@ -34,7 +37,7 @@ ENDIF()
 
 
 # SOURCES FILE LIST
-ADD_LIBRARY(src OBJECT blink_event_util.cc input_handler_proxy.cc input_scroll_elasticity_controller.cc)
+ADD_LIBRARY(src OBJECT blink_event_util.cc input_handler_proxy.cc input_scroll_elasticity_controller.cc ${UI_GESTURES_DIR}/blink/web_gesture_curve_impl.cc)
 
 
 # all files refer to "ui/...", so we include "../../.." here

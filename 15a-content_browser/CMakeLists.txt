@@ -12,6 +12,7 @@ SET(SCHEDULER_DIR "${CMAKE_SOURCE_DIR}/../components/scheduler")
 SET(MIME_UTIL_DIR "${CMAKE_SOURCE_DIR}/../components/mime_util")
 SET(TRACING_DIR "${CMAKE_SOURCE_DIR}/../components/tracing")
 SET(TRACING_EXT_DIR "${CMAKE_SOURCE_DIR}/../third_party/catapult/tracing")
+SET(WEBCRYPTO_DIR "${CMAKE_SOURCE_DIR}/../components/webcrypto")
 SET(SANDBOX_DIR "${CMAKE_SOURCE_DIR}/../sandbox")
 SET(GOOGLE_APIS_DIR "${CMAKE_SOURCE_DIR}/../google_apis")
 SET(UI_RESOURCES_DIR "${CMAKE_SOURCE_DIR}/../ui/resources")
@@ -22,6 +23,9 @@ SET(ZLIB_EXT_DIR "${CMAKE_SOURCE_DIR}/../third_party/zlib")
 SET(LEVELDB_EXT_DIR "${CMAKE_SOURCE_DIR}/../third_party/leveldatabase")
 SET(ANGLE_SRC_DIR "${CMAKE_SOURCE_DIR}/../third_party/angle")
 SET(BLINK_DIR "${CMAKE_SOURCE_DIR}/../third_party/WebKit")
+SET(NPAPI_DIR "${CMAKE_SOURCE_DIR}/../third_party/npapi")
+SET(BLINK_DIR "${CMAKE_SOURCE_DIR}/../third_party/WebKit")
+SET(V8_DIR "${CMAKE_SOURCE_DIR}/../v8")
 
 # Location of Skia source folders
 SET(SKIA_SRC_DIR "${CMAKE_SOURCE_DIR}/../third_party/skia")
@@ -50,6 +54,7 @@ INCLUDE(GNUInstallDirs)
 # Mandatory dependencies
 PKG_CHECK_MODULES(deps REQUIRED leveldb gconf-2.0 atk)
 # TODO : pull these dependencies with .pc files !
+PKG_CHECK_MODULES(nss REQUIRED nss)
 PKG_CHECK_MODULES(minizip REQUIRED minizip)
 
 FIND_PROGRAM(PYTHON_FOUND python)
@@ -81,10 +86,10 @@ IF(BACKEND STREQUAL "X11")
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DCONTENT_IMPLEMENTATION -DTRACING_IMPLEMENTATION -DSCHEDULER_IMPLEMENTATION -DSANDBOX_IMPLEMENTATION -DUSE_DEFAULT_RENDER_THEME -DUSE_SYSTEM_MINIZIP -DNO_TCMALLOC -DUSE_AURA)
+ADD_DEFINITIONS(-DCONTENT_IMPLEMENTATION -DTRACING_IMPLEMENTATION -DSCHEDULER_IMPLEMENTATION -DSANDBOX_IMPLEMENTATION -DUSE_DEFAULT_RENDER_THEME -DUSE_SYSTEM_MINIZIP -DNO_TCMALLOC -DOS_POSIX -DUSE_AURA)
 # This is because we are including "inttypes.h" with a Mojo header
 ADD_DEFINITIONS(-D__STDC_FORMAT_MACROS)
-# Required for our BoringSSL->NSS patch
+# Required for our BoringSSL->NSS patches
 ADD_DEFINITIONS(-DUSE_NSS_CERTS)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
@@ -114,6 +119,8 @@ EXECUTE_PROCESS(COMMAND mkdir -p content/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 EXECUTE_PROCESS(COMMAND mkdir -p blink/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i content_resources.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR}/content --write-only-new=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i app/resources/content_resources.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR}/content/app/resources --write-only-new=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i app/strings/content_strings.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR}/content/app/strings --write-only-new=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i ${BLINK_DIR}/Source/Build/devtools/devtools_resources.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR}/blink --write-only-new=0 -D SHARED_INTERMEDIATE_DIR=${BLINK_DIR}/Source/Build WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 # TODO : "Source/Build" is a HACK !
 EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i ${CMAKE_BINARY_DIR}/content/browser/tracing/tracing_resources.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR}/content/browser/tracing --write-only-new=0 -D SHARED_INTERMEDIATE_DIR=${CMAKE_BINARY_DIR} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
@@ -192,6 +199,9 @@ ADD_LIBRARY(scheduler OBJECT ${SCHEDULER_DIR}/common/scheduler_switches.cc ${SCH
 
 # tracing
 ADD_LIBRARY(tracing OBJECT ${TRACING_DIR}/child_memory_dump_manager_delegate_impl.cc ${TRACING_DIR}/child_trace_message_filter.cc ${TRACING_DIR}/trace_config_file.cc ${TRACING_DIR}/trace_to_console.cc ${TRACING_DIR}/tracing_messages.cc ${TRACING_DIR}/tracing_switches.cc)
+
+# webcrypto
+ADD_LIBRARY(webcrypto OBJECT ${WEBCRYPTO_DIR}/webcrypto_impl.cc ${WEBCRYPTO_DIR}/webcrypto_util.cc ${WEBCRYPTO_DIR}/algorithm_dispatch.cc ${WEBCRYPTO_DIR}/algorithm_implementation.cc ${WEBCRYPTO_DIR}/algorithm_registry.cc ${WEBCRYPTO_DIR}/crypto_data.cc ${WEBCRYPTO_DIR}/generate_key_result.cc ${WEBCRYPTO_DIR}/jwk.cc ${WEBCRYPTO_DIR}/status.cc ${WEBCRYPTO_DIR}/nss/aes_algorithm_nss.cc ${WEBCRYPTO_DIR}/nss/aes_cbc_nss.cc ${WEBCRYPTO_DIR}/nss/aes_gcm_nss.cc ${WEBCRYPTO_DIR}/nss/aes_kw_nss.cc ${WEBCRYPTO_DIR}/nss/hmac_nss.cc ${WEBCRYPTO_DIR}/nss/key_nss.cc ${WEBCRYPTO_DIR}/nss/rsa_hashed_algorithm_nss.cc ${WEBCRYPTO_DIR}/nss/rsa_oaep_nss.cc ${WEBCRYPTO_DIR}/nss/rsa_ssa_nss.cc ${WEBCRYPTO_DIR}/nss/sha_nss.cc ${WEBCRYPTO_DIR}/nss/sym_key_nss.cc ${WEBCRYPTO_DIR}/nss/util_nss.cc)
 
 # sandbox
 ADD_LIBRARY(sandbox OBJECT ${SANDBOX_DIR}/linux/services/init_process_reaper.cc ${SANDBOX_DIR}/linux/services/credentials.cc ${SANDBOX_DIR}/linux/services/namespace_sandbox.cc ${SANDBOX_DIR}/linux/services/namespace_utils.cc ${SANDBOX_DIR}/linux/services/proc_util.cc ${SANDBOX_DIR}/linux/services/resource_limits.cc ${SANDBOX_DIR}/linux/services/scoped_process.cc ${SANDBOX_DIR}/linux/services/syscall_wrappers.cc ${SANDBOX_DIR}/linux/services/thread_helpers.cc ${SANDBOX_DIR}/linux/services/yama.cc ${SANDBOX_DIR}/linux/syscall_broker/broker_channel.cc ${SANDBOX_DIR}/linux/syscall_broker/broker_client.cc ${SANDBOX_DIR}/linux/syscall_broker/broker_file_permission.cc ${SANDBOX_DIR}/linux/syscall_broker/broker_host.cc ${SANDBOX_DIR}/linux/syscall_broker/broker_policy.cc ${SANDBOX_DIR}/linux/syscall_broker/broker_process.cc ${SANDBOX_DIR}/linux/suid/client/setuid_sandbox_client.cc ${SANDBOX_DIR}/linux/suid/client/setuid_sandbox_host.cc)
@@ -368,6 +378,50 @@ ADD_LIBRARY(browser_webcontents OBJECT browser/web_contents/web_contents_impl.cc
 # browser_webui
 ADD_LIBRARY(browser_webui OBJECT browser/webui/content_web_ui_controller_factory.cc browser/webui/generic_handler.cc browser/webui/shared_resources_data_source.cc browser/webui/url_data_manager.cc browser/webui/url_data_manager_backend.cc browser/webui/url_data_source_impl.cc browser/webui/web_ui_controller_factory_registry.cc browser/webui/web_ui_data_source_impl.cc browser/webui/web_ui_impl.cc browser/webui/web_ui_message_handler.cc)
 
+# child
+ADD_LIBRARY(child OBJECT public/child/fixed_received_data.cc child/assert_matching_enums.cc child/blink_platform_impl.cc child/child_discardable_shared_memory_manager.cc child/child_gpu_memory_buffer_manager.cc child/child_histogram_message_filter.cc child/child_message_filter.cc child/child_process.cc child/child_resource_message_filter.cc child/child_shared_bitmap_manager.cc child/child_thread_impl.cc child/content_child_helpers.cc child/database_util.cc child/db_message_filter.cc child/file_info_util.cc child/ftp_directory_listing_response_delegate.cc child/image_decoder.cc child/multipart_response_delegate.cc child/power_monitor_broadcast_source.cc child/process_control_impl.cc child/quota_dispatcher.cc child/quota_message_filter.cc child/request_extra_data.cc child/request_info.cc child/resource_dispatcher.cc child/resource_scheduling_filter.cc child/runtime_features.cc child/scoped_child_process_reference.cc child/shared_memory_data_consumer_handle.cc child/shared_memory_received_data_factory.cc child/shared_worker_devtools_agent.cc child/simple_webmimeregistry_impl.cc child/site_isolation_stats_gatherer.cc child/sync_load_response.cc child/thread_safe_sender.cc child/threaded_data_provider.cc child/v8_value_converter_impl.cc child/web_data_consumer_handle_impl.cc child/web_database_observer_impl.cc child/web_discardable_memory_impl.cc child/web_memory_allocator_dump_impl.cc child/web_memory_dump_provider_adapter.cc child/web_process_memory_dump_impl.cc child/web_url_loader_impl.cc child/web_url_request_util.cc child/webblobregistry_impl.cc child/webfallbackthemeengine_impl.cc child/webfileutilities_impl.cc child/webmessageportchannel_impl.cc child/websocket_bridge.cc child/websocket_dispatcher.cc child/webthemeengine_impl_default.cc child/weburlresponse_extradata_impl.cc child/worker_task_runner.cc child/worker_thread_impl.cc child/worker_thread_message_filter.cc)
+# we do not build "child/plugin_message_generator.cc" nor
+# "child/plugin_param_traits.cc" because they pull NPAPI
+
+# child_appcache
+ADD_LIBRARY(child_appcache OBJECT child/appcache/appcache_backend_proxy.cc child/appcache/appcache_dispatcher.cc child/appcache/appcache_frontend_impl.cc child/appcache/web_application_cache_host_impl.cc)
+
+# child_background_sync
+ADD_LIBRARY(child_background_sync OBJECT child/background_sync/background_sync_provider.cc child/background_sync/background_sync_type_converters.cc)
+
+# child_blob_storage
+ADD_LIBRARY(child_blob_storage OBJECT child/blob_storage/blob_consolidation.cc child/blob_storage/blob_transport_controller.cc)
+
+# child_fileapi
+ADD_LIBRARY(child_fileapi OBJECT child/fileapi/file_system_dispatcher.cc child/fileapi/webfilesystem_impl.cc child/fileapi/webfilewriter_base.cc child/fileapi/webfilewriter_impl.cc)
+
+# child_geofencing
+ADD_LIBRARY(child_geofencing OBJECT child/geofencing/geofencing_dispatcher.cc child/geofencing/geofencing_message_filter.cc child/geofencing/web_geofencing_provider_impl.cc)
+
+# child_indexeddb
+ADD_LIBRARY(child_indexeddb OBJECT child/indexed_db/indexed_db_dispatcher.cc child/indexed_db/indexed_db_key_builders.cc child/indexed_db/indexed_db_message_filter.cc child/indexed_db/webidbcursor_impl.cc child/indexed_db/webidbdatabase_impl.cc)
+
+# child_memory
+ADD_LIBRARY(child_memory OBJECT child/memory/child_memory_message_filter.cc)
+
+# child_mojo
+ADD_LIBRARY(child_mojo OBJECT child/mojo/mojo_application.cc)
+
+# child_navigatorconnect
+ADD_LIBRARY(child_navigatorconnect OBJECT child/navigator_connect/service_port_dispatcher_impl.cc child/navigator_connect/service_port_provider.cc)
+
+# child_notifications
+ADD_LIBRARY(child_notifications OBJECT child/notifications/notification_data_conversions.cc child/notifications/notification_dispatcher.cc child/notifications/notification_image_loader.cc child/notifications/notification_manager.cc child/notifications/pending_notifications_tracker.cc)
+
+# child_permissions
+ADD_LIBRARY(child_permissions OBJECT child/permissions/permission_dispatcher.cc child/permissions/permission_dispatcher_thread_proxy.cc child/permissions/permission_observers_registry.cc)
+
+# child_push_messaging
+ADD_LIBRARY(child_push_messaging OBJECT child/push_messaging/push_dispatcher.cc child/push_messaging/push_provider.cc)
+
+# child_service_worker
+ADD_LIBRARY(child_service_worker OBJECT child/service_worker/service_worker_dispatcher.cc child/service_worker/service_worker_handle_reference.cc child/service_worker/service_worker_message_filter.cc child/service_worker/service_worker_network_provider.cc child/service_worker/service_worker_provider_context.cc child/service_worker/service_worker_registration_handle_reference.cc child/service_worker/web_service_worker_impl.cc child/service_worker/web_service_worker_provider_impl.cc child/service_worker/web_service_worker_registration_impl.cc)
+
 # pepper
 # ADD_LIBRARY(pepper OBJECT public/common/pepper_plugin_info.cc common/pepper_file_util.cc common/pepper_plugin_list.cc common/pepper_render_instance_data.cc common/plugin_list.cc common/plugin_list_posix.cc common/sandbox_util.cc)
 # Pepper (PPAPI) disabled here !
@@ -384,11 +438,11 @@ ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/content/common/service_port_ser
 # all files refer to "content/...", so we include ".." here
 # we put LEVELDB_EXT_DIR first, because the fork has specific required headers/values
 # we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
-SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SRC_DIR}/include/core ${SKIA_SRC_DIR}/include/utils ${SKIA_SRC_DIR}/include/gpu ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${BLINK_DIR} ${MOJO_SRC_DIR}/.. ${ANGLE_SRC_DIR}/src ${LEVELDB_EXT_DIR}/src ${LEVELDB_EXT_DIR}/src/include ${deps_INCLUDE_DIRS} ${minizip_INCLUDE_DIRS} ${MOJO_SRC_DIR}/Build ${MOJO_SRC_DIR}/Build/mojo ${SKIA_SRC_DIR}/Build ${SKIA_SRC_DIR}/Build/skia ${UI_RESOURCES_DIR} ${UI_ACCESSIBILITY_DIR}/Build ${CMAKE_BINARY_DIR}/content ${CMAKE_BINARY_DIR}/blink ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/..)
-# TODO : "${MOJO_SRC_DIR}/${UI_ACCESSIBILITY_DIR}/build" here are HACKS !
-SET(link_libraries ${deps_LIBRARIES} ${minizip_LIBRARIES} ${backend_LIBRARIES})
+SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SRC_DIR}/include/core ${SKIA_SRC_DIR}/include/utils ${SKIA_SRC_DIR}/include/gpu ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${BLINK_DIR} ${NPAPI_DIR} ${V8_DIR}/include ${MOJO_SRC_DIR}/.. ${ANGLE_SRC_DIR}/src ${LEVELDB_EXT_DIR}/src ${LEVELDB_EXT_DIR}/src/include ${deps_INCLUDE_DIRS} ${nss_INCLUDE_DIRS} ${minizip_INCLUDE_DIRS} ${MOJO_SRC_DIR}/Build ${MOJO_SRC_DIR}/Build/mojo ${SKIA_SRC_DIR}/Build ${SKIA_SRC_DIR}/Build/skia ${UI_RESOURCES_DIR} ${UI_ACCESSIBILITY_DIR}/Build ${BLINK_DIR}/Source/Build ${CMAKE_BINARY_DIR}/content ${CMAKE_BINARY_DIR}/blink ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/..)
+# TODO : "${MOJO_SRC_DIR}/${UI_ACCESSIBILITY_DIR}/${BLINK_DIR}/Build" are HACKS !
+SET(link_libraries ${deps_LIBRARIES} ${nss_LIBRARIES} ${minizip_LIBRARIES} ${backend_LIBRARIES})
 
-ADD_LIBRARY(content_browser SHARED $<TARGET_OBJECTS:url_formatter> $<TARGET_OBJECTS:scheduler> $<TARGET_OBJECTS:tracing> $<TARGET_OBJECTS:sandbox> $<TARGET_OBJECTS:google_apis> $<TARGET_OBJECTS:common> $<TARGET_OBJECTS:common_cache_storage> $<TARGET_OBJECTS:common_cursors> $<TARGET_OBJECTS:common_dom_storage> $<TARGET_OBJECTS:common_gpu> $<TARGET_OBJECTS:common_gpu_client> $<TARGET_OBJECTS:common_gpu_media> $<TARGET_OBJECTS:common_indexeddb> $<TARGET_OBJECTS:common_input> $<TARGET_OBJECTS:common_media> $<TARGET_OBJECTS:common_mojo> $<TARGET_OBJECTS:common_net> $<TARGET_OBJECTS:common_plugin> $<TARGET_OBJECTS:common_service_worker> $<TARGET_OBJECTS:browser> $<TARGET_OBJECTS:browser_accessibility> $<TARGET_OBJECTS:browser_appcache> $<TARGET_OBJECTS:browser_background_sync> $<TARGET_OBJECTS:browser_plugin> $<TARGET_OBJECTS:browser_cache_storage> $<TARGET_OBJECTS:browser_compositor> $<TARGET_OBJECTS:browser_device_sensors> $<TARGET_OBJECTS:browser_devtools> $<TARGET_OBJECTS:browser_dom_storage> $<TARGET_OBJECTS:browser_download> $<TARGET_OBJECTS:browser_fileapi> $<TARGET_OBJECTS:browser_framehost> $<TARGET_OBJECTS:browser_gamepad> $<TARGET_OBJECTS:browser_geofencing> $<TARGET_OBJECTS:browser_geolocation> $<TARGET_OBJECTS:browser_gpu> $<TARGET_OBJECTS:browser_indexeddb> $<TARGET_OBJECTS:browser_loader> $<TARGET_OBJECTS:browser_media> $<TARGET_OBJECTS:browser_memory> $<TARGET_OBJECTS:browser_mojo> $<TARGET_OBJECTS:browser_net> $<TARGET_OBJECTS:browser_notifications> $<TARGET_OBJECTS:browser_permissions> $<TARGET_OBJECTS:browser_presentation> $<TARGET_OBJECTS:browser_push_messaging> $<TARGET_OBJECTS:browser_renderer> $<TARGET_OBJECTS:browser_service_worker> $<TARGET_OBJECTS:browser_shared_worker> $<TARGET_OBJECTS:browser_speech> $<TARGET_OBJECTS:browser_ssl> $<TARGET_OBJECTS:browser_streams> $<TARGET_OBJECTS:browser_tracing> $<TARGET_OBJECTS:browser_wakelock> $<TARGET_OBJECTS:browser_webcontents> $<TARGET_OBJECTS:browser_webui> $<TARGET_OBJECTS:sandbox_linux> $<TARGET_OBJECTS:generated> ${BACKEND_SOURCE_FILES} ${UI_RESOURCES_DIR}/grit/webui_resources_map.cc ${MIME_UTIL_DIR}/mime_util.cc ${ZLIB_EXT_DIR}/google/zip.cc ${ZLIB_EXT_DIR}/google/zip_internal.cc ${ZLIB_EXT_DIR}/google/zip_reader.cc)
+ADD_LIBRARY(content_browser SHARED $<TARGET_OBJECTS:url_formatter> $<TARGET_OBJECTS:scheduler> $<TARGET_OBJECTS:tracing> $<TARGET_OBJECTS:webcrypto> $<TARGET_OBJECTS:sandbox> $<TARGET_OBJECTS:google_apis> $<TARGET_OBJECTS:common> $<TARGET_OBJECTS:common_cache_storage> $<TARGET_OBJECTS:common_cursors> $<TARGET_OBJECTS:common_dom_storage> $<TARGET_OBJECTS:common_gpu> $<TARGET_OBJECTS:common_gpu_client> $<TARGET_OBJECTS:common_gpu_media> $<TARGET_OBJECTS:common_indexeddb> $<TARGET_OBJECTS:common_input> $<TARGET_OBJECTS:common_media> $<TARGET_OBJECTS:common_mojo> $<TARGET_OBJECTS:common_net> $<TARGET_OBJECTS:common_plugin> $<TARGET_OBJECTS:common_service_worker> $<TARGET_OBJECTS:browser> $<TARGET_OBJECTS:browser_accessibility> $<TARGET_OBJECTS:browser_appcache> $<TARGET_OBJECTS:browser_background_sync> $<TARGET_OBJECTS:browser_plugin> $<TARGET_OBJECTS:browser_cache_storage> $<TARGET_OBJECTS:browser_compositor> $<TARGET_OBJECTS:browser_device_sensors> $<TARGET_OBJECTS:browser_devtools> $<TARGET_OBJECTS:browser_dom_storage> $<TARGET_OBJECTS:browser_download> $<TARGET_OBJECTS:browser_fileapi> $<TARGET_OBJECTS:browser_framehost> $<TARGET_OBJECTS:browser_gamepad> $<TARGET_OBJECTS:browser_geofencing> $<TARGET_OBJECTS:browser_geolocation> $<TARGET_OBJECTS:browser_gpu> $<TARGET_OBJECTS:browser_indexeddb> $<TARGET_OBJECTS:browser_loader> $<TARGET_OBJECTS:browser_media> $<TARGET_OBJECTS:browser_memory> $<TARGET_OBJECTS:browser_mojo> $<TARGET_OBJECTS:browser_net> $<TARGET_OBJECTS:browser_notifications> $<TARGET_OBJECTS:browser_permissions> $<TARGET_OBJECTS:browser_presentation> $<TARGET_OBJECTS:browser_push_messaging> $<TARGET_OBJECTS:browser_renderer> $<TARGET_OBJECTS:browser_service_worker> $<TARGET_OBJECTS:browser_shared_worker> $<TARGET_OBJECTS:browser_speech> $<TARGET_OBJECTS:browser_ssl> $<TARGET_OBJECTS:browser_streams> $<TARGET_OBJECTS:browser_tracing> $<TARGET_OBJECTS:browser_wakelock> $<TARGET_OBJECTS:browser_webcontents> $<TARGET_OBJECTS:browser_webui> $<TARGET_OBJECTS:child> $<TARGET_OBJECTS:child_appcache> $<TARGET_OBJECTS:child_background_sync> $<TARGET_OBJECTS:child_blob_storage> $<TARGET_OBJECTS:child_fileapi> $<TARGET_OBJECTS:child_geofencing> $<TARGET_OBJECTS:child_indexeddb> $<TARGET_OBJECTS:child_memory> $<TARGET_OBJECTS:child_mojo> $<TARGET_OBJECTS:child_navigatorconnect> $<TARGET_OBJECTS:child_notifications> $<TARGET_OBJECTS:child_permissions> $<TARGET_OBJECTS:child_push_messaging> $<TARGET_OBJECTS:child_service_worker> $<TARGET_OBJECTS:sandbox_linux> $<TARGET_OBJECTS:generated> ${BACKEND_SOURCE_FILES} ${UI_RESOURCES_DIR}/grit/webui_resources_map.cc ${MIME_UTIL_DIR}/mime_util.cc ${ZLIB_EXT_DIR}/google/zip.cc ${ZLIB_EXT_DIR}/google/zip_internal.cc ${ZLIB_EXT_DIR}/google/zip_reader.cc)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(content_browser ${link_libraries})
 
