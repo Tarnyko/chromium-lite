@@ -1,0 +1,225 @@
+--- renderer/renderer_blink_platform_impl.h	2016-02-26 09:58:26.034491596 +0000
++++ renderer/renderer_blink_platform_impl.h	2016-02-26 11:14:12.386777876 +0000
+@@ -12,7 +12,7 @@
+ #include "content/child/blink_platform_impl.h"
+ #include "content/common/content_export.h"
+ #include "content/renderer/webpublicsuffixlist_impl.h"
+-#include "device/vibration/vibration_manager.mojom.h"
++//#include "device/vibration/vibration_manager.mojom.h"
+ #include "third_party/WebKit/public/platform/WebGraphicsContext3D.h"
+ #include "third_party/WebKit/public/platform/modules/indexeddb/WebIDBFactory.h"
+ #include "third_party/WebKit/public/platform/modules/screen_orientation/WebScreenOrientationType.h"
+@@ -225,7 +225,7 @@
+   // Use the data previously set via SetMockDevice...DataForTesting() and send
+   // them to the registered listener.
+   void SendFakeDeviceEventDataForTesting(blink::WebPlatformEventType type);
+-  device::VibrationManagerPtr& GetConnectedVibrationManagerService();
++  //device::VibrationManagerPtr& GetConnectedVibrationManagerService();
+ 
+   scoped_ptr<blink::WebThread> main_thread_;
+ 
+@@ -274,10 +274,10 @@
+ 
+   scoped_ptr<blink::WebScrollbarBehavior> web_scrollbar_behavior_;
+ 
+-  scoped_ptr<BatteryStatusDispatcher> battery_status_dispatcher_;
++//  scoped_ptr<BatteryStatusDispatcher> battery_status_dispatcher_;
+ 
+   // Handle to the Vibration mojo service.
+-  device::VibrationManagerPtr vibration_manager_;
++  //device::VibrationManagerPtr vibration_manager_;
+ 
+   IDMap<PlatformEventObserverBase, IDMapOwnPointer> platform_event_observers_;
+ 
+--- renderer/renderer_blink_platform_impl.cc	2016-02-26 10:01:32.917155033 +0000
++++ renderer/renderer_blink_platform_impl.cc	2016-02-26 17:05:34.127216129 +0000
+@@ -49,7 +49,7 @@
+ #include "content/public/common/service_registry.h"
+ #include "content/public/common/webplugininfo.h"
+ #include "content/public/renderer/content_renderer_client.h"
+-#include "content/renderer/battery_status/battery_status_dispatcher.h"
++//#include "content/renderer/battery_status/battery_status_dispatcher.h"
+ #include "content/renderer/cache_storage/webserviceworkercachestorage_impl.h"
+ #include "content/renderer/device_sensors/device_light_event_pump.h"
+ #include "content/renderer/device_sensors/device_motion_event_pump.h"
+@@ -500,8 +500,8 @@
+ 
+ WebString RendererBlinkPlatformImpl::MimeRegistry::mimeTypeForExtension(
+     const WebString& file_extension) {
+-  if (IsPluginProcess())
+-    return SimpleWebMimeRegistryImpl::mimeTypeForExtension(file_extension);
++//  if (IsPluginProcess())
++//    return SimpleWebMimeRegistryImpl::mimeTypeForExtension(file_extension);
+ 
+   // The sandbox restricts our access to the registry, so we need to proxy
+   // these calls over to the browser process.
+@@ -766,8 +766,11 @@
+     blink::WebAudioBus* destination_bus,
+     const char* audio_file_data,
+     size_t data_size) {
++#if 0
+   return DecodeAudioFileData(
+       destination_bus, audio_file_data, data_size);
++#endif
++  return false;
+ }
+ #endif  // defined(OS_ANDROID)
+ 
+@@ -1117,16 +1120,21 @@
+ //------------------------------------------------------------------------------
+ 
+ void RendererBlinkPlatformImpl::vibrate(unsigned int milliseconds) {
++#if 0
+   GetConnectedVibrationManagerService()->Vibrate(
+       base::checked_cast<int64>(milliseconds));
+   vibration_manager_.reset();
++#endif
+ }
+ 
+ void RendererBlinkPlatformImpl::cancelVibration() {
++#if 0
+   GetConnectedVibrationManagerService()->Cancel();
+   vibration_manager_.reset();
++#endif
+ }
+ 
++#if 0
+ device::VibrationManagerPtr&
+ RendererBlinkPlatformImpl::GetConnectedVibrationManagerService() {
+   if (!vibration_manager_) {
+@@ -1135,6 +1143,7 @@
+   }
+   return vibration_manager_;
+ }
++#endif
+ 
+ //------------------------------------------------------------------------------
+ 
+@@ -1186,6 +1195,7 @@
+ void RendererBlinkPlatformImpl::startListening(
+     blink::WebPlatformEventType type,
+     blink::WebPlatformEventListener* listener) {
++#if 0
+   if (type == blink::WebPlatformEventTypeBattery) {
+     if (RenderThreadImpl::current() &&
+         RenderThreadImpl::current()->layout_test_mode()) {
+@@ -1197,6 +1207,7 @@
+     }
+     return;
+   }
++#endif
+ 
+   PlatformEventObserverBase* observer = platform_event_observers_.Lookup(type);
+   if (!observer) {
+@@ -1257,11 +1268,13 @@
+ 
+ void RendererBlinkPlatformImpl::stopListening(
+     blink::WebPlatformEventType type) {
++#if 0
+   if (type == blink::WebPlatformEventTypeBattery) {
+     g_test_battery_status_listener = nullptr;
+     battery_status_dispatcher_.reset();
+     return;
+   }
++#endif
+ 
+   PlatformEventObserverBase* observer = platform_event_observers_.Lookup(type);
+   if (!observer)
+--- renderer/battery_status/battery_status_dispatcher.h	2016-02-26 10:53:31.083893510 +0000
++++ renderer/battery_status/battery_status_dispatcher.h	2016-02-26 10:53:52.794205829 +0000
+@@ -8,7 +8,7 @@
+ #include "base/compiler_specific.h"
+ #include "base/macros.h"
+ #include "content/common/content_export.h"
+-#include "device/battery/battery_monitor.mojom.h"
++//#include "device/battery/battery_monitor.mojom.h"
+ 
+ namespace blink {
+ class WebBatteryStatusListener;
+@@ -27,7 +27,7 @@
+   void QueryNextStatus();
+   void DidChange(device::BatteryStatusPtr battery_status);
+ 
+-  device::BatteryMonitorPtr monitor_;
++//  device::BatteryMonitorPtr monitor_;
+   blink::WebBatteryStatusListener* listener_;
+ 
+   DISALLOW_COPY_AND_ASSIGN(BatteryStatusDispatcher);
+--- renderer/render_frame_impl.cc	2016-02-26 10:25:37.282841747 +0000
++++ renderer/render_frame_impl.cc	2016-02-26 17:03:22.750265528 +0000
+@@ -121,7 +121,7 @@
+ #include "content/renderer/shared_worker_repository.h"
+ #include "content/renderer/skia_benchmarking_extension.h"
+ #include "content/renderer/stats_collection_controller.h"
+-#include "content/renderer/usb/web_usb_client_impl.h"
++//#include "content/renderer/usb/web_usb_client_impl.h"
+ #include "content/renderer/wake_lock/wake_lock_dispatcher.h"
+ #include "content/renderer/web_frame_utils.h"
+ #include "content/renderer/web_ui_extension.h"
+@@ -3132,14 +3132,14 @@
+   const base::CommandLine& command_line =
+       *base::CommandLine::ForCurrentProcess();
+ 
+-  if (command_line.HasSwitch(cc::switches::kEnableGpuBenchmarking))
+-    GpuBenchmarking::Install(frame);
++//  if (command_line.HasSwitch(cc::switches::kEnableGpuBenchmarking))
++//    GpuBenchmarking::Install(frame);
+ 
+-  if (command_line.HasSwitch(switches::kEnableMemoryBenchmarking))
+-    MemoryBenchmarkingExtension::Install(frame);
++//  if (command_line.HasSwitch(switches::kEnableMemoryBenchmarking))
++//    MemoryBenchmarkingExtension::Install(frame);
+ 
+-  if (command_line.HasSwitch(switches::kEnableSkiaBenchmarking))
+-    SkiaBenchmarking::Install(frame);
++//  if (command_line.HasSwitch(switches::kEnableSkiaBenchmarking))
++//    SkiaBenchmarking::Install(frame);
+ 
+   FOR_EACH_OBSERVER(RenderViewObserver, render_view_->observers(),
+                     DidClearWindowObject(frame));
+@@ -4150,17 +4150,21 @@
+ }
+ 
+ blink::WebBluetooth* RenderFrameImpl::bluetooth() {
++#if 0
+   if (!bluetooth_) {
+     bluetooth_.reset(new WebBluetoothImpl(
+         ChildThreadImpl::current()->thread_safe_sender(), routing_id_));
+   }
++#endif
+ 
+   return bluetooth_.get();
+ }
+ 
+ blink::WebUSBClient* RenderFrameImpl::usbClient() {
++#if 0
+   if (!usb_client_)
+     usb_client_.reset(new WebUSBClientImpl(GetServiceRegistry()));
++#endif
+ 
+   return usb_client_.get();
+ }
+--- renderer/render_thread_impl.h	2016-02-26 11:45:10.776594004 +0000
++++ renderer/render_thread_impl.h	2016-02-26 11:45:45.761098853 +0000
+@@ -616,7 +616,7 @@
+   scoped_refptr<StreamTextureFactory> stream_texture_factory_;
+ #endif
+ 
+-  scoped_refptr<BluetoothMessageFilter> bluetooth_message_filter_;
++//  scoped_refptr<BluetoothMessageFilter> bluetooth_message_filter_;
+ 
+   scoped_refptr<ContextProviderCommandBuffer> shared_main_thread_contexts_;
+ 
+--- renderer/render_thread_impl.cc	2016-02-26 11:44:38.562129106 +0000
++++ renderer/render_thread_impl.cc	2016-02-26 11:46:13.672501640 +0000
+@@ -650,8 +650,8 @@
+   midi_message_filter_ = new MidiMessageFilter(GetIOMessageLoopProxy());
+   AddFilter(midi_message_filter_.get());
+ 
+-  bluetooth_message_filter_ = new BluetoothMessageFilter(thread_safe_sender());
+-  AddFilter(bluetooth_message_filter_->GetFilter());
++//  bluetooth_message_filter_ = new BluetoothMessageFilter(thread_safe_sender());
++//  AddFilter(bluetooth_message_filter_->GetFilter());
+ 
+   AddFilter((new IndexedDBMessageFilter(thread_safe_sender()))->GetFilter());
+ 

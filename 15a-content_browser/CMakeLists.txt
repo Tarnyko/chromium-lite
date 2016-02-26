@@ -22,10 +22,12 @@ SET(MOJO_SRC_DIR "${CMAKE_SOURCE_DIR}/../mojo")
 SET(ZLIB_EXT_DIR "${CMAKE_SOURCE_DIR}/../third_party/zlib")
 SET(LEVELDB_EXT_DIR "${CMAKE_SOURCE_DIR}/../third_party/leveldatabase")
 SET(ANGLE_SRC_DIR "${CMAKE_SOURCE_DIR}/../third_party/angle")
-SET(BLINK_DIR "${CMAKE_SOURCE_DIR}/../third_party/WebKit")
+SET(WIDEVINE_DIR "${CMAKE_SOURCE_DIR}/../third_party/widevine")
+SET(WEBRTC_DIR "${CMAKE_SOURCE_DIR}/../third_party/webrtc")
 SET(NPAPI_DIR "${CMAKE_SOURCE_DIR}/../third_party/npapi")
 SET(BLINK_DIR "${CMAKE_SOURCE_DIR}/../third_party/WebKit")
 SET(V8_DIR "${CMAKE_SOURCE_DIR}/../v8")
+SET(CC_DIR "${CMAKE_SOURCE_DIR}/../cc")
 
 # Location of Skia source folders
 SET(SKIA_SRC_DIR "${CMAKE_SOURCE_DIR}/../third_party/skia")
@@ -86,7 +88,7 @@ IF(BACKEND STREQUAL "X11")
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DCONTENT_IMPLEMENTATION -DTRACING_IMPLEMENTATION -DSCHEDULER_IMPLEMENTATION -DSANDBOX_IMPLEMENTATION -DUSE_DEFAULT_RENDER_THEME -DUSE_SYSTEM_MINIZIP -DNO_TCMALLOC -DOS_POSIX -DUSE_AURA)
+ADD_DEFINITIONS(-DCONTENT_IMPLEMENTATION -DTRACING_IMPLEMENTATION -DSCHEDULER_IMPLEMENTATION -DSANDBOX_IMPLEMENTATION -DUSE_DEFAULT_RENDER_THEME -DUSE_SYSTEM_MINIZIP -DNO_TCMALLOC -DOS_LINUX -DOS_POSIX -DUSE_AURA)
 # This is because we are including "inttypes.h" with a Mojo header
 ADD_DEFINITIONS(-D__STDC_FORMAT_MACROS)
 # Required for our BoringSSL->NSS patches
@@ -399,7 +401,7 @@ ADD_LIBRARY(child_fileapi OBJECT child/fileapi/file_system_dispatcher.cc child/f
 ADD_LIBRARY(child_geofencing OBJECT child/geofencing/geofencing_dispatcher.cc child/geofencing/geofencing_message_filter.cc child/geofencing/web_geofencing_provider_impl.cc)
 
 # child_indexeddb
-ADD_LIBRARY(child_indexeddb OBJECT child/indexed_db/indexed_db_dispatcher.cc child/indexed_db/indexed_db_key_builders.cc child/indexed_db/indexed_db_message_filter.cc child/indexed_db/webidbcursor_impl.cc child/indexed_db/webidbdatabase_impl.cc)
+ADD_LIBRARY(child_indexeddb OBJECT child/indexed_db/indexed_db_dispatcher.cc child/indexed_db/indexed_db_key_builders.cc child/indexed_db/indexed_db_message_filter.cc child/indexed_db/webidbcursor_impl.cc child/indexed_db/webidbdatabase_impl.cc child/indexed_db/webidbfactory_impl.cc)
 
 # child_memory
 ADD_LIBRARY(child_memory OBJECT child/memory/child_memory_message_filter.cc)
@@ -422,6 +424,102 @@ ADD_LIBRARY(child_push_messaging OBJECT child/push_messaging/push_dispatcher.cc 
 # child_service_worker
 ADD_LIBRARY(child_service_worker OBJECT child/service_worker/service_worker_dispatcher.cc child/service_worker/service_worker_handle_reference.cc child/service_worker/service_worker_message_filter.cc child/service_worker/service_worker_network_provider.cc child/service_worker/service_worker_provider_context.cc child/service_worker/service_worker_registration_handle_reference.cc child/service_worker/web_service_worker_impl.cc child/service_worker/web_service_worker_provider_impl.cc child/service_worker/web_service_worker_registration_impl.cc)
 
+# renderer
+ADD_LIBRARY(renderer OBJECT public/renderer/browser_plugin_delegate.cc public/renderer/chrome_object_extensions_utils.cc public/renderer/content_renderer_client.cc public/renderer/document_state.cc public/renderer/navigation_state.cc public/renderer/render_frame_observer.cc public/renderer/render_process_observer.cc public/renderer/render_thread.cc public/renderer/render_view_observer.cc public/renderer/video_encode_accelerator.cc renderer/child_frame_compositing_helper.cc renderer/clipboard_utils.cc renderer/context_menu_params_builder.cc renderer/cursor_utils.cc renderer/disambiguation_popup_helper.cc renderer/dom_automation_controller.cc renderer/drop_data_builder.cc renderer/gamepad_shared_memory_reader.cc renderer/geolocation_dispatcher.cc renderer/history_controller.cc renderer/history_entry.cc renderer/history_serialization.cc renderer/idle_user_detector.cc renderer/ime_event_guard.cc renderer/in_process_renderer_thread.cc renderer/internal_document_state_data.cc renderer/menu_item_builder.cc renderer/mouse_lock_dispatcher.cc renderer/navigation_state_impl.cc renderer/net_info_helper.cc renderer/notification_permission_dispatcher.cc renderer/peripheral_content_heuristic.cc renderer/raster_worker_pool.cc renderer/render_frame_impl.cc renderer/render_frame_impl.cc renderer/render_frame_proxy.cc renderer/render_process_impl.cc renderer/render_thread_impl.cc renderer/render_view_impl.cc renderer/render_view_linux.cc renderer/render_view_mouse_lock_dispatcher.cc renderer/render_widget.cc renderer/render_widget_fullscreen.cc renderer/renderer_blink_platform_impl.cc renderer/renderer_clipboard_delegate.cc renderer/renderer_main.cc renderer/renderer_main_platform_delegate_linux.cc renderer/renderer_webapplicationcachehost_impl.cc renderer/renderer_webcolorchooser_impl.cc renderer/renderer_webcookiejar_impl.cc renderer/resizing_mode_selector.cc renderer/sad_plugin.cc renderer/savable_resources.cc renderer/shared_memory_seqlock_reader.cc renderer/speech_recognition_dispatcher.cc renderer/stats_collection_controller.cc renderer/stats_collection_observer.cc renderer/text_input_client_observer.cc renderer/web_frame_utils.cc renderer/web_ui_extension.cc renderer/web_ui_extension_data.cc renderer/webclipboard_impl.cc renderer/webgraphicscontext3d_provider_impl.cc renderer/webpublicsuffixlist_impl.cc renderer/webscrollbarbehavior_impl_gtkoraura.cc renderer/websharedworker_proxy.cc)
+# "renderer/memory_benchmarking_extension.cc" is disabled
+
+# renderer_accessibility
+ADD_LIBRARY(renderer_accessibility OBJECT renderer/accessibility/blink_ax_enum_conversion.cc renderer/accessibility/blink_ax_tree_source.cc renderer/accessibility/renderer_accessibility.cc)
+
+# renderer_background_sync
+ADD_LIBRARY(renderer_background_sync OBJECT renderer/background_sync/background_sync_client_impl.cc)
+
+# renderer_battery_status
+#ADD_LIBRARY(renderer_battery_status OBJECT renderer/battery_status/battery_status_dispatcher.cc)
+# Battery status DISABLED !
+
+# renderer_bluetooth
+#ADD_LIBRARY(renderer_bluetooth OBJECT renderer/bluetooth/bluetooth_dispatcher.cc renderer/bluetooth/bluetooth_message_filter.cc renderer/bluetooth/web_bluetooth_impl.cc)
+# Bluetooth DISABLED !
+
+# renderer_browser_plugin
+ADD_LIBRARY(renderer_browser_plugin OBJECT renderer/browser_plugin/browser_plugin.cc renderer/browser_plugin/browser_plugin_manager.cc)
+
+# renderer_cache_storage
+ADD_LIBRARY(renderer_cache_storage OBJECT renderer/cache_storage/cache_storage_dispatcher.cc renderer/cache_storage/cache_storage_dispatcher.cc renderer/cache_storage/cache_storage_message_filter.cc renderer/cache_storage/webserviceworkercachestorage_impl.cc)
+
+# renderer_device_sensors
+ADD_LIBRARY(renderer_device_sensors OBJECT renderer/device_sensors/device_light_event_pump.cc renderer/device_sensors/device_motion_event_pump.cc renderer/device_sensors/device_orientation_absolute_event_pump.cc renderer/device_sensors/device_orientation_event_pump.cc)
+
+# renderer_devtools
+ADD_LIBRARY(renderer_devtools OBJECT renderer/devtools/devtools_agent.cc renderer/devtools/devtools_agent_filter.cc renderer/devtools/devtools_client.cc renderer/devtools/devtools_cpu_throttler.cc renderer/devtools/v8_sampling_profiler.cc)
+
+# renderer_dom_storage
+ADD_LIBRARY(renderer_dom_storage OBJECT renderer/dom_storage/dom_storage_cached_area.cc renderer/dom_storage/dom_storage_dispatcher.cc renderer/dom_storage/webstoragearea_impl.cc renderer/dom_storage/webstoragenamespace_impl.cc)
+
+# renderer_fetchers
+ADD_LIBRARY(renderer_fetchers OBJECT renderer/fetchers/manifest_fetcher.cc renderer/fetchers/multi_resolution_image_resource_fetcher.cc renderer/fetchers/resource_fetcher_impl.cc renderer/fetchers/web_url_loader_client_impl.cc)
+
+# renderer_gpu
+ADD_LIBRARY(renderer_gpu OBJECT renderer/gpu/compositor_external_begin_frame_source.cc renderer/gpu/compositor_forwarding_message_filter.cc renderer/gpu/compositor_output_surface.cc renderer/gpu/delegated_compositor_output_surface.cc renderer/gpu/frame_swap_message_queue.cc renderer/gpu/mailbox_output_surface.cc renderer/gpu/queue_message_swap_promise.cc renderer/gpu/render_widget_compositor.cc)
+
+# renderer_image_downloader
+ADD_LIBRARY(renderer_image_downloader OBJECT renderer/image_downloader/image_downloader_impl.cc)
+
+# renderer_input
+ADD_LIBRARY(renderer_input OBJECT renderer/input/input_event_filter.cc renderer/input/input_handler_manager.cc renderer/input/input_handler_wrapper.cc renderer/input/main_thread_input_event_filter.cc renderer/input/render_widget_input_handler.cc)
+
+# renderer_manifest
+ADD_LIBRARY(renderer_manifest OBJECT renderer/manifest/manifest_manager.cc renderer/manifest/manifest_parser.cc renderer/manifest/manifest_uma_util.cc)
+
+# renderer_media
+ADD_LIBRARY(renderer_media OBJECT renderer/media/aec_dump_message_filter.cc renderer/media/audio_device_factory.cc renderer/media/audio_input_message_filter.cc renderer/media/audio_message_filter.cc renderer/media/audio_renderer_mixer_manager.cc renderer/media/media_permission_dispatcher.cc renderer/media/media_permission_dispatcher_impl.cc renderer/media/media_permission_dispatcher_proxy.cc renderer/media/media_stream_audio_level_calculator.cc renderer/media/media_stream_audio_track.cc renderer/media/media_stream_constraints_util.cc renderer/media/media_stream_track.cc renderer/media/midi_dispatcher.cc renderer/media/midi_message_filter.cc renderer/media/render_media_client.cc renderer/media/render_media_log.cc renderer/media/renderer_gpu_video_accelerator_factories.cc renderer/media/renderer_webaudiodevice_impl.cc renderer/media/renderer_webmediaplayer_delegate.cc renderer/media/renderer_webmidiaccessor_impl.cc renderer/media/video_capture_impl.cc renderer/media/video_capture_impl_manager.cc renderer/media/video_capture_message_filter.cc renderer/media/webmediaplayer_ms.cc renderer/media/webmediaplayer_ms_compositor.cc renderer/media/cdm/render_cdm_factory.cc renderer/media/webrtc_logging_noop.cc) 
+# "audio_decoder.cc" is disabled because is pull a FFmpeg-dependent part
+# of "media"
+# "cdm/pepper_cdm_wrapper_impl.cc" and "cdm/ppapi_decryptor.cc" are disabled
+# because they pull PPAPI
+
+# renderer_mojo
+ADD_LIBRARY(renderer_mojo OBJECT renderer/mojo/service_registry_js_wrapper.cc renderer/mojo_bindings_controller.cc renderer/mojo_context_state.cc renderer/mojo_main_runner.cc)
+
+# renderer_presentation
+ADD_LIBRARY(renderer_presentation OBJECT renderer/presentation/presentation_connection_client.cc renderer/presentation/presentation_dispatcher.cc)
+
+# renderer_push_messaging
+ADD_LIBRARY(renderer_push_messaging OBJECT renderer/push_messaging/push_messaging_dispatcher.cc)
+
+# renderer_scheduler
+ADD_LIBRARY(renderer_scheduler OBJECT renderer/scheduler/resource_dispatch_throttler.cc)
+
+# renderer_screen_orientation
+ADD_LIBRARY(renderer_screen_orientation OBJECT renderer/screen_orientation/screen_orientation_dispatcher.cc renderer/screen_orientation/screen_orientation_observer.cc)
+
+# renderer_service_worker
+ADD_LIBRARY(renderer_service_worker OBJECT renderer/service_worker/embedded_worker_devtools_agent.cc renderer/service_worker/embedded_worker_dispatcher.cc renderer/service_worker/service_worker_context_client.cc renderer/service_worker/service_worker_context_message_filter.cc renderer/service_worker/service_worker_type_util.cc)
+
+# renderer_shared_worker
+ADD_LIBRARY(renderer_shared_worker OBJECT renderer/shared_worker/embedded_shared_worker_content_settings_client_proxy.cc renderer/shared_worker/embedded_shared_worker_stub.cc renderer/shared_worker_repository.cc)
+
+# renderer_usb
+#ADD_LIBRARY(renderer_usb OBJECT renderer/usb/type_converters.cc renderer/usb/web_usb_client_impl.cc renderer/usb/web_usb_device_impl.cc)
+# USB DISABLED !
+
+# renderer_vr
+#ADD_LIBRARY(renderer_vr OBJECT renderer/vr/vr_dispatcher.cc renderer/vr/vr_type_converters.cc)
+# WebVR DISABLED ; this would require -DENABLE_WEBVR
+
+# renderer_wakelock
+ADD_LIBRARY(renderer_wakelock OBJECT renderer/wake_lock/wake_lock_dispatcher.cc)
+
+# app
+ADD_LIBRARY(app OBJECT app/content_main.cc app/content_main_runner.cc app/mojo/mojo_init.cc public/app/content_main_delegate.cc)
+
+# gpu
+ADD_LIBRARY(gpu OBJECT gpu/gpu_child_thread.cc gpu/gpu_main.cc gpu/gpu_process.cc gpu/gpu_process_control_impl.cc gpu/gpu_watchdog_thread.cc gpu/in_process_gpu_thread.cc)
+
+# utility
+ADD_LIBRARY(utility OBJECT public/utility/content_utility_client.cc public/utility/utility_thread.cc utility/in_process_utility_thread.cc utility/utility_blink_platform_impl.cc utility/utility_main.cc utility/utility_process_control_impl.cc utility/utility_thread_impl.cc utility/webthread_impl_for_utility_thread.cc)
+
 # pepper
 # ADD_LIBRARY(pepper OBJECT public/common/pepper_plugin_info.cc common/pepper_file_util.cc common/pepper_plugin_list.cc common/pepper_render_instance_data.cc common/plugin_list.cc common/plugin_list_posix.cc common/sandbox_util.cc)
 # Pepper (PPAPI) disabled here !
@@ -438,11 +536,11 @@ ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/content/common/service_port_ser
 # all files refer to "content/...", so we include ".." here
 # we put LEVELDB_EXT_DIR first, because the fork has specific required headers/values
 # we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
-SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SRC_DIR}/include/core ${SKIA_SRC_DIR}/include/utils ${SKIA_SRC_DIR}/include/gpu ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${BLINK_DIR} ${NPAPI_DIR} ${V8_DIR}/include ${MOJO_SRC_DIR}/.. ${ANGLE_SRC_DIR}/src ${LEVELDB_EXT_DIR}/src ${LEVELDB_EXT_DIR}/src/include ${deps_INCLUDE_DIRS} ${nss_INCLUDE_DIRS} ${minizip_INCLUDE_DIRS} ${MOJO_SRC_DIR}/Build ${MOJO_SRC_DIR}/Build/mojo ${SKIA_SRC_DIR}/Build ${SKIA_SRC_DIR}/Build/skia ${UI_RESOURCES_DIR} ${UI_ACCESSIBILITY_DIR}/Build ${BLINK_DIR}/Source/Build ${CMAKE_BINARY_DIR}/content ${CMAKE_BINARY_DIR}/blink ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/..)
+SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SRC_DIR}/include/core ${SKIA_SRC_DIR}/include/utils ${SKIA_SRC_DIR}/include/gpu ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${CC_DIR} ${BLINK_DIR} ${NPAPI_DIR} ${V8_DIR}/include ${MOJO_SRC_DIR}/.. ${WEBRTC_DIR}/.. ${WIDEVINE_DIR}/cdm ${ANGLE_SRC_DIR}/src ${LEVELDB_EXT_DIR}/src ${LEVELDB_EXT_DIR}/src/include ${deps_INCLUDE_DIRS} ${nss_INCLUDE_DIRS} ${minizip_INCLUDE_DIRS} ${MOJO_SRC_DIR}/Build ${MOJO_SRC_DIR}/Build/mojo ${SKIA_SRC_DIR}/Build ${SKIA_SRC_DIR}/Build/skia ${UI_RESOURCES_DIR} ${UI_ACCESSIBILITY_DIR}/Build ${CC_DIR}/Build ${BLINK_DIR}/Source/Build ${CMAKE_BINARY_DIR}/content ${CMAKE_BINARY_DIR}/blink ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/..)
 # TODO : "${MOJO_SRC_DIR}/${UI_ACCESSIBILITY_DIR}/${BLINK_DIR}/Build" are HACKS !
 SET(link_libraries ${deps_LIBRARIES} ${nss_LIBRARIES} ${minizip_LIBRARIES} ${backend_LIBRARIES})
 
-ADD_LIBRARY(content_browser SHARED $<TARGET_OBJECTS:url_formatter> $<TARGET_OBJECTS:scheduler> $<TARGET_OBJECTS:tracing> $<TARGET_OBJECTS:webcrypto> $<TARGET_OBJECTS:sandbox> $<TARGET_OBJECTS:google_apis> $<TARGET_OBJECTS:common> $<TARGET_OBJECTS:common_cache_storage> $<TARGET_OBJECTS:common_cursors> $<TARGET_OBJECTS:common_dom_storage> $<TARGET_OBJECTS:common_gpu> $<TARGET_OBJECTS:common_gpu_client> $<TARGET_OBJECTS:common_gpu_media> $<TARGET_OBJECTS:common_indexeddb> $<TARGET_OBJECTS:common_input> $<TARGET_OBJECTS:common_media> $<TARGET_OBJECTS:common_mojo> $<TARGET_OBJECTS:common_net> $<TARGET_OBJECTS:common_plugin> $<TARGET_OBJECTS:common_service_worker> $<TARGET_OBJECTS:browser> $<TARGET_OBJECTS:browser_accessibility> $<TARGET_OBJECTS:browser_appcache> $<TARGET_OBJECTS:browser_background_sync> $<TARGET_OBJECTS:browser_plugin> $<TARGET_OBJECTS:browser_cache_storage> $<TARGET_OBJECTS:browser_compositor> $<TARGET_OBJECTS:browser_device_sensors> $<TARGET_OBJECTS:browser_devtools> $<TARGET_OBJECTS:browser_dom_storage> $<TARGET_OBJECTS:browser_download> $<TARGET_OBJECTS:browser_fileapi> $<TARGET_OBJECTS:browser_framehost> $<TARGET_OBJECTS:browser_gamepad> $<TARGET_OBJECTS:browser_geofencing> $<TARGET_OBJECTS:browser_geolocation> $<TARGET_OBJECTS:browser_gpu> $<TARGET_OBJECTS:browser_indexeddb> $<TARGET_OBJECTS:browser_loader> $<TARGET_OBJECTS:browser_media> $<TARGET_OBJECTS:browser_memory> $<TARGET_OBJECTS:browser_mojo> $<TARGET_OBJECTS:browser_net> $<TARGET_OBJECTS:browser_notifications> $<TARGET_OBJECTS:browser_permissions> $<TARGET_OBJECTS:browser_presentation> $<TARGET_OBJECTS:browser_push_messaging> $<TARGET_OBJECTS:browser_renderer> $<TARGET_OBJECTS:browser_service_worker> $<TARGET_OBJECTS:browser_shared_worker> $<TARGET_OBJECTS:browser_speech> $<TARGET_OBJECTS:browser_ssl> $<TARGET_OBJECTS:browser_streams> $<TARGET_OBJECTS:browser_tracing> $<TARGET_OBJECTS:browser_wakelock> $<TARGET_OBJECTS:browser_webcontents> $<TARGET_OBJECTS:browser_webui> $<TARGET_OBJECTS:child> $<TARGET_OBJECTS:child_appcache> $<TARGET_OBJECTS:child_background_sync> $<TARGET_OBJECTS:child_blob_storage> $<TARGET_OBJECTS:child_fileapi> $<TARGET_OBJECTS:child_geofencing> $<TARGET_OBJECTS:child_indexeddb> $<TARGET_OBJECTS:child_memory> $<TARGET_OBJECTS:child_mojo> $<TARGET_OBJECTS:child_navigatorconnect> $<TARGET_OBJECTS:child_notifications> $<TARGET_OBJECTS:child_permissions> $<TARGET_OBJECTS:child_push_messaging> $<TARGET_OBJECTS:child_service_worker> $<TARGET_OBJECTS:sandbox_linux> $<TARGET_OBJECTS:generated> ${BACKEND_SOURCE_FILES} ${UI_RESOURCES_DIR}/grit/webui_resources_map.cc ${MIME_UTIL_DIR}/mime_util.cc ${ZLIB_EXT_DIR}/google/zip.cc ${ZLIB_EXT_DIR}/google/zip_internal.cc ${ZLIB_EXT_DIR}/google/zip_reader.cc)
+ADD_LIBRARY(content_browser SHARED $<TARGET_OBJECTS:url_formatter> $<TARGET_OBJECTS:scheduler> $<TARGET_OBJECTS:tracing> $<TARGET_OBJECTS:webcrypto> $<TARGET_OBJECTS:sandbox> $<TARGET_OBJECTS:google_apis> $<TARGET_OBJECTS:common> $<TARGET_OBJECTS:common_cache_storage> $<TARGET_OBJECTS:common_cursors> $<TARGET_OBJECTS:common_dom_storage> $<TARGET_OBJECTS:common_gpu> $<TARGET_OBJECTS:common_gpu_client> $<TARGET_OBJECTS:common_gpu_media> $<TARGET_OBJECTS:common_indexeddb> $<TARGET_OBJECTS:common_input> $<TARGET_OBJECTS:common_media> $<TARGET_OBJECTS:common_mojo> $<TARGET_OBJECTS:common_net> $<TARGET_OBJECTS:common_plugin> $<TARGET_OBJECTS:common_service_worker> $<TARGET_OBJECTS:browser> $<TARGET_OBJECTS:browser_accessibility> $<TARGET_OBJECTS:browser_appcache> $<TARGET_OBJECTS:browser_background_sync> $<TARGET_OBJECTS:browser_plugin> $<TARGET_OBJECTS:browser_cache_storage> $<TARGET_OBJECTS:browser_compositor> $<TARGET_OBJECTS:browser_device_sensors> $<TARGET_OBJECTS:browser_devtools> $<TARGET_OBJECTS:browser_dom_storage> $<TARGET_OBJECTS:browser_download> $<TARGET_OBJECTS:browser_fileapi> $<TARGET_OBJECTS:browser_framehost> $<TARGET_OBJECTS:browser_gamepad> $<TARGET_OBJECTS:browser_geofencing> $<TARGET_OBJECTS:browser_geolocation> $<TARGET_OBJECTS:browser_gpu> $<TARGET_OBJECTS:browser_indexeddb> $<TARGET_OBJECTS:browser_loader> $<TARGET_OBJECTS:browser_media> $<TARGET_OBJECTS:browser_memory> $<TARGET_OBJECTS:browser_mojo> $<TARGET_OBJECTS:browser_net> $<TARGET_OBJECTS:browser_notifications> $<TARGET_OBJECTS:browser_permissions> $<TARGET_OBJECTS:browser_presentation> $<TARGET_OBJECTS:browser_push_messaging> $<TARGET_OBJECTS:browser_renderer> $<TARGET_OBJECTS:browser_service_worker> $<TARGET_OBJECTS:browser_shared_worker> $<TARGET_OBJECTS:browser_speech> $<TARGET_OBJECTS:browser_ssl> $<TARGET_OBJECTS:browser_streams> $<TARGET_OBJECTS:browser_tracing> $<TARGET_OBJECTS:browser_wakelock> $<TARGET_OBJECTS:browser_webcontents> $<TARGET_OBJECTS:browser_webui> $<TARGET_OBJECTS:child> $<TARGET_OBJECTS:child_appcache> $<TARGET_OBJECTS:child_background_sync> $<TARGET_OBJECTS:child_blob_storage> $<TARGET_OBJECTS:child_fileapi> $<TARGET_OBJECTS:child_geofencing> $<TARGET_OBJECTS:child_indexeddb> $<TARGET_OBJECTS:child_memory> $<TARGET_OBJECTS:child_mojo> $<TARGET_OBJECTS:child_navigatorconnect> $<TARGET_OBJECTS:child_notifications> $<TARGET_OBJECTS:child_permissions> $<TARGET_OBJECTS:child_push_messaging> $<TARGET_OBJECTS:child_service_worker> $<TARGET_OBJECTS:renderer> $<TARGET_OBJECTS:renderer_accessibility> $<TARGET_OBJECTS:renderer_background_sync> $<TARGET_OBJECTS:renderer_browser_plugin> $<TARGET_OBJECTS:renderer_cache_storage> $<TARGET_OBJECTS:renderer_device_sensors> $<TARGET_OBJECTS:renderer_devtools> $<TARGET_OBJECTS:renderer_dom_storage> $<TARGET_OBJECTS:renderer_fetchers> $<TARGET_OBJECTS:renderer_gpu> $<TARGET_OBJECTS:renderer_image_downloader> $<TARGET_OBJECTS:renderer_input> $<TARGET_OBJECTS:renderer_manifest> $<TARGET_OBJECTS:renderer_media> $<TARGET_OBJECTS:renderer_mojo> $<TARGET_OBJECTS:renderer_presentation> $<TARGET_OBJECTS:renderer_push_messaging> $<TARGET_OBJECTS:renderer_scheduler> $<TARGET_OBJECTS:renderer_screen_orientation> $<TARGET_OBJECTS:renderer_service_worker> $<TARGET_OBJECTS:renderer_shared_worker> $<TARGET_OBJECTS:renderer_wakelock> $<TARGET_OBJECTS:app> $<TARGET_OBJECTS:gpu> $<TARGET_OBJECTS:utility> $<TARGET_OBJECTS:sandbox_linux> $<TARGET_OBJECTS:generated> ${BACKEND_SOURCE_FILES} ${UI_RESOURCES_DIR}/grit/webui_resources_map.cc ${MIME_UTIL_DIR}/mime_util.cc ${ZLIB_EXT_DIR}/google/zip.cc ${ZLIB_EXT_DIR}/google/zip_internal.cc ${ZLIB_EXT_DIR}/google/zip_reader.cc)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(content_browser ${link_libraries})
 

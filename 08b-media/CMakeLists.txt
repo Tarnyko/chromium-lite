@@ -102,6 +102,8 @@ ADD_LIBRARY(cdm OBJECT cdm/aes_decryptor.cc cdm/cdm_adapter.cc cdm/cdm_buffer_im
 
 # filters
 ADD_LIBRARY(filters OBJECT filters/audio_clock.cc filters/audio_renderer_algorithm.cc filters/chunk_demuxer.cc filters/decoder_selector.cc filters/decoder_stream.cc filters/decoder_stream_traits.cc filters/decrypting_audio_decoder.cc filters/decrypting_demuxer_stream.cc filters/decrypting_video_decoder.cc filters/default_media_permission.cc filters/file_data_source.cc filters/frame_processor.cc filters/gpu_video_decoder.cc filters/h264_bit_reader.cc filters/h264_parser.cc filters/ivf_parser.cc filters/jpeg_parser.cc filters/opus_audio_decoder.cc filters/opus_constants.cc filters/source_buffer_platform.cc filters/source_buffer_range.cc filters/source_buffer_stream.cc filters/stream_parser_factory.cc filters/video_cadence_estimator.cc filters/video_renderer_algorithm.cc filters/vp8_bool_decoder.cc filters/vp8_parser.cc filters/vp9_parser.cc filters/vp9_raw_bits_reader.cc filters/wsola_internals.cc)
+# "filters/audio_file_reader.cc" and "filters/in_memory_url_protocol.cc" 
+# are disabled because they pull FFmpeg
 
 # formats
 ADD_LIBRARY(formats OBJECT formats/common/offset_byte_queue.cc formats/webm/webm_audio_client.cc formats/webm/webm_cluster_parser.cc formats/webm/webm_constants.cc formats/webm/webm_content_encodings.cc formats/webm/webm_content_encodings_client.cc formats/webm/webm_crypto_helpers.cc formats/webm/webm_info_parser.cc formats/webm/webm_parser.cc formats/webm/webm_stream_parser.cc formats/webm/webm_tracks_parser.cc formats/webm/webm_video_client.cc formats/webm/webm_webvtt_parser.cc)

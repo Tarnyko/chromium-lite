@@ -157,7 +157,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 
  Mojo IPC and bindings library.
  * Depends on :
-   - base, url, crypto, net
+   - base, url, crypto, gin, net
    - python (for building only)
  * Handles : Mojo is an effort to describe interfaces in a generic
              way in .mojom files, and automatically generate C++/
@@ -297,7 +297,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 
 11a) cc
 
- CC library:
+ CC library.
  * Depends on :
    - base, skia, ui_gfx, ui_events, media, ui_gl, gpu
    - protobuf
@@ -330,17 +330,22 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  UI Compositor helper library.
  * Depends on : base, skia, ui_gfx, ui_gl, gpu, cc
 
-13a) gpu_blink
+13a) cc_blink
+
+  CC Blink library.
+  * Depends on : base, skia, ui_gfx, gpu, cc, blink
+
+13b) gpu_blink
 
  GPU Blink library.
  * Depends on : base, skia, ui_gfx, ui_gl, gpu, cc, blink
 
-13b) ui_events_blink
+13c) ui_events_blink
 
  UI Events Blink library.
  * Depends on : ui_gfx, ui_events, cc, blink
 
-13c) ui_aura
+13d) ui_aura
 
  UI Aura library.
  * Depends on : base, skia, ui_gfx, ui_events, ui_base,
@@ -358,14 +363,21 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  UI Shell Dialogs library.
  * Depends on : base, ui_strings, skia, ui_base, ui_aura
 
+14d) media_blink
+
+ Media Blink library.
+ * Depends on : base, url, net, skia, ui_gfx, media, gpu, cc,
+                blink, cc_blink, gpu_blink
+
 15a) content_browser
 
  Content Browser library.
  * Depends on :
-   - base, url, net, mojo, storage, ipc, skia, ui_gfx
+   - base, url, gin, net, mojo, storage, ipc, skia, ui_gfx
      ui_accessibility, ui_events, media, ui_base, ui_gl,
-     gpu, cc, blink, gpu_blink, ui_events_blink, ui_aura,
-     ui_touch_selection, ui_snapshot, ui_shell_dialogs
+     gpu, cc, blink, cc_blink, gpu_blink, ui_events_blink,
+     ui_aura, ui_touch_selection, ui_snapshot,
+     ui_shell_dialogs, media_blink
    - ozone (wayland) / x11, xcomposite, pangocairo (x11)
    - libnss, minizip
  * Handles : Content Browser is the "real" browser code; it
