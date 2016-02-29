@@ -314,7 +314,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  * Depends on :
    - base, v8, url, gin, skia, ui_gfx, gpu, cc
    - libicui18n>=52, libicuuc>=52, harfbuzz>=0.9.22, libwebp>=0.4.0,
-     libxml2, libxslt
+     sqlite>=3.6.1, libxml2, libxslt
    - python, gperf, bison (for building only)
    - yasm (for building on x86/x86_64 only)
  * Handles : Web rendering.
@@ -324,6 +324,8 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  * Notes : hard-to-find third-parties such as QCMS (fork of
            Mozilla TinyCMS) and OTS (security layer for TrueType
            fonts decoding) are included directly inside the binary.
+           Blink uses ONE specific SQLite extension function, which
+           we build independently from "third_party/sqlite".
 
 12b) ui_compositor
 
