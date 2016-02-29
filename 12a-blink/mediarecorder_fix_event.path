@@ -1,0 +1,10 @@
+--- modules/mediarecorder/MediaRecorder.h	2016-02-29 03:01:50.211680218 +0000
++++ modules/mediarecorder/MediaRecorder.h	2016-02-29 01:07:08.872364941 +0000
+@@ -7,6 +7,7 @@
+ 
+ #include "core/dom/ActiveDOMObject.h"
+ #include "core/events/EventTarget.h"
++#include "modules/EventModules.h"
+ #include "modules/EventTargetModules.h"
+ #include "modules/ModulesExport.h"
+ #include "modules/mediarecorder/MediaRecorderOptions.h"
