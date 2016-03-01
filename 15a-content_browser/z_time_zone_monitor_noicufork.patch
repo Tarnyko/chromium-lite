@@ -1,0 +1,11 @@
+--- browser/time_zone_monitor.cc	2016-02-29 12:35:23.973495917 +0000
++++ browser/time_zone_monitor.cc	2016-02-29 12:36:33.054486194 +0000
+@@ -22,7 +22,7 @@
+ 
+ void TimeZoneMonitor::NotifyRenderers() {
+   DCHECK_CURRENTLY_ON(BrowserThread::UI);
+-#if defined(OS_CHROMEOS)
++#if defined(OS_CHROMEOS) || OS_LINUX
+   // On CrOS, ICU's default tz is already set to a new zone. No
+   // need to redetect it with detectHostTimeZone().
+   scoped_ptr<icu::TimeZone> new_zone(icu::TimeZone::createDefault());

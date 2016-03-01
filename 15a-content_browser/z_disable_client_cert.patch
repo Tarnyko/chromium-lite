@@ -1,0 +1,20 @@
+--- browser/loader/resource_loader.cc	2016-02-29 11:56:58.431730186 +0000
++++ browser/loader/resource_loader.cc	2016-02-29 11:57:53.137571081 +0000
+@@ -418,6 +418,7 @@
+ void ResourceLoader::ContinueWithCertificate(net::X509Certificate* cert) {
+   DCHECK(ssl_client_auth_handler_);
+   ssl_client_auth_handler_.reset();
++#if 0
+   if (!cert) {
+     request_->ContinueWithCertificate(nullptr, nullptr);
+     return;
+@@ -425,6 +426,9 @@
+   scoped_refptr<net::SSLPrivateKey> private_key =
+       net::FetchClientCertPrivateKey(cert);
+   request_->ContinueWithCertificate(cert, private_key.get());
++#endif
++  request_->ContinueWithCertificate(nullptr, nullptr);
++  return;
+ }
+ 
+ void ResourceLoader::CancelCertificateSelection() {

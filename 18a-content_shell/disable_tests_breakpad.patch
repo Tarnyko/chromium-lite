@@ -1,0 +1,410 @@
+--- app/shell_main_delegate.cc	2016-02-29 13:30:20.925248061 +0000
++++ app/shell_main_delegate.cc	2016-02-29 14:22:38.722371339 +0000
+@@ -77,8 +77,10 @@
+ 
+ namespace {
+ 
++#if 0
+ base::LazyInstance<content::ShellCrashReporterClient>::Leaky
+     g_shell_crash_client = LAZY_INSTANCE_INITIALIZER;
++#endif
+ 
+ #if defined(OS_WIN)
+ // If "Content Shell" doesn't show up in your list of trace providers in
+@@ -140,6 +142,7 @@
+ #endif  // OS_MACOSX
+ 
+   InitLogging();
++#if 0
+   if (command_line.HasSwitch(switches::kCheckLayoutTestSysDeps)) {
+     // If CheckLayoutSystemDeps succeeds, we don't exit early. Instead we
+     // continue and try to load the fonts in BlinkTestPlatformInitialize
+@@ -152,6 +155,7 @@
+ 
+   if (command_line.HasSwitch(switches::kRunLayoutTest)) {
+     EnableBrowserLayoutTestMode();
++#endif
+ 
+ #if defined(ENABLE_PLUGINS)
+     if (!ppapi::RegisterBlinkTestPlugin(&command_line)) {
+@@ -206,11 +210,13 @@
+     media::RemoveProprietaryMediaTypesAndCodecsForTests();
+ #endif
+ 
++#if 0
+     if (!test_runner::BlinkTestPlatformInitialize()) {
+       *exit_code = 1;
+       return true;
+     }
+   }
++#endif
+   SetContentClient(&content_client_);
+   return false;
+ }
+@@ -221,6 +227,7 @@
+   // cpu_brand info.
+   base::CPU cpu_info;
+ #endif
++#if 0
+   if (base::CommandLine::ForCurrentProcess()->HasSwitch(
+           switches::kEnableCrashReporter)) {
+     std::string process_type =
+@@ -239,7 +246,7 @@
+       else
+         breakpad::InitNonBrowserCrashReporterForAndroid(process_type);
+ #else
+-      breakpad::InitCrashReporter(process_type);
++      //breakpad::InitCrashReporter(process_type);
+ #endif
+     }
+ #elif defined(OS_WIN)
+@@ -250,6 +257,7 @@
+     breakpad::InitCrashReporter(process_type);
+ #endif
+   }
++#endif
+ 
+   InitializeResourceBundle();
+ }
+@@ -272,14 +280,18 @@
+ 
+   browser_runner_.reset(BrowserMainRunner::Create());
+   base::CommandLine& command_line = *base::CommandLine::ForCurrentProcess();
++#if 0
+   return command_line.HasSwitch(switches::kRunLayoutTest) ||
+                  command_line.HasSwitch(switches::kCheckLayoutTestSysDeps)
+              ? LayoutTestBrowserMain(main_function_params, browser_runner_)
+              : ShellBrowserMain(main_function_params, browser_runner_);
++#endif
++  return ShellBrowserMain(main_function_params, browser_runner_);
+ }
+ 
+ #if defined(OS_POSIX) && !defined(OS_ANDROID) && !defined(OS_MACOSX)
+ void ShellMainDelegate::ZygoteForked() {
++#if 0
+   if (base::CommandLine::ForCurrentProcess()->HasSwitch(
+           switches::kEnableCrashReporter)) {
+     std::string process_type =
+@@ -287,6 +299,7 @@
+             switches::kProcessType);
+     breakpad::InitCrashReporter(process_type);
+   }
++#endif
+ }
+ #endif
+ 
+@@ -335,19 +348,27 @@
+ }
+ 
+ ContentBrowserClient* ShellMainDelegate::CreateContentBrowserClient() {
++#if 0
+   browser_client_.reset(base::CommandLine::ForCurrentProcess()->HasSwitch(
+                             switches::kRunLayoutTest)
+                             ? new LayoutTestContentBrowserClient
+                             : new ShellContentBrowserClient);
++#endif
++
++  browser_client_.reset(new ShellContentBrowserClient);
+ 
+   return browser_client_.get();
+ }
+ 
+ ContentRendererClient* ShellMainDelegate::CreateContentRendererClient() {
++#if 0
+   renderer_client_.reset(base::CommandLine::ForCurrentProcess()->HasSwitch(
+                              switches::kRunLayoutTest)
+                              ? new LayoutTestContentRendererClient
+                              : new ShellContentRendererClient);
++#endif
++
++  renderer_client_.reset(new ShellContentRendererClient);
+ 
+   return renderer_client_.get();
+ }
+--- browser/shell_content_browser_client.cc	2016-02-26 17:57:18.439980642 +0000
++++ browser/shell_content_browser_client.cc	2016-02-29 16:01:47.248944143 +0000
+@@ -19,7 +19,7 @@
+ #include "content/public/common/content_switches.h"
+ #include "content/public/common/url_constants.h"
+ #include "content/public/common/web_preferences.h"
+-#include "content/public/test/test_mojo_app.h"
++//#include "content/public/test/test_mojo_app.h"
+ #include "content/shell/browser/blink_test_controller.h"
+ #include "content/shell/browser/layout_test/layout_test_browser_main_parts.h"
+ #include "content/shell/browser/layout_test/layout_test_resource_dispatcher_host_delegate.h"
+@@ -65,6 +65,7 @@
+ bool g_swap_processes_for_redirect = false;
+ 
+ #if defined(OS_POSIX) && !defined(OS_MACOSX) && !defined(OS_ANDROID)
++#if 0
+ breakpad::CrashHandlerHostLinux* CreateCrashHandlerHost(
+     const std::string& process_type) {
+   base::FilePath dumps_path =
+@@ -79,8 +80,10 @@
+     return crash_handler;
+   }
+ }
++#endif
+ 
+ int GetCrashSignalFD(const base::CommandLine& command_line) {
++#if 0
+   if (!breakpad::IsCrashReporterEnabled())
+     return -1;
+ 
+@@ -114,6 +117,7 @@
+       crash_handler = CreateCrashHandlerHost(process_type);
+     return crash_handler->GetDeathSignalSocket();
+   }
++#endif
+ 
+   return -1;
+ }
+@@ -141,10 +145,13 @@
+ 
+ BrowserMainParts* ShellContentBrowserClient::CreateBrowserMainParts(
+     const MainFunctionParams& parameters) {
++#if 0
+   shell_browser_main_parts_ = base::CommandLine::ForCurrentProcess()->HasSwitch(
+                                   switches::kRunLayoutTest)
+                                   ? new LayoutTestBrowserMainParts(parameters)
+                                   : new ShellBrowserMainParts(parameters);
++#endif
++   shell_browser_main_parts_ = new ShellBrowserMainParts(parameters);
+   return shell_browser_main_parts_;
+ }
+ 
+@@ -217,8 +224,10 @@
+ 
+ void ShellContentBrowserClient::RegisterOutOfProcessMojoApplications(
+       OutOfProcessMojoApplicationMap* apps) {
++#if 0
+   apps->insert(std::make_pair(GURL(kTestMojoAppUrl),
+                               base::UTF8ToUTF16("Test Mojo App")));
++#endif
+ }
+ 
+ void ShellContentBrowserClient::AppendExtraCommandLineSwitches(
+@@ -292,11 +301,15 @@
+ }
+ 
+ void ShellContentBrowserClient::ResourceDispatcherHostCreated() {
++#if 0
+   resource_dispatcher_host_delegate_.reset(
+       base::CommandLine::ForCurrentProcess()->HasSwitch(
+           switches::kRunLayoutTest)
+           ? new LayoutTestResourceDispatcherHostDelegate
+           : new ShellResourceDispatcherHostDelegate);
++#endif
++ resource_dispatcher_host_delegate_.reset(
++    new ShellResourceDispatcherHostDelegate);
+   ResourceDispatcherHost::Get()->SetDelegate(
+       resource_dispatcher_host_delegate_.get());
+ }
+--- browser/shell.cc	2016-02-29 16:46:07.927510025 +0000
++++ browser/shell.cc	2016-02-29 16:50:22.988114093 +0000
+@@ -337,11 +337,14 @@
+ JavaScriptDialogManager* Shell::GetJavaScriptDialogManager(
+     WebContents* source) {
+   if (!dialog_manager_) {
++#if 0
+     const base::CommandLine& command_line =
+         *base::CommandLine::ForCurrentProcess();
+     dialog_manager_.reset(command_line.HasSwitch(switches::kRunLayoutTest)
+         ? new LayoutTestJavaScriptDialogManager
+         : new ShellJavaScriptDialogManager);
++#endif
++    dialog_manager_.reset(new ShellJavaScriptDialogManager);
+   }
+   return dialog_manager_.get();
+ }
+--- browser/blink_test_controller.h	2016-02-29 18:29:21.638207183 +0000
++++ browser/blink_test_controller.h	2016-02-29 18:31:16.633839830 +0000
+@@ -223,9 +223,9 @@
+   const bool is_leak_detection_enabled_;
+   bool crash_when_leak_found_;
+ 
+-  LayoutTestDevToolsFrontend* devtools_frontend_;
++  //LayoutTestDevToolsFrontend* devtools_frontend_;
+ 
+-  scoped_ptr<LayoutTestBluetoothChooserFactory> bluetooth_chooser_factory_;
++  //scoped_ptr<LayoutTestBluetoothChooserFactory> bluetooth_chooser_factory_;
+ 
+ #if defined(OS_ANDROID)
+   // Because of the nested message pump implementation, Android needs to allow
+--- browser/blink_test_controller.cc	2016-02-29 18:24:32.779106400 +0000
++++ browser/blink_test_controller.cc	2016-02-29 18:57:56.717532352 +0000
+@@ -210,8 +210,9 @@
+       is_leak_detection_enabled_(
+           base::CommandLine::ForCurrentProcess()->HasSwitch(
+               switches::kEnableLeakDetection)),
+-      crash_when_leak_found_(false),
+-      devtools_frontend_(NULL) {
++      crash_when_leak_found_(false) {
++      //crash_when_leak_found_(false),
++      //devtools_frontend_(NULL) {
+   CHECK(!instance_);
+   instance_ = this;
+ 
+@@ -341,7 +342,7 @@
+   if (should_override_prefs_) {
+     *prefs = prefs_;
+   } else {
+-    ApplyLayoutTestDefaultPreferences(prefs);
++    //ApplyLayoutTestDefaultPreferences(prefs);
+     if (is_compositing_test_) {
+       base::CommandLine& command_line = *base::CommandLine::ForCurrentProcess();
+       if (!command_line.HasSwitch(switches::kDisableGpu))
+@@ -376,10 +377,12 @@
+     WebContents* web_contents,
+     const BluetoothChooser::EventHandler& event_handler,
+     const GURL& origin) {
++#if 0
+   if (bluetooth_chooser_factory_) {
+     return bluetooth_chooser_factory_->RunBluetoothChooser(
+         web_contents, event_handler, origin);
+   }
++#endif
+   return nullptr;
+ }
+ 
+@@ -456,9 +459,11 @@
+ void BlinkTestController::DevToolsProcessCrashed() {
+   DCHECK(CalledOnValidThread());
+   printer_->AddErrorMessage("#CRASHED - devtools");
++#if 0
+   if (devtools_frontend_)
+       devtools_frontend_->Close();
+   devtools_frontend_ = NULL;
++#endif
+ }
+ 
+ void BlinkTestController::WebContentsDestroyed() {
+@@ -608,13 +613,16 @@
+       ShellContentBrowserClient::Get()->browser_context();
+   StoragePartition* storage_partition =
+       BrowserContext::GetStoragePartition(browser_context, NULL);
++#if 0
+   storage_partition->GetDOMStorageContext()->DeleteLocalStorage(
+       content::LayoutTestDevToolsFrontend::GetDevToolsPathAsURL("", "")
+           .GetOrigin());
++#endif
+ }
+ 
+ void BlinkTestController::OnShowDevTools(const std::string& settings,
+                                          const std::string& frontend_url) {
++#if 0
+   if (!devtools_frontend_) {
+     devtools_frontend_ = LayoutTestDevToolsFrontend::Show(
+         main_window_->web_contents(), settings, frontend_url);
+@@ -623,11 +631,14 @@
+   }
+   devtools_frontend_->Activate();
+   devtools_frontend_->Focus();
++#endif
+ }
+ 
+ void BlinkTestController::OnCloseDevTools() {
++#if 0
+   if (devtools_frontend_)
+     devtools_frontend_->DisconnectFromTarget();
++#endif
+ }
+ 
+ void BlinkTestController::OnGoToOffset(int offset) {
+@@ -688,8 +699,11 @@
+ void BlinkTestController::OnCloseRemainingWindows() {
+   DevToolsAgentHost::DetachAllClients();
+   std::vector<Shell*> open_windows(Shell::windows());
++#if 0
+   Shell* devtools_shell = devtools_frontend_ ?
+       devtools_frontend_->frontend_shell() : NULL;
++#endif
++  Shell* devtools_shell = NULL;
+   for (size_t i = 0; i < open_windows.size(); ++i) {
+     if (open_windows[i] != main_window_ && open_windows[i] != devtools_shell)
+       open_windows[i]->Close();
+@@ -729,13 +743,16 @@
+ }
+ 
+ void BlinkTestController::OnSetBluetoothManualChooser(bool enable) {
++#if 0
+   bluetooth_chooser_factory_.reset();
+   if (enable) {
+     bluetooth_chooser_factory_.reset(new LayoutTestBluetoothChooserFactory());
+   }
++#endif
+ }
+ 
+ void BlinkTestController::OnGetBluetoothManualChooserEvents() {
++#if 0
+   if (!bluetooth_chooser_factory_) {
+     printer_->AddErrorMessage(
+         "FAIL: Must call setBluetoothManualChooser before "
+@@ -745,11 +762,13 @@
+   Send(new ShellViewMsg_ReplyBluetoothManualChooserEvents(
+       main_window_->web_contents()->GetRoutingID(),
+       bluetooth_chooser_factory_->GetAndResetEvents()));
++#endif
+ }
+ 
+ void BlinkTestController::OnSendBluetoothManualChooserEvent(
+     const std::string& event_name,
+     const std::string& argument) {
++#if 0
+   if (!bluetooth_chooser_factory_) {
+     printer_->AddErrorMessage(
+         "FAIL: Must call setBluetoothManualChooser before "
+@@ -770,6 +789,7 @@
+     return;
+   }
+   bluetooth_chooser_factory_->SendEvent(event, argument);
++#endif
+ }
+ 
+ }  // namespace content
+--- renderer/shell_render_view_observer.cc	2016-02-29 18:14:12.908307843 +0000
++++ renderer/shell_render_view_observer.cc	2016-02-29 18:14:42.207723676 +0000
+@@ -22,10 +22,12 @@
+ 
+ void ShellRenderViewObserver::DidClearWindowObject(
+     blink::WebLocalFrame* frame) {
++#if 0
+   if (base::CommandLine::ForCurrentProcess()->HasSwitch(
+           switches::kExposeInternalsForTesting)) {
+     blink::WebTestingSupport::injectInternalsObject(frame);
+   }
++#endif
+ }
+ 
+ }  // namespace content
+--- utility/shell_content_utility_client.cc	2016-02-26 18:14:19.306878134 +0000
++++ utility/shell_content_utility_client.cc	2016-02-26 18:14:53.986383172 +0000
+@@ -6,7 +6,7 @@
+ 
+ #include "base/bind.h"
+ #include "base/memory/scoped_ptr.h"
+-#include "content/public/test/test_mojo_app.h"
++//#include "content/public/test/test_mojo_app.h"
+ #include "mojo/shell/static_application_loader.h"
+ 
+ namespace content {
+@@ -14,7 +14,7 @@
+ namespace {
+ 
+ scoped_ptr<mojo::ApplicationDelegate> CreateTestApp() {
+-  return scoped_ptr<mojo::ApplicationDelegate>(new TestMojoApp);
++//  return scoped_ptr<mojo::ApplicationDelegate>(new TestMojoApp);
+ }
+ 
+ }  // namespace
+@@ -24,8 +24,10 @@
+ 
+ void ShellContentUtilityClient::RegisterMojoApplications(
+     StaticMojoApplicationMap* apps) {
++#if 0
+   apps->insert(
+       std::make_pair(GURL(kTestMojoAppUrl), base::Bind(&CreateTestApp)));
++#endif
+ }
+ 
+ }  // namespace content
