@@ -1,0 +1,20 @@
+--- native_widget_types.h.old	2016-03-02 04:59:35.097124623 +0000
++++ native_widget_types.h	2016-03-02 05:07:27.248954284 +0000
+@@ -103,7 +103,7 @@
+ #endif
+ class SkBitmap;
+ 
+-#if defined(USE_X11) && !defined(OS_CHROMEOS)
++#if defined(USE_X11) || USE_OZONE && !defined(OS_CHROMEOS)
+ extern "C" {
+ struct _AtkObject;
+ typedef struct _AtkObject AtkObject;
+@@ -163,7 +163,7 @@
+ #else
+ typedef void* NativeDrawingContext;
+ #endif  // defined(USE_CAIRO)
+-#if defined(USE_X11) && !defined(OS_CHROMEOS)
++#if defined(USE_X11) || USE_OZONE && !defined(OS_CHROMEOS)
+ typedef AtkObject* NativeViewAccessible;
+ #else
+ typedef void* NativeViewAccessible;

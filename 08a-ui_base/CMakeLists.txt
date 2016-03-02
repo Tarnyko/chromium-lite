@@ -23,7 +23,7 @@ INCLUDE(GNUInstallDirs)
 
 # Optional dependencies and definitions
 IF(BACKEND STREQUAL "OZONE")
-  SET(BACKEND_SOURCE_FILES clipboard_aura.cc cursor/cursor_loader_ozone.cc cursor/cursor_ozone.cc cursor/ozone/bitmap_cursor_factory_ozone.cc dragdrop/os_exchange_data_provider_aura.cc)
+  SET(BACKEND_SOURCE_FILES clipboard/clipboard_aura.cc cursor/cursor_loader_ozone.cc cursor/cursor_ozone.cc cursor/ozone/bitmap_cursor_factory_ozone.cc dragdrop/os_exchange_data_provider_aura.cc)
   ADD_DEFINITIONS(-DUSE_OZONE)
 ENDIF(BACKEND STREQUAL "OZONE")
 

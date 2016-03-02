@@ -6,6 +6,10 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 SET(PROJECT_NAME "Chromium - UI GL")
 
+# Location of Chromium-specific OpenGL headers
+SET(CHROMIUM_GL_DIR "${CMAKE_SOURCE_DIR}/../../third_party/khronos")
+SET(CHROMIUM_GLES2_EXT_DIR "${CMAKE_SOURCE_DIR}/../../gpu")
+
 # Location of Skia source folders
 SET(SKIA_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../third_party/skia")
 SET(SKIA_EXT_DIR "${CMAKE_SOURCE_DIR}/../../skia")
@@ -28,6 +32,8 @@ PKG_CHECK_MODULES(backend REQUIRED glesv2)
 IF(BACKEND STREQUAL "OZONE")
   SET(BACKEND_SOURCE_FILES gl_context_ozone.cc gl_implementation_ozone.cc gl_surface_ozone.cc gl_image_ozone_native_pixmap.cc)
   ADD_DEFINITIONS(-DUSE_OZONE)
+# This is required by some versions of Mesa
+  ADD_DEFINITIONS(-DMESA_EGL_NO_X11_HEADERS)
 ENDIF(BACKEND STREQUAL "OZONE")
 
 IF(BACKEND STREQUAL "X11")
@@ -54,7 +60,9 @@ ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
 
 
 # all files refer to "ui/...", so we include "../.." here
-SET(include_dirs ${INCLUDE_DIRS} ${glesv2_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_SOURCE_DIR}/include/core ${SKIA_SOURCE_DIR}/include/gpu ${SKIA_EXT_DIR}/config ${CMAKE_SOURCE_DIR}/.. ${CMAKE_SOURCE_DIR}/../..)
+# we add local "CHROMIUM_GL_DIR" in front here, because its "eglext.h" header
+# contains the EGL_SYNC_PRIOR_COMMANDS_IMPLICIT_EXTERNAL_ARM definition we need
+SET(include_dirs ${INCLUDE_DIRS} ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${glesv2_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_SOURCE_DIR}/include/core ${SKIA_SOURCE_DIR}/include/gpu ${SKIA_EXT_DIR}/config ${CMAKE_SOURCE_DIR}/.. ${CMAKE_SOURCE_DIR}/../..)
 SET(link_libraries ${glesv2_LIBRARIES} ${backend_LIBRARIES} -ldl)
 
 ADD_LIBRARY(ui_gl SHARED $<TARGET_OBJECTS:src> $<TARGET_OBJECTS:backend>)

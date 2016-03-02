@@ -1057,6 +1057,11 @@ EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CM
 EXECUTE_PROCESS(COMMAND python bindings/scripts/idl_compiler.py --cache-dir ${CMAKE_BINARY_DIR}/bindings/scripts --output-dir ${CMAKE_BINARY_DIR}/bindings/modules/v8 --info-dir ${CMAKE_BINARY_DIR}/bindings --write-file-only-if-changed 0 --target-component modules core/workers/WorkerNavigator.idl WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
+# UGLY WORKAROUND, NEEDED FOR FIXING BINDINGS AFTER THEY HAVE BEEN GENERATED
+
+EXECUTE_PROCESS(COMMAND sh ${CMAKE_SOURCE_DIR}/fix_generated_bindings.sh WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+
 
 # SOURCES FILE LIST
 

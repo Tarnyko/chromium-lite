@@ -30,11 +30,12 @@ IF(BACKEND STREQUAL "OZONE")
 ENDIF(BACKEND STREQUAL "OZONE")
 
 IF(BACKEND STREQUAL "X11")
+  SET(BACKEND_SOURCE_FILES platform/ax_platform_node_auralinux.cc)
   ADD_DEFINITIONS(-DUSE_X11)
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DACCESSIBILITY_IMPLEMENTATION -DUSE_AURA -DATK_LIB_DIR="${CMAKE_INSTALL_LIBDIR}")
+ADD_DEFINITIONS(-DACCESSIBILITY_IMPLEMENTATION -DOS_LINUX -DUSE_AURA -DATK_LIB_DIR="${CMAKE_INSTALL_LIBDIR}")
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
@@ -54,7 +55,7 @@ EXECUTE_PROCESS(COMMAND ${JSON_COMPILER_DIR}/compiler.py ax_enums.idl --root=../
 ADD_LIBRARY(ax OBJECT ax_node.cc ax_node_data.cc ax_serializable_tree.cc ax_text_utils.cc ax_tree.cc ax_tree_data.cc ax_tree_serializer.cc ax_view_state.cc)
 
 # platform
-ADD_LIBRARY(platform OBJECT platform/ax_platform_node.cc platform/ax_platform_node_base.cc platform/ax_platform_node_auralinux.cc platform/atk_util_auralinux.cc)
+ADD_LIBRARY(platform OBJECT platform/ax_platform_node.cc platform/ax_platform_node_base.cc platform/atk_util_auralinux.cc)
 
 # generated (these are generated !)
 ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ui/accessibility/ax_enums.cc)
@@ -65,7 +66,7 @@ ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ui/accessibility/ax_enums.cc)
 SET(include_dirs ${INCLUDE_DIRS} ${gconf_INCLUDE_DIRS} ${atk_INCLUDE_DIRS} ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/../..)
 SET(link_libraries ${gconf_LIBRARIES} ${atk_LIBRARIES})
 
-ADD_LIBRARY(ui_accessibility SHARED $<TARGET_OBJECTS:ax> $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:generated>)
+ADD_LIBRARY(ui_accessibility SHARED $<TARGET_OBJECTS:ax> $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:generated> ${BACKEND_SOURCE_FILES})
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ui_accessibility ${link_libraries})
 
