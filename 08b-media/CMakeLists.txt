@@ -59,8 +59,13 @@ ENDIF(NOT HAVE_LIBJPEG_TURBO)
 
 # Optional dependencies and definitions
 IF(BACKEND STREQUAL "OZONE")
-  SET(BACKEND_SOURCE_FILES ozone/media_ozone_platform.cc)
+  #SET(BACKEND_SOURCE_FILES ozone/media_ozone_platform.cc)
+  # TODO : this does not work, discover why
   ADD_DEFINITIONS(-DUSE_OZONE -DDISABLE_USER_INPUT_MONITOR)
+  # Ozone backend requires generated "ui_ozone" headers
+  SET(UI_OZONE_DIR "${CMAKE_SOURCE_DIR}/../ui/ozone")
+  SET(INCLUDE_DIRS "${UI_OZONE_DIR}/Build")
+  # TODO : "${UI_OZONE_DIR}/Build" here is a HACK ! remove this when we use .pc files
 ENDIF(BACKEND STREQUAL "OZONE")
 
 IF(BACKEND STREQUAL "X11")

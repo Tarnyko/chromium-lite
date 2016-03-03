@@ -231,7 +231,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  UI Events helper library.
  * Depends on :
    - base, skia, ipc, ui_gfx, xkbcommon
-   - libudev (wayland) / x11, xi, xproto, libevent (x11)
+   - python, libudev (wayland) / x11, xi, xproto, libevent (x11)
  * Handles : hardware detection, keyboard events, motion and gesture
              detection. Basically, this library uses platform-specific
              APIs (XInput under X11, UDev under Ozone/Wayland) to
@@ -243,8 +243,8 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 07c) ozone
 
  Ozone library.
- * Depends on : base, skia, ui_gfx, wayland-client, wayland-cursor,
-                wayland-egl, egl, xkbcommon
+ * Depends on : base, skia, ui_gfx, ui_accessibility, wayland-client,
+                wayland-cursor, wayland-egl, egl, xkbcommon
  * Handles : Ozone is an alternative backend to X11 under Linux ;
              we only build its Wayland implementation, though a
              DRM implementation (for ChromeOS ?) exists somewhere.
@@ -255,6 +255,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
  UI Base helper library.
  * Depends on :
    - base, url, net, skia, ui_gfx, ui_events, ui_strings, ui_resources
+   - ozone (wayland)
 
 08b) media
 

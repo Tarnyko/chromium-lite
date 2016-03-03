@@ -1,0 +1,15 @@
+--- renderer/render_frame_impl.cc	2016-03-02 16:57:32.823627853 +0000
++++ renderer/render_frame_impl.cc	2016-03-02 16:57:52.247905790 +0000
+@@ -2346,9 +2346,12 @@
+     url_index_.reset(new media::UrlIndex(frame));
+   }
+ 
++#if 0
+   return new media::WebMediaPlayerImpl(
+       frame, client, encrypted_client, GetWebMediaPlayerDelegate()->AsWeakPtr(),
+       media_renderer_factory.Pass(), GetCdmFactory(), url_index_, params);
++#endif
++  return NULL;
+ #endif  // defined(OS_ANDROID) && !defined(ENABLE_MEDIA_PIPELINE_ON_ANDROID)
+ }
+ 

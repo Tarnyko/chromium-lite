@@ -76,7 +76,7 @@ ENDIF(NOT PROTOC_FOUND)
 
 # Optional definitions
 IF(BACKEND STREQUAL "OZONE")
-  SET(BACKEND_SOURCE_FILES common/font_list_ozone.cc common/cursors/webcursor_ozone.cc common/gpu/gpu_memory_buffer_factory_ozone.cc common/gpu/gpu_memory_buffer_factory_ozone_native_pixmap.cc common/gpu/client/gpu_memory_buffer_impl_ozone.cc common/gpu/client/gpu_memory_buffer_impl_ozone_native_pixmap.cc browser/power_save_blocker_ozone.cc browser/compositor/browser_compositor_overlay_candidate_validator_ozone.cc browser/compositor/software_output_device_ozone.cc)
+  SET(BACKEND_SOURCE_FILES common/font_list_ozone.cc common/cursors/webcursor_ozone.cc common/gpu/gpu_memory_buffer_factory_ozone_native_pixmap.cc common/gpu/client/gpu_memory_buffer_impl_ozone_native_pixmap.cc browser/power_save_blocker_ozone.cc browser/accessibility/accessibility_tree_formatter_stub.cc browser/compositor/browser_compositor_overlay_candidate_validator_ozone.cc browser/compositor/software_output_device_ozone.cc)
   ADD_DEFINITIONS(-DUSE_OZONE)
 ENDIF(BACKEND STREQUAL "OZONE")
 
