@@ -6,8 +6,10 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 SET(PROJECT_NAME "Chromium - Base")
 
-# Location of libicu fork (required by i18n sources)
+# Location of third-party dependencies
+# (libicu fork is required by "i18n" sources)
 SET(ICU_FORK_DIR "${CMAKE_SOURCE_DIR}/../third_party/icu")
+SET(MODP_DIR "${CMAKE_SOURCE_DIR}/../third_party/modp_b64")
 
 # Location of build tools dir (required for generating "debugging_flags.h")
 SET(BUILD_TOOLS_DIR "${CMAKE_SOURCE_DIR}/../build")
@@ -46,7 +48,7 @@ IF(BACKEND STREQUAL "X11")
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DOS_POSIX=1 -DCOMPONENT_BUILD=1 -DBASE_IMPLEMENTATION=1 -DNO_TCMALLOC)
+ADD_DEFINITIONS(-DOS_POSIX=1 -DCOMPONENT_BUILD=1 -DBASE_IMPLEMENTATION=1 -DNO_TCMALLOC -D_FILE_OFFSET_BITS=64)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
@@ -155,7 +157,7 @@ ADD_LIBRARY(randutil OBJECT rand_util.cc rand_util_posix.cc)
 ADD_LIBRARY(hash OBJECT third_party/superfasthash/superfasthash.c hash.cc)
 
 # base64
-ADD_LIBRARY(base64 OBJECT ../third_party/modp_b64/modp_b64.cc base64.cc base64url.cc)
+ADD_LIBRARY(base64 OBJECT ${MODP_DIR}/modp_b64.cc base64.cc base64url.cc)
 
 # md5
 ADD_LIBRARY(md5 OBJECT md5.cc)
@@ -193,4 +195,4 @@ INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(base ${link_libraries})
 
 INSTALL(TARGETS base
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/chromium)
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)

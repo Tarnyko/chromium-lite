@@ -117,7 +117,7 @@ $ cmake .. -DBACKEND=X11 -DCMAKE_TOOLCHAIN_FILE=../Toolchain-x86_64.cmake
 02d) gin
 
  Gin helper library.
- * Depends on : base, v8
+ * Depends on : base, v8, crypto
  * Handles : a set of utility functions on top of V8. Mostly
              used by Blink for wrapping V8 generated bindings,
              and at a high level by Content Shell.
