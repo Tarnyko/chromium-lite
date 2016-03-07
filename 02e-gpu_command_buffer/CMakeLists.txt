@@ -33,4 +33,4 @@ INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(gpu_command_buffer ${link_libraries})
 
 INSTALL(TARGETS gpu_command_buffer
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/chromium)
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)
