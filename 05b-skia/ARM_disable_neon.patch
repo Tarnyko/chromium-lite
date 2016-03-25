@@ -1,0 +1,13 @@
+--- src/core/SkUtilsArm.h	2016-03-18 09:06:35.586579665 +0000
++++ src/core/SkUtilsArm.h	2016-03-18 09:07:03.257973631 +0000
+@@ -34,6 +34,10 @@
+ #define SK_ARM_NEON_IS_ALWAYS  (SK_ARM_NEON_MODE == SK_ARM_NEON_MODE_ALWAYS)
+ #define SK_ARM_NEON_IS_DYNAMIC (SK_ARM_NEON_MODE == SK_ARM_NEON_MODE_DYNAMIC)
+ 
++#define SK_ARM_NEON_IS_NONE 1
++#define SK_ARM_NEON_IS_ALWAYS 0
++#define SK_ARM_NEON_IS_DYNAMIC 0
++
+ // The sk_cpu_arm_has_neon() function returns true iff the target device
+ // is ARMv7-A and supports Neon instructions. In DYNAMIC mode, this actually
+ // probes the CPU at runtime (and caches the result).

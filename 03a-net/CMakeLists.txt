@@ -167,7 +167,7 @@ ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/net/quic/proto/cached_network_p
 # for NSS, additional "third_party/nss" headers are required
 # PS : main "third_party/nss" headers need to be BEFORE system nss ones !
 SET(include_dirs ${INCLUDE_DIRS} ${protobuf_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/third_party/nss/ssl ${nss_INCLUDE_DIRS} ${nspr_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/third_party/nss/ssl/bodge ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/.. ${CMAKE_BINARY_DIR})
-SET(link_libraries ${protobuf_LIBRARIES} ${nss_LIBRARIES} ${nspr_LIBRARIES} -lvcddec)
+SET(link_libraries ${LINK_LIBRARIES} ${protobuf_LIBRARIES} ${nss_LIBRARIES} ${nspr_LIBRARIES} -lvcddec)
 
 ADD_LIBRARY(net SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:cert> $<TARGET_OBJECTS:cookies> $<TARGET_OBJECTS:der> $<TARGET_OBJECTS:disk_cache> $<TARGET_OBJECTS:dns> $<TARGET_OBJECTS:filter> $<TARGET_OBJECTS:http> $<TARGET_OBJECTS:log> $<TARGET_OBJECTS:crssl> $<TARGET_OBJECTS:quic> $<TARGET_OBJECTS:proxy> $<TARGET_OBJECTS:server> $<TARGET_OBJECTS:socket> $<TARGET_OBJECTS:spdy> $<TARGET_OBJECTS:ssl> $<TARGET_OBJECTS:udp> $<TARGET_OBJECTS:url_request> $<TARGET_OBJECTS:websockets> $<TARGET_OBJECTS:proto_file> $<TARGET_OBJECTS:proto_ftp> $<TARGET_OBJECTS:extras> $<TARGET_OBJECTS:generated> sdch/sdch_owner.cc third_party/mozilla_security_manager/nsKeygenHandler.cpp third_party/mozilla_security_manager/nsNSSCertificateDB.cpp third_party/mozilla_security_manager/nsPKCS12Blob.cpp)
 INCLUDE_DIRECTORIES(${include_dirs})

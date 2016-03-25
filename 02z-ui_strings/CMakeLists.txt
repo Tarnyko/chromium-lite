@@ -18,9 +18,11 @@ ELSE()
 ENDIF(NOT PYTHON_FOUND)
 
 
-MESSAGE(STATUS "Generating .pak from .grd...")
+MESSAGE(STATUS "Generating .pak and .h from .grd...")
 
-EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i ui_strings.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o . --write-only-new=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND mkdir -p ui/strings/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i app_locale_settings.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o . --write-only-new=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i ui_strings.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR}/ui/strings --write-only-new=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i app_locale_settings.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR}/ui/strings --write-only-new=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 

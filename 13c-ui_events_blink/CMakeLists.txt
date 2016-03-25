@@ -45,7 +45,7 @@ SET(include_dirs ${INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../../..)
 
 ADD_LIBRARY(ui_events_blink SHARED $<TARGET_OBJECTS:src>)
 INCLUDE_DIRECTORIES(${include_dirs})
-TARGET_LINK_LIBRARIES(ui_events_blink ${link_libraries})
+TARGET_LINK_LIBRARIES(ui_events_blink ${LINK_LIBRARIES})
 
 INSTALL(TARGETS ui_events_blink
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/chromium)
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)

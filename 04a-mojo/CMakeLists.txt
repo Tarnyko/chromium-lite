@@ -101,7 +101,7 @@ SET(include_dirs ${INCLUDE_DIRS} ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/mojo ${
 
 ADD_LIBRARY(mojo SHARED $<TARGET_OBJECTS:common> $<TARGET_OBJECTS:environment> $<TARGET_OBJECTS:message_pump> $<TARGET_OBJECTS:bindings> $<TARGET_OBJECTS:application> $<TARGET_OBJECTS:fetcher> $<TARGET_OBJECTS:shell> $<TARGET_OBJECTS:converters> $<TARGET_OBJECTS:edk> $<TARGET_OBJECTS:edk_ext> $<TARGET_OBJECTS:generated> public/js/constants.cc)
 INCLUDE_DIRECTORIES(${include_dirs})
-TARGET_LINK_LIBRARIES(mojo ${link_libraries})
+TARGET_LINK_LIBRARIES(mojo ${LINK_LIBRARIES})
 
 INSTALL(TARGETS mojo
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)

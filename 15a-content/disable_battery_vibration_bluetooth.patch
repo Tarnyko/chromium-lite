@@ -89,3 +89,47 @@
  #include "content/common/browser_plugin/browser_plugin_messages.h"
  #include "content/common/cache_storage/cache_storage_messages.h"
  #include "content/common/cc_messages.h"
+--- browser/renderer_host/render_process_host_impl.cc	2016-03-14 03:08:44.797500385 +0000
++++ browser/renderer_host/render_process_host_impl.cc	2016-03-14 03:09:01.172727420 +0000
+@@ -43,7 +43,9 @@
+ #include "content/browser/appcache/chrome_appcache_service.h"
+ #include "content/browser/background_sync/background_sync_service_impl.h"
+ #include "content/browser/bad_message.h"
++#if 0
+ #include "content/browser/bluetooth/bluetooth_dispatcher_host.h"
++#endif
+ #include "content/browser/browser_child_process_host_impl.h"
+ #include "content/browser/browser_main.h"
+ #include "content/browser/browser_main_loop.h"
+--- browser/renderer_host/render_process_host_impl.h	2016-03-14 03:17:00.253372539 +0000
++++ browser/renderer_host/render_process_host_impl.h	2016-03-14 03:18:01.719225504 +0000
+@@ -49,7 +49,9 @@
+ namespace content {
+ class AudioInputRendererHost;
+ class AudioRendererHost;
++#if 0
+ class BluetoothDispatcherHost;
++#endif
+ class BrowserCdmManager;
+ class BrowserDemuxerAndroid;
+ class GpuMessageFilter;
+@@ -258,7 +260,9 @@
+   void GetAudioOutputControllers(
+       const GetAudioOutputControllersCallback& callback) const override;
+ 
++#if 0
+   BluetoothDispatcherHost* GetBluetoothDispatcherHost();
++#endif
+ 
+  protected:
+   // A proxy for our IPC::Channel that lives on the IO thread.
+@@ -441,7 +445,9 @@
+ 
+   scoped_refptr<AudioInputRendererHost> audio_input_renderer_host_;
+ 
++#if 0
+   scoped_refptr<BluetoothDispatcherHost> bluetooth_dispatcher_host_;
++#endif
+ 
+ #if defined(OS_ANDROID)
+   scoped_refptr<BrowserDemuxerAndroid> browser_demuxer_android_;

@@ -6,6 +6,11 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 SET(PROJECT_NAME "Chromium - UI Base")
 
+# Location of direct dependencies
+SET(UI_STRINGS_DIR "${CMAKE_SOURCE_DIR}/../strings")
+SET(UI_RESOURCES_DIR "${CMAKE_SOURCE_DIR}/../resources")
+SET(UI_OZONE_DIR "${CMAKE_SOURCE_DIR}/../ozone")
+
 # Location of Skia source folders
 SET(SKIA_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../third_party/skia")
 SET(SKIA_EXT_DIR "${CMAKE_SOURCE_DIR}/../../skia")
@@ -23,7 +28,7 @@ INCLUDE(GNUInstallDirs)
 
 # Optional dependencies and definitions
 IF(BACKEND STREQUAL "OZONE")
-  SET(BACKEND_SOURCE_FILES clipboard/clipboard_aura.cc cursor/cursor_loader_ozone.cc cursor/cursor_ozone.cc cursor/ozone/bitmap_cursor_factory_ozone.cc dragdrop/os_exchange_data_provider_aura.cc)
+  SET(BACKEND_SOURCE_FILES clipboard/clipboard_aura.cc cursor/cursor_loader_ozone.cc cursor/cursor_ozone.cc cursor/ozone/bitmap_cursor_factory_ozone.cc dragdrop/os_exchange_data_provider_aura.cc ${UI_OZONE_DIR}/public/cursor_factory_ozone.cc)
   ADD_DEFINITIONS(-DUSE_OZONE)
 ENDIF(BACKEND STREQUAL "OZONE")
 
@@ -80,12 +85,13 @@ ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
 
 
 # all files refer to "ui/...", so we include "../.." here
-SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_SOURCE_DIR}/include/core ${SKIA_EXT_DIR}/config ${CMAKE_SOURCE_DIR}/.. ${CMAKE_SOURCE_DIR}/../..)
+SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_SOURCE_DIR}/include/core ${SKIA_EXT_DIR}/config ${UI_STRINGS_DIR}/Build ${UI_RESOURCES_DIR}/Build ${CMAKE_SOURCE_DIR}/.. ${CMAKE_SOURCE_DIR}/../..)
+# TODO : "${UI_STRINGS_DIR}/Build" and "${UI_RESOURCES_DIR}/Build" are HACKS !
 SET(link_libraries ${backend_LIBRARIES} -ldl)
 
 ADD_LIBRARY(ui_base SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:accelerators> $<TARGET_OBJECTS:clipboard> $<TARGET_OBJECTS:cursor> $<TARGET_OBJECTS:dragdrop> $<TARGET_OBJECTS:l10n> $<TARGET_OBJECTS:models> $<TARGET_OBJECTS:resource> $<TARGET_OBJECTS:touch> $<TARGET_OBJECTS:ime> $<TARGET_OBJECTS:backend>)
 INCLUDE_DIRECTORIES(${include_dirs})
-TARGET_LINK_LIBRARIES(ui_base ${link_libraries})
+TARGET_LINK_LIBRARIES(ui_base ${LINK_LIBRARIES})
 
 INSTALL(TARGETS ui_base
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/chromium)
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)

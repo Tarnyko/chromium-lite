@@ -1,6 +1,6 @@
 SET(QCMS_DIR "${CMAKE_SOURCE_DIR}/../../../third_party/qcms")
 
-ADD_DEFINITIONS(-DSSE2_ENABLE)
+ADD_DEFINITIONS(-m32 -mfpmath=sse -msse2 -DSSE2_ENABLE)
 
 
 FIND_PROGRAM(YASM_FOUND yasm)

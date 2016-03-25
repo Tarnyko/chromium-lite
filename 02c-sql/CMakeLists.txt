@@ -28,7 +28,7 @@ ADD_LIBRARY(src OBJECT connection.cc error_delegate_util.cc meta_table.cc recove
 
 # all files refer to "sql/...", so we include ".." here
 SET(include_dirs ${INCLUDE_DIRS} ${sqlite_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/..)
-SET(link_libraries ${sqlite_LIBRARIES})
+SET(link_libraries ${LINK_LIBRARIES} ${sqlite_LIBRARIES})
 
 ADD_LIBRARY(sql SHARED $<TARGET_OBJECTS:src>)
 INCLUDE_DIRECTORIES(${include_dirs})

@@ -42,6 +42,7 @@ SET(include_dirs ${INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../..)
 
 ADD_LIBRARY(ui_content_accelerators SHARED $<TARGET_OBJECTS:src>)
 INCLUDE_DIRECTORIES(${include_dirs})
+TARGET_LINK_LIBRARIES(ui_content_accelerators ${LINK_LIBRARIES})
 
 INSTALL(TARGETS ui_content_accelerators
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/chromium)
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)

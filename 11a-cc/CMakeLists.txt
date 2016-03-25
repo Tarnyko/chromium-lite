@@ -155,11 +155,11 @@ ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/cc/proto/compositor_message.pb.
 # all files refer to "cc/...", so we include "../" here
 # we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
 SET(include_dirs ${INCLUDE_DIRS} ${protobuf_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${SKIA_SOURCE_DIR}/include/utils ${SKIA_SOURCE_DIR}/include/gpu ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/.. ${CMAKE_SOURCE_DIR})
-SET(link_libraries ${protobuf_LIBRARIES})
+SET(link_libraries ${LINK_LIBRARIES} ${protobuf_LIBRARIES})
 
 ADD_LIBRARY(cc SHARED $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:debug> $<TARGET_OBJECTS:input> $<TARGET_OBJECTS:layers> $<TARGET_OBJECTS:output> $<TARGET_OBJECTS:playback> $<TARGET_OBJECTS:proto> $<TARGET_OBJECTS:quads> $<TARGET_OBJECTS:raster> $<TARGET_OBJECTS:resources> $<TARGET_OBJECTS:scheduler> $<TARGET_OBJECTS:tiles> $<TARGET_OBJECTS:trees> $<TARGET_OBJECTS:surfaces> $<TARGET_OBJECTS:generated> ${TOOLCHAIN_OPTS_SOURCE_FILES})
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(cc ${link_libraries})
 
 INSTALL(TARGETS cc
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/chromium)
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)

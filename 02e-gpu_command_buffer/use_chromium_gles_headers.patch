@@ -1,0 +1,13 @@
+--- ../GLES2/gl2extchromium.h	2016-03-11 21:40:38.309369582 +0000
++++ ../GLES2/gl2extchromium.h	2016-03-11 21:41:09.321805609 +0000
+@@ -7,8 +7,8 @@
+ #ifndef GPU_GLES2_GL2EXTCHROMIUM_H_
+ #define GPU_GLES2_GL2EXTCHROMIUM_H_
+ 
+-#include <GLES2/gl2.h>
+-#include <GLES2/gl2ext.h>
++#include "third_party/khronos/GLES2/gl2.h"
++#include "third_party/khronos/GLES2/gl2ext.h"
+ 
+ #ifdef __cplusplus
+ extern "C" {

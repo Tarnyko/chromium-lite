@@ -28,7 +28,7 @@ ADD_LIBRARY(src OBJECT curve25519-donna.c curve25519_nss.cc ghash.cc ec_private_
 
 # all files refer to "crypto/...", so we include ".." here
 SET(include_dirs ${INCLUDE_DIRS} ${nss_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/..)
-SET(link_libraries ${nss_LIBRARIES})
+SET(link_libraries ${LINK_LIBRARIES} ${nss_LIBRARIES})
 
 # avoid naming ourselves "crypto", which collides with OpenSSL
 ADD_LIBRARY(crcrypto SHARED $<TARGET_OBJECTS:src>)

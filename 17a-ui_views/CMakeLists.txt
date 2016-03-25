@@ -7,9 +7,12 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 SET(PROJECT_NAME "Chromium - UI Views")
 
 # Location of direct dependencies
-SET(DISPLAY_UTIL_DIR "${CMAKE_SOURCE_DIR}/../display/util")
+SET(UI_DISPLAY_DIR "${CMAKE_SOURCE_DIR}/../display/")
+SET(UI_STRINGS_DIR "${CMAKE_SOURCE_DIR}/../strings")
+SET(UI_RESOURCES_DIR "${CMAKE_SOURCE_DIR}/../resources")
 SET(UI_ACCESSIBILITY_DIR "${CMAKE_SOURCE_DIR}/../accessibility")
 SET(UI_GFX_DIR "${CMAKE_SOURCE_DIR}/../gfx")
+SET(OZONE_DIR "${CMAKE_SOURCE_DIR}/../../ozone")
 
 # Variable paths for required third-parties
 SET(GRIT_DIR "${CMAKE_SOURCE_DIR}/../..")
@@ -39,13 +42,15 @@ ENDIF(NOT PYTHON_FOUND)
 
 # Optional definitions
 IF(BACKEND STREQUAL "OZONE")
-  SET(BACKEND_SOURCE_FILES widget/desktop_aura/desktop_factory_ozone.cc widget/desktop_aura/desktop_screen_ozone.cc widget/desktop_aura/desktop_window_tree_host_ozone.cc)
+#  These Ozone-specific classes are reimplemented by Ozone itself
+#  SET(BACKEND_SOURCE_FILES widget/desktop_aura/desktop_factory_ozone.cc widget/desktop_aura/desktop_screen_ozone.cc widget/desktop_aura/desktop_window_tree_host_ozone.cc)
+  SET(BACKEND_SOURCE_FILES ${OZONE_DIR}/ui/desktop_aura/desktop_drag_drop_client_wayland.cc ${OZONE_DIR}/ui/desktop_aura/desktop_screen_wayland.cc ${OZONE_DIR}/ui/desktop_aura/desktop_window_tree_host_ozone.cc)
   ADD_DEFINITIONS(-DUSE_OZONE)
 ENDIF(BACKEND STREQUAL "OZONE")
 
 IF(BACKEND STREQUAL "X11")
   PKG_CHECK_MODULES(backend REQUIRED x11 xext xrandr atk)
-  SET(BACKEND_SOURCE_FILES accessibility/native_view_accessibility_auralinux.cc widget/desktop_aura/desktop_drag_drop_client_aurax11.cc widget/desktop_aura/desktop_screen_x11.cc widget/desktop_aura/desktop_window_tree_host_x11.cc widget/desktop_aura/x11_desktop_handler.cc widget/desktop_aura/x11_desktop_window_move_client.cc widget/desktop_aura/x11_pointer_grab.cc widget/desktop_aura/x11_topmost_window_finder.cc widget/desktop_aura/x11_whole_screen_move_loop.cc widget/desktop_aura/x11_window_event_filter.cc ${DISPLAY_UTIL_DIR}/display_util.cc ${DISPLAY_UTIL_DIR}/edid_parser.cc ${DISPLAY_UTIL_DIR}/x11/edid_parser_x11.cc)
+  SET(BACKEND_SOURCE_FILES accessibility/native_view_accessibility_auralinux.cc widget/desktop_aura/desktop_drag_drop_client_aurax11.cc widget/desktop_aura/desktop_screen_x11.cc widget/desktop_aura/desktop_window_tree_host_x11.cc widget/desktop_aura/x11_desktop_handler.cc widget/desktop_aura/x11_desktop_window_move_client.cc widget/desktop_aura/x11_pointer_grab.cc widget/desktop_aura/x11_topmost_window_finder.cc widget/desktop_aura/x11_whole_screen_move_loop.cc widget/desktop_aura/x11_window_event_filter.cc ${UI_DISPLAY_DIR}/util/display_util.cc ${UI_DISPLAY_DIR}/util/edid_parser.cc ${UI_DISPLAY_DIR}/util/x11/edid_parser_x11.cc)
   ADD_DEFINITIONS(-DUSE_X11 -DDISPLAY_UTIL_IMPLEMENTATION)
 ENDIF(BACKEND STREQUAL "X11")
 
@@ -61,7 +66,9 @@ ENDIF()
 
 MESSAGE(STATUS "Generating .cc,.h,.pak from .grd...")
 
-EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i views_resources.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o . --write-only-new=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/resources)
+EXECUTE_PROCESS(COMMAND mkdir -p ui/views/resources/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+EXECUTE_PROCESS(COMMAND ${GRIT_DIR}/tools/grit/grit.py -i views_resources.grd build -f ${GRIT_DIR}/tools/gritsettings/resource_ids -o ${CMAKE_BINARY_DIR}/ui/views/resources --write-only-new=0 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/resources)
 
 
 # SOURCES FILE LIST
@@ -105,15 +112,19 @@ ADD_LIBRARY(window OBJECT window/client_view.cc window/custom_frame_view.cc wind
 # misc
 ADD_LIBRARY(misc OBJECT accessible_pane_view.cc background.cc border.cc button_drag_utils.cc color_chooser/color_chooser_view.cc debug_utils.cc drag_utils.cc drag_utils_aura.cc event_monitor_aura.cc masked_targeter_delegate.cc metrics.cc metrics_aura.cc mouse_watcher.cc mouse_watcher_view_host.cc native_cursor_aura.cc painter.cc rect_based_targeting_utils.cc repeat_controller.cc round_rect_painter.cc shadow_border.cc style/platform_style.cc style/platform_style_linux.cc view.cc view_constants.cc view_constants_aura.cc view_model.cc view_model_utils.cc view_targeter.cc view_targeter_delegate.cc views_delegate.cc views_switches.cc views_touch_selection_controller_factory_aura.cc)
 
+# generated (These are generated !)
+ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ui/views/resources/grit/views_resources_map.cc)
+
 
 # all files refer to "ui/...", so we include "../.." here
-SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../.. ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${UI_ACCESSIBILITY_DIR}/Build ${UI_GFX_DIR}/Build)
+# we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
+SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../.. ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${UI_STRINGS_DIR}/Build ${UI_RESOURCES_DIR}/Build ${UI_ACCESSIBILITY_DIR}/Build ${UI_GFX_DIR}/Build ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/ui/views/resources)
 # TODO : "${UI_*_DIR}/Build" are HACKs ! remove them when use .pc files !
-SET(link_libraries ${backend_LIBRARIES})
+SET(link_libraries ${LINK_LIBRARIES} ${backend_LIBRARIES})
 
-ADD_LIBRARY(ui_views SHARED $<TARGET_OBJECTS:accessibility> $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:bubble> $<TARGET_OBJECTS:controls> $<TARGET_OBJECTS:controls_webview> $<TARGET_OBJECTS:corewm> $<TARGET_OBJECTS:focus> $<TARGET_OBJECTS:layout> $<TARGET_OBJECTS:linuxui> $<TARGET_OBJECTS:touchui> $<TARGET_OBJECTS:widget> $<TARGET_OBJECTS:window> $<TARGET_OBJECTS:misc> ${BACKEND_SOURCE_FILES})
+ADD_LIBRARY(ui_views SHARED $<TARGET_OBJECTS:accessibility> $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:bubble> $<TARGET_OBJECTS:controls> $<TARGET_OBJECTS:controls_webview> $<TARGET_OBJECTS:corewm> $<TARGET_OBJECTS:focus> $<TARGET_OBJECTS:layout> $<TARGET_OBJECTS:linuxui> $<TARGET_OBJECTS:touchui> $<TARGET_OBJECTS:widget> $<TARGET_OBJECTS:window> $<TARGET_OBJECTS:misc> $<TARGET_OBJECTS:generated> ${BACKEND_SOURCE_FILES})
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ui_views ${link_libraries})
 
 INSTALL(TARGETS ui_views
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/chromium)
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)

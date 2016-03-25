@@ -90,11 +90,11 @@ ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
 
 # all files refer to "ui/...", so we include "../.." here
 SET(include_dirs ${INCLUDE_DIRS} ${xkbcommon_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_SOURCE_DIR}/include/core ${SKIA_EXT_DIR}/config ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/.. ${CMAKE_SOURCE_DIR}/../..)
-SET(link_libraries ${xkbcommon_LIBRARIES} ${backend_LIBRARIES})
+SET(link_libraries ${LINK_LIBRARIES} ${xkbcommon_LIBRARIES} ${backend_LIBRARIES})
 
 ADD_LIBRARY(ui_events SHARED $<TARGET_OBJECTS:keycode_converter> $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:ipc> $<TARGET_OBJECTS:devices> $<TARGET_OBJECTS:gesture_detection> $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:backend>)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ui_events ${link_libraries})
 
 INSTALL(TARGETS ui_events
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/chromium)
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)

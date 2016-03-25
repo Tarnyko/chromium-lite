@@ -6,6 +6,9 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 SET(PROJECT_NAME "Chromium - UI Touch Selection")
 
+# Location of direct dependencies
+SET(UI_RESOURCES_DIR "${CMAKE_SOURCE_DIR}/../resources")
+
 # Location of Skia source folders
 SET(SKIA_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../third_party/skia")
 SET(SKIA_EXT_DIR "${CMAKE_SOURCE_DIR}/../../skia")
@@ -42,11 +45,12 @@ ADD_LIBRARY(src OBJECT longpress_drag_selector.cc touch_handle.cc touch_handle_d
 
 
 # all files refer to "ui/...", so we include "../.." here
-SET(include_dirs ${INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${CMAKE_SOURCE_DIR}/../..)
+SET(include_dirs ${INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${UI_RESOURCES_DIR}/Build ${CMAKE_SOURCE_DIR}/../..)
+# TODO : "${UI_RESOURCES_DIR}/Build" is a HACK ! Fix this once we use .pc files
 
 ADD_LIBRARY(ui_touch_selection SHARED $<TARGET_OBJECTS:src>)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ui_touch_selection ${link_libraries})
 
 INSTALL(TARGETS ui_touch_selection
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/chromium)
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)

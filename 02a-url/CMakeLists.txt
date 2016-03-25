@@ -28,7 +28,7 @@ ADD_LIBRARY(url OBJECT gurl.cc origin.cc scheme_host_port.cc url_canon_etc.cc ur
 
 # all files refer to "url/...", so we include ".." here
 SET(include_dirs ${INCLUDE_DIRS} ${icuuc_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/..)
-SET(link_libraries ${icuuc_LIBRARIES})
+SET(link_libraries ${LINK_LIBRARIES} ${icuuc_LIBRARIES})
 
 ADD_LIBRARY(url_lib SHARED $<TARGET_OBJECTS:url>)
 INCLUDE_DIRECTORIES(${include_dirs})

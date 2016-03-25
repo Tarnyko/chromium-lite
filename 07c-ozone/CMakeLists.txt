@@ -4,14 +4,11 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
 SET(CMAKE_BUILD_TYPE Debug)
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-SET(PROJECT_NAME "Chromium - Ozone")
+SET(PROJECT_NAME "Chromium - Ozone-Wayland")
 
 # Location of direct dependencies
-SET(UI_ACCESSIBILITY_DIR "${CMAKE_SOURCE_DIR}/../ui/accessibility")
 SET(UI_DISPLAY_DIR "${CMAKE_SOURCE_DIR}/../ui/display")
-# TODO : this line should go into "ui_ozone" !
 SET(UI_OZONE_DIR "${CMAKE_SOURCE_DIR}/../ui/ozone")
-# TODO : this last line should disappear when we have "ui_ozone" !
 
 # Location of Skia source folders
 SET(SKIA_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../third_party/skia")
@@ -32,11 +29,9 @@ IF(NOT PYTHON_FOUND)
 ELSE()
   MESSAGE(STATUS "\"python\" found...")
 ENDIF(NOT PYTHON_FOUND)
-# TODO : this section could go into "ui_ozone" !
 
 # Common definitions
 ADD_DEFINITIONS(-DOZONE_BASE_IMPLEMENTATION -DOZONE_IMPLEMENTATION -DDISPLAY_TYPES_IMPLEMENTATION -DDISPLAY_UTIL_IMPLEMENTATION -DOZONE_WAYLAND_IMPLEMENTATION -DUSE_OZONE -DUSE_AURA)
-# TODO : OZONE/OZONE_BASE/DISPLAY_TYPES/DISPLAY_UTIL could go into "ui_ozone" (check) !
 # This is required by some versions of Mesa
 ADD_DEFINITIONS(-DMESA_EGL_NO_X11_HEADERS)
 
@@ -55,8 +50,6 @@ EXECUTE_PROCESS(COMMAND python ${UI_OZONE_DIR}/generate_ozone_platform_list.py -
 
 EXECUTE_PROCESS(COMMAND python ${UI_OZONE_DIR}/generate_constructor_list.py --platform_list=${CMAKE_BINARY_DIR}/ui/ozone/platform_list.txt --output_cc=${CMAKE_BINARY_DIR}/ui/ozone/constructor_list.cc --namespace=ui --typename=OzonePlatform --typename=ClientNativePixmapFactory --include=\"ui/ozone/public/ozone_platform.h\" --include=\"ui/ozone/public/client_native_pixmap_factory.h\" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
-#TODO : this whole generation could go into "ui_ozone" !
-
 
 # SOURCES FILE LIST
 
@@ -69,28 +62,23 @@ ADD_LIBRARY(wayland OBJECT wayland/data_device.cc wayland/data_offer.cc wayland/
 # wayland_protocols
 ADD_LIBRARY(wayland_protocols OBJECT wayland/protocol/text-protocol.c wayland/protocol/ivi-application-protocol.c wayland/protocol/xdg-shell-protocol.c)
 
-# ui (this is what makes the link with "ui_ozone" below)
-ADD_LIBRARY(ui OBJECT ui/desktop_aura/desktop_drag_drop_client_wayland.cc ui/desktop_aura/desktop_screen_wayland.cc ui/desktop_aura/desktop_window_tree_host_ozone.cc ui/desktop_aura/ozone_util.cc)
-
 # ui_ozone
-ADD_LIBRARY(ui_ozone OBJECT ${UI_OZONE_DIR}/public/client_native_pixmap_factory.cc ${UI_OZONE_DIR}/public/cursor_factory_ozone.cc ${UI_OZONE_DIR}/public/gpu_platform_support.cc ${UI_OZONE_DIR}/public/gpu_platform_support_host.cc ${UI_OZONE_DIR}/public/input_controller.cc ${UI_OZONE_DIR}/public/overlay_candidates_ozone.cc ${UI_OZONE_DIR}/public/ozone_gpu_test_helper.cc ${UI_OZONE_DIR}/public/ozone_platform.cc ${UI_OZONE_DIR}/public/ozone_switches.cc ${UI_OZONE_DIR}/public/surface_factory_ozone.cc ${UI_OZONE_DIR}/public/surface_ozone_egl.cc ${UI_OZONE_DIR}/common/display_mode_proxy.cc ${UI_OZONE_DIR}/common/display_snapshot_proxy.cc ${UI_OZONE_DIR}/common/display_util.cc ${UI_OZONE_DIR}/common/egl_util.cc ${UI_OZONE_DIR}/common/gpu/ozone_gpu_message_generator.cc ${UI_OZONE_DIR}/common/gpu/ozone_gpu_message_params.cc ${UI_OZONE_DIR}/common/native_display_delegate_ozone.cc ${UI_OZONE_DIR}/common/stub_client_native_pixmap_factory.cc ${UI_OZONE_DIR}/common/stub_overlay_manager.cc ${UI_OZONE_DIR}/platform_selection.cc ${CMAKE_BINARY_DIR}/ui/ozone/platform_list.cc ${CMAKE_BINARY_DIR}/ui/ozone/constructor_list.cc)
-# TODO : this should have its own "ui_ozone" package ! which would not depend on Wayland directly
-# The 2 last source files are generated ! Put them in a "generated" section once we have "ui_ozone"...
+ADD_LIBRARY(ui_ozone OBJECT ${UI_OZONE_DIR}/common/gpu/ozone_gpu_message_params.cc ${UI_OZONE_DIR}/common/stub_client_native_pixmap_factory.cc ${UI_OZONE_DIR}/common/stub_overlay_manager.cc ${UI_OZONE_DIR}/common/native_display_delegate_ozone.cc ${UI_OZONE_DIR}/common/display_mode_proxy.cc ${UI_OZONE_DIR}/common/display_snapshot_proxy.cc ${UI_OZONE_DIR}/common/display_util.cc ${UI_OZONE_DIR}/public/client_native_pixmap_factory.cc ${UI_OZONE_DIR}/public/gpu_platform_support.cc ${UI_OZONE_DIR}/public/gpu_platform_support_host.cc ${UI_OZONE_DIR}/public/surface_factory_ozone.cc ${UI_OZONE_DIR}/public/surface_ozone_egl.cc ${UI_OZONE_DIR}/public/overlay_candidates_ozone.cc ${UI_OZONE_DIR}/public/ozone_switches.cc ${UI_OZONE_DIR}/public/ozone_platform.cc ${UI_OZONE_DIR}/platform_selection.cc)
 
 # ui_display
 ADD_LIBRARY(ui_display OBJECT ${UI_DISPLAY_DIR}/types/display_mode.cc ${UI_DISPLAY_DIR}/types/display_snapshot.cc ${UI_DISPLAY_DIR}/util/display_util.cc ${UI_DISPLAY_DIR}/util/edid_parser.cc)
-# TODO : this should be associated to "ui_ozone" !
+
+# generated (these are generated!)
+ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ui/ozone/platform_list.cc ${CMAKE_BINARY_DIR}/ui/ozone/constructor_list.cc)
 
 
 # all files refer to "ozone/...", so we include ".." here
-SET(include_dirs ${INCLUDE_DIRS} ${wayland_INCLUDE_DIRS} ${egl_INCLUDE_DIRS} ${xkbcommon_INCLUDE_DIRS} ${SKIA_SOURCE_DIR}/include/core ${SKIA_EXT_DIR}/config ${UI_ACCESSIBILITY_DIR}/Build ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/..)
-# TODO : ${CMAKE_BINARY_DIR} could go into "ui_ozone" !
-# TODO : "${UI_ACCESSIBILITY_DIR}/Build" here is a HACK ! remove this when we use .pc files
-SET(link_libraries ${wayland_LIBRARIES} ${egl_LIBRARIES} ${xkbcommon_LIBRARIES})
+SET(include_dirs ${INCLUDE_DIRS} ${wayland_INCLUDE_DIRS} ${egl_INCLUDE_DIRS} ${xkbcommon_INCLUDE_DIRS} ${SKIA_SOURCE_DIR}/include/core ${SKIA_EXT_DIR}/config ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/..)
+SET(link_libraries ${LINK_LIBRARIES} ${wayland_LIBRARIES} ${egl_LIBRARIES} ${xkbcommon_LIBRARIES})
 
-ADD_LIBRARY(ozone SHARED $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:wayland> $<TARGET_OBJECTS:wayland_protocols> $<TARGET_OBJECTS:ui> $<TARGET_OBJECTS:ui_ozone> $<TARGET_OBJECTS:ui_display>)
+ADD_LIBRARY(ozone SHARED $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:wayland> $<TARGET_OBJECTS:wayland_protocols> $<TARGET_OBJECTS:ui_ozone> $<TARGET_OBJECTS:ui_display> $<TARGET_OBJECTS:generated>)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ozone ${link_libraries})
 
 INSTALL(TARGETS ozone
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/chromium)
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)

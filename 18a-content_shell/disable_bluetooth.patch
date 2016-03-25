@@ -1,0 +1,44 @@
+--- browser/shell_views.cc	2016-03-15 12:37:21.786843719 +0000
++++ browser/shell_views.cc	2016-03-15 12:37:42.513142697 +0000
+@@ -11,7 +11,7 @@
+ #include "content/public/browser/web_contents.h"
+ #include "content/public/common/context_menu_params.h"
+ #include "content/shell/browser/shell_platform_data_aura.h"
+-#include "device/bluetooth/bluetooth_adapter_factory.h"
++//#include "device/bluetooth/bluetooth_adapter_factory.h"
+ #include "ui/aura/client/screen_position_client.h"
+ #include "ui/aura/env.h"
+ #include "ui/aura/window.h"
+--- browser/blink_test_controller.h	2016-03-17 09:45:46.165665005 +0000
++++ browser/blink_test_controller.h	2016-03-17 09:45:52.484755986 +0000
+@@ -30,7 +30,7 @@
+ 
+ namespace content {
+ 
+-class LayoutTestBluetoothChooserFactory;
++//class LayoutTestBluetoothChooserFactory;
+ class LayoutTestDevToolsFrontend;
+ class Shell;
+ 
+--- a/browser/blink_test_controller.cc	2016-03-17 09:50:00.886331891 +0000
++++ b/browser/blink_test_controller.cc	2016-03-17 09:50:14.236524034 +0000
+@@ -31,7 +31,7 @@
+ #include "content/public/browser/web_contents.h"
+ #include "content/public/common/content_switches.h"
+ #include "content/public/common/url_constants.h"
+-#include "content/shell/browser/layout_test/layout_test_bluetooth_chooser_factory.h"
++//#include "content/shell/browser/layout_test/layout_test_bluetooth_chooser_factory.h"
+ #include "content/shell/browser/layout_test/layout_test_devtools_frontend.h"
+ #include "content/shell/browser/shell.h"
+ #include "content/shell/browser/shell_browser_context.h"
+--- browser/shell.cc	2016-03-17 10:01:03.814868490 +0000
++++ browser/shell.cc	2016-03-17 10:01:23.038144894 +0000
+@@ -24,7 +24,7 @@
+ #include "content/public/common/renderer_preferences.h"
+ #include "content/public/common/webrtc_ip_handling_policy.h"
+ #include "content/shell/browser/blink_test_controller.h"
+-#include "content/shell/browser/layout_test/layout_test_bluetooth_chooser_factory.h"
++//#include "content/shell/browser/layout_test/layout_test_bluetooth_chooser_factory.h"
+ #include "content/shell/browser/layout_test/layout_test_devtools_frontend.h"
+ #include "content/shell/browser/layout_test/layout_test_javascript_dialog_manager.h"
+ #include "content/shell/browser/notify_done_forwarder.h"

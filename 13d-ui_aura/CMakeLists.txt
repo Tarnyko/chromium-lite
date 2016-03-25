@@ -6,10 +6,13 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 SET(PROJECT_NAME "Chromium - UI Aura")
 
-# Location of dependency folders
+# Location of auxiliary folders
 SET(WM_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../wm")
 SET(NATIVE_THEME_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../native_theme")
 SET(AURA_EXTRA_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../aura_extra")
+
+# Location of direct dependencies
+SET(UI_RESOURCES_DIR "${CMAKE_SOURCE_DIR}/../resources")
 
 # Location of Skia source folders
 SET(SKIA_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../third_party/skia")
@@ -66,12 +69,13 @@ ADD_LIBRARY(misc OBJECT env.cc input_state_lookup.cc layout_manager.cc scoped_wi
 
 
 # all files refer to "ui/...", so we include "../.." here
-SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../.. ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core)
-SET(link_libraries ${backend_LIBRARIES})
+SET(include_dirs ${INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../.. ${SKIA_EXT_DIR}/config ${SKIA_SOURCE_DIR}/include/core ${UI_RESOURCES_DIR}/Build)
+# TODO : "${UI_RESOURCES_DIR}/Build" is a HACK ! Fix this once we use .pc files
+SET(link_libraries ${LINK_LIBRARIES} ${backend_LIBRARIES})
 
 ADD_LIBRARY(ui_aura SHARED $<TARGET_OBJECTS:wm> $<TARGET_OBJECTS:native_theme> $<TARGET_OBJECTS:extra> $<TARGET_OBJECTS:client> $<TARGET_OBJECTS:misc> ${BACKEND_SOURCE_FILES})
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ui_aura ${link_libraries})
 
 INSTALL(TARGETS ui_aura
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/chromium)
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)

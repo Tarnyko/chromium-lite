@@ -1,3 +1,6 @@
+ADD_DEFINITIONS(-m64 -mfpmath=sse -msse2)
+
+
 FIND_PROGRAM(YASM_FOUND yasm)
 IF(NOT YASM_FOUND)
   MESSAGE(FATAL_ERROR "\"yasm\" is required !")

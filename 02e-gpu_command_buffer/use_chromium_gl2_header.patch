@@ -1,0 +1,11 @@
+--- client/gles2_interface.h	2016-03-11 21:39:46.952647593 +0000
++++ client/gles2_interface.h	2016-03-11 21:40:10.847983517 +0000
+@@ -5,7 +5,7 @@
+ #ifndef GPU_COMMAND_BUFFER_CLIENT_GLES2_INTERFACE_H_
+ #define GPU_COMMAND_BUFFER_CLIENT_GLES2_INTERFACE_H_
+ 
+-#include <GLES2/gl2.h>
++#include "third_party/khronos/GLES2/gl2.h"
+ 
+ #include "base/compiler_specific.h"
+ 

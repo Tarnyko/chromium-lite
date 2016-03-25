@@ -1,0 +1,15 @@
+--- common/gpu/media/gpu_video_decode_accelerator.cc	2016-03-17 12:20:40.186316326 +0000
++++ common/gpu/media/gpu_video_decode_accelerator.cc	2016-03-17 12:22:05.814516701 +0000
+@@ -466,10 +466,12 @@
+ GpuVideoDecodeAccelerator::CreateOzoneVDA() {
+   scoped_ptr<media::VideoDecodeAccelerator> decoder;
+ #if !defined(OS_CHROMEOS) && defined(USE_OZONE)
++#if 0
+   media::MediaOzonePlatform* platform =
+       media::MediaOzonePlatform::GetInstance();
+   decoder.reset(platform->CreateVideoDecodeAccelerator(make_context_current_));
+ #endif
++#endif
+   return decoder.Pass();
+ }
+ 

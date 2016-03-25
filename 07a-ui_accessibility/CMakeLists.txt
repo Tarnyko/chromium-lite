@@ -63,11 +63,11 @@ ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ui/accessibility/ax_enums.cc)
 # all files refer to "ui/...", so we include "../.." here
 # we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
 SET(include_dirs ${INCLUDE_DIRS} ${gconf_INCLUDE_DIRS} ${atk_INCLUDE_DIRS} ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/../..)
-SET(link_libraries ${gconf_LIBRARIES} ${atk_LIBRARIES})
+SET(link_libraries ${LINK_LIBRARIES} ${gconf_LIBRARIES} ${atk_LIBRARIES})
 
 ADD_LIBRARY(ui_accessibility SHARED $<TARGET_OBJECTS:ax> $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:generated>)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ui_accessibility ${link_libraries})
 
 INSTALL(TARGETS ui_accessibility
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/chromium)
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)

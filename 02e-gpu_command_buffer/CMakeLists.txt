@@ -30,7 +30,7 @@ SET(include_dirs ${INCLUDE_DIRS} ${CHROMIUM_GL_DIR} ${CHROMIUM_GLES2_EXT_DIR} ${
 
 ADD_LIBRARY(gpu_command_buffer SHARED $<TARGET_OBJECTS:common>)
 INCLUDE_DIRECTORIES(${include_dirs})
-TARGET_LINK_LIBRARIES(gpu_command_buffer ${link_libraries})
+TARGET_LINK_LIBRARIES(gpu_command_buffer ${LINK_LIBRARIES})
 
 INSTALL(TARGETS gpu_command_buffer
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)

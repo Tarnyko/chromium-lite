@@ -109,6 +109,7 @@ SET(include_dirs ${INCLUDE_DIRS} ${GTEST_DIR}/include ${CHROMIUM_GL_DIR}/nonincl
 
 ADD_EXECUTABLE(content_shell $<TARGET_OBJECTS:devtools_discovery> $<TARGET_OBJECTS:devtools_http_handler> $<TARGET_OBJECTS:web_cache> $<TARGET_OBJECTS:ui_aura_test> $<TARGET_OBJECTS:ui_views_test> $<TARGET_OBJECTS:app> $<TARGET_OBJECTS:common> $<TARGET_OBJECTS:browser> $<TARGET_OBJECTS:renderer> $<TARGET_OBJECTS:utility>)
 INCLUDE_DIRECTORIES(${include_dirs})
+TARGET_LINK_LIBRARIES(content_shell ${LINK_LIBRARIES}
 
 INSTALL(TARGETS content_shell
-        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/chromium)

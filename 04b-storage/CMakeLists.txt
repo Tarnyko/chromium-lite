@@ -21,7 +21,9 @@ INCLUDE(GNUInstallDirs)
 PKG_CHECK_MODULES(leveldb REQUIRED leveldb)
 
 # Common definitions
-ADD_DEFINITIONS(-DSTORAGE_COMMON_IMPLEMENTATION -DSTORAGE_BROWSER_IMPLEMENTATION -DLEVELDB_PLATFORM_CHROMIUM)
+ADD_DEFINITIONS(-DSTORAGE_COMMON_IMPLEMENTATION -DSTORAGE_BROWSER_IMPLEMENTATION -DLEVELDB_PLATFORM_CHROMIUM -D_FILE_OFFSET_BITS=64)
+# For "snappy"
+ADD_DEFINITIONS(-DHAVE_CONFIG_H=1)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
@@ -48,6 +50,9 @@ ADD_LIBRARY(browser_quota OBJECT browser/quota/client_usage_tracker.cc browser/q
 # re2 (required by "leveldb_ext" below)
 ADD_LIBRARY(re2 OBJECT ${RE2_SRC_DIR}/re2/bitstate.cc ${RE2_SRC_DIR}/re2/compile.cc ${RE2_SRC_DIR}/re2/dfa.cc ${RE2_SRC_DIR}/re2/filtered_re2.cc ${RE2_SRC_DIR}/re2/mimics_pcre.cc ${RE2_SRC_DIR}/re2/nfa.cc ${RE2_SRC_DIR}/re2/onepass.cc ${RE2_SRC_DIR}/re2/parse.cc ${RE2_SRC_DIR}/re2/perl_groups.cc ${RE2_SRC_DIR}/re2/prefilter.cc ${RE2_SRC_DIR}/re2/prefilter_tree.cc ${RE2_SRC_DIR}/re2/prog.cc ${RE2_SRC_DIR}/re2/re2.cc ${RE2_SRC_DIR}/re2/regexp.cc ${RE2_SRC_DIR}/re2/set.cc ${RE2_SRC_DIR}/re2/simplify.cc ${RE2_SRC_DIR}/re2/stringpiece.cc ${RE2_SRC_DIR}/re2/tostring.cc ${RE2_SRC_DIR}/re2/unicode_casefold.cc ${RE2_SRC_DIR}/re2/unicode_groups.cc ${RE2_SRC_DIR}/util/hash.cc ${RE2_SRC_DIR}/util/logging.cc ${RE2_SRC_DIR}/util/rune.cc ${RE2_SRC_DIR}/util/stringprintf.cc ${RE2_SRC_DIR}/util/strutil.cc ${RE2_SRC_DIR}/util/valgrind.cc)
 
+# snappy (required by "leveldb_ext" below)
+ADD_LIBRARY(snappy OBJECT ${SNAPPY_SRC_DIR}/src/snappy-sinksource.cc ${SNAPPY_SRC_DIR}/src/snappy-stubs-internal.cc ${SNAPPY_SRC_DIR}/src/snappy.cc)
+
 # leveldb_ext (these are Chromium-specific !)
 ADD_LIBRARY(leveldb_ext OBJECT ${LEVELDB_EXT_DIR}/src/helpers/memenv/memenv.cc ${LEVELDB_EXT_DIR}/port/port_chromium.cc ${LEVELDB_EXT_DIR}/env_chromium.cc)
 
@@ -55,11 +60,11 @@ ADD_LIBRARY(leveldb_ext OBJECT ${LEVELDB_EXT_DIR}/src/helpers/memenv/memenv.cc $
 # all files refer to "storage/...", so we include ".." here
 # we put LEVELDB_EXT_DIR first, because the fork has specific required headers/values
 SET(include_dirs ${INCLUDE_DIRS} ${RE2_SRC_DIR} ${SNAPPY_SRC_DIR}/linux ${LEVELDB_EXT_DIR} ${LEVELDB_EXT_DIR}/src ${LEVELDB_EXT_DIR}/src/include ${leveldb_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/..)
-SET(link_libraries ${leveldb_LIBRARIES})
+SET(link_libraries ${LINK_LIBRARIES} ${leveldb_LIBRARIES})
 
-ADD_LIBRARY(storage SHARED $<TARGET_OBJECTS:common> $<TARGET_OBJECTS:browser_blob> $<TARGET_OBJECTS:browser_database> $<TARGET_OBJECTS:browser_fileapi> $<TARGET_OBJECTS:browser_quota> $<TARGET_OBJECTS:re2> $<TARGET_OBJECTS:leveldb_ext>)
+ADD_LIBRARY(storage SHARED $<TARGET_OBJECTS:common> $<TARGET_OBJECTS:browser_blob> $<TARGET_OBJECTS:browser_database> $<TARGET_OBJECTS:browser_fileapi> $<TARGET_OBJECTS:browser_quota> $<TARGET_OBJECTS:re2> $<TARGET_OBJECTS:snappy> $<TARGET_OBJECTS:leveldb_ext>)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(storage ${link_libraries})
 
 INSTALL(TARGETS storage
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/chromium)
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)

@@ -46,7 +46,7 @@ SET(include_dirs ${INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/../.. ${SKIA_EXT_DIR}/confi
 
 ADD_LIBRARY(ui_shell_dialogs SHARED $<TARGET_OBJECTS:src>)
 INCLUDE_DIRECTORIES(${include_dirs})
-TARGET_LINK_LIBRARIES(ui_shell_dialogs ${link_libraries})
+TARGET_LINK_LIBRARIES(ui_shell_dialogs ${LINK_LIBRARIES})
 
 INSTALL(TARGETS ui_shell_dialogs
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/chromium)
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)
