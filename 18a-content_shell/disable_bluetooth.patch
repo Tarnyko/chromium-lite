@@ -20,8 +20,8 @@
  class LayoutTestDevToolsFrontend;
  class Shell;
  
---- a/browser/blink_test_controller.cc	2016-03-17 09:50:00.886331891 +0000
-+++ b/browser/blink_test_controller.cc	2016-03-17 09:50:14.236524034 +0000
+--- browser/blink_test_controller.cc	2016-03-17 09:50:00.886331891 +0000
++++ browser/blink_test_controller.cc	2016-03-17 09:50:14.236524034 +0000
 @@ -31,7 +31,7 @@
  #include "content/public/browser/web_contents.h"
  #include "content/public/common/content_switches.h"
