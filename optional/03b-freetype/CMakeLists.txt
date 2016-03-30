@@ -4,7 +4,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
 SET(CMAKE_BUILD_TYPE Debug)
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-SET(PROJECT_NAME "Chromium - Freetype")
+SET(PROJECT_NAME "Chromium - FreeType")
 
 # CMake modules
 INCLUDE(FindPkgConfig)
@@ -25,9 +25,9 @@ ADD_LIBRARY(src OBJECT src/src/base/ftsystem.c src/src/base/ftinit.c src/src/bas
 SET(include_dirs ${INCLUDE_DIRS} ${zlib_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src/include)
 SET(link_libraries ${LINK_LIBRARIES} ${zlib_LIBRARIES})
 
-ADD_LIBRARY(freetype SHARED $<TARGET_OBJECTS:src>)
+ADD_LIBRARY(crfreetype SHARED $<TARGET_OBJECTS:src>)
 INCLUDE_DIRECTORIES(${include_dirs})
-TARGET_LINK_LIBRARIES(freetype ${link_libraries})
+TARGET_LINK_LIBRARIES(crfreetype ${link_libraries})
 
-INSTALL(TARGETS freetype
+INSTALL(TARGETS crfreetype
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/chromium)
