@@ -6,6 +6,12 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 SET(PROJECT_NAME "Chromium - WebRTC Library")
 
+# Verify the Toolchain file has been passed
+IF(NOT CMAKE_TOOLCHAIN_FILE)
+  MESSAGE(FATAL_ERROR "Please pass \"-DCMAKE_TOOLCHAIN_FILE=../Toolchain-<arch>.cmake\" when running cmake !")
+ENDIF(NOT CMAKE_TOOLCHAIN_FILE)
+MESSAGE(STATUS "Chosen Toolchain: ${CMAKE_TOOLCHAIN_FILE}")
+
 IF(NOT FULL)
   MESSAGE(STATUS "Option \"-DFULL\" not passed; building audio only...")
   ADD_DEFINITIONS(-DWEBRTC_AUDIO_PROCESSING_ONLY_BUILD)
@@ -65,10 +71,10 @@ ADD_LIBRARY(module_audio OBJECT modules/audio_coding/codecs/isac/main/source/ari
 SET(include_dirs ${INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/..)
 
 IF(FULL)
-  ADD_LIBRARY(webrtc SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:base_full> $<TARGET_OBJECTS:base_full-openssl> $<TARGET_OBJECTS:syswrap> $<TARGET_OBJECTS:audio> $<TARGET_OBJECTS:module_audio>)
+  ADD_LIBRARY(webrtc SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:base_full> $<TARGET_OBJECTS:base_full-openssl> $<TARGET_OBJECTS:syswrap> $<TARGET_OBJECTS:audio> $<TARGET_OBJECTS:module_audio> ${TOOLCHAIN_OPTS_SOURCE_FILES})
   SET(link_libraries -lssl -lcrypto -lpthread)  
 ELSE()
-  ADD_LIBRARY(webrtc SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:syswrap> $<TARGET_OBJECTS:audio> $<TARGET_OBJECTS:module_audio>)
+  ADD_LIBRARY(webrtc SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:syswrap> $<TARGET_OBJECTS:audio> $<TARGET_OBJECTS:module_audio> ${TOOLCHAIN_OPTS_SOURCE_FILES})
 ENDIF(FULL)
 
 INCLUDE_DIRECTORIES(${include_dirs} common_audio/signal_processing/include)
