@@ -1,10 +1,21 @@
-PROJECT(chromium-webrtc CXX)
+PROJECT(chromium-webrtc CXX C)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
 SET(CMAKE_BUILD_TYPE Debug)
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 SET(PROJECT_NAME "Chromium - WebRTC Library")
+
+IF(NOT FULL)
+  MESSAGE(STATUS "Option \"-DFULL\" not passed; building audio only...")
+  ADD_DEFINITIONS(-DWEBRTC_AUDIO_PROCESSING_ONLY_BUILD)
+ELSE()
+  ADD_DEFINITIONS(-DFEATURE_ENABLE_SSL)
+  IF(NOT SSL)
+    MESSAGE(STATUS "Option \"-DSSL=<OPENSSL/BUILTIN>\" not passed; defaulting to OPENSSL...")
+    ADD_DEFINITIONS(-DSSL_USE_OPENSSL -DHAVE_OPENSSL_SSL_H)
+  ENDIF(NOT SSL)
+ENDIF(NOT FULL)
 
 # Check if a Noise Suppression Method has been chosen ; default to FLOAT
 IF(NOT NOISESUPPR)
@@ -13,7 +24,7 @@ IF(NOT NOISESUPPR)
 ENDIF(NOT NOISESUPPR)
 MESSAGE(STATUS "Chosen Noise Suppression Method: ${NOISESUPPR}")
 
-# CMake moduless
+#CMake modules
 INCLUDE(GNUInstallDirs)
 
 # Optional dependencies and definitions
@@ -29,7 +40,6 @@ ENDIF(NOISESUPPR STREQUAL "FLOAT")
 
 # Common definitions
 ADD_DEFINITIONS(-DWEBRTC_LINUX -DWEBRTC_POSIX)
-ADD_DEFINITIONS(-DWEBRTC_AUDIO_PROCESSING_ONLY_BUILD)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
@@ -38,6 +48,12 @@ ENDIF()
 
 # SOURCES FILE LIST
 ADD_LIBRARY(base OBJECT common_types.cc base/criticalsection.cc base/checks.cc base/event.cc base/platform_thread.cc base/platform_file.cc base/stringutils.cc base/thread_checker_impl.cc)
+ # FOR FULL BUILD
+IF(FULL)
+  ADD_LIBRARY(base_full OBJECT base/flags.cc base/stringencode.cc base/timeutils.cc base/logging.cc base/event_tracer.cc base/messagehandler.cc base/messagequeue.cc base/socketaddress.cc base/asyncsocket.cc base/physicalsocketserver.cc base/sigslot.cc base/ipaddress.cc base/asyncfile.cc base/asyncresolverinterface.cc base/nethelpers.cc base/signalthread.cc base/thread.cc base/common.cc base/buffer.cc base/stream.cc base/messagedigest.cc base/base64.cc base/md5.cc base/md5digest.cc base/sha1.cc base/sha1digest.cc base/sslidentity.cc base/ssladapter.cc base/sslstreamadapter.cc base/helpers.cc)
+  # OPENSSL-SPECIFIC 
+  ADD_LIBRARY(base_full-openssl OBJECT base/openssldigest.cc base/opensslidentity.cc base/openssladapter.cc base/opensslstreamadapter.cc)
+ENDIF(FULL)
 
 ADD_LIBRARY(syswrap OBJECT system_wrappers/source/aligned_malloc.cc system_wrappers/source/cpu_features.cc system_wrappers/source/critical_section_posix.cc system_wrappers/source/event.cc system_wrappers/source/event_timer_posix.cc system_wrappers/source/file_impl.cc system_wrappers/source/critical_section.cc system_wrappers/source/logging.cc system_wrappers/source/metrics_default.cc system_wrappers/source/rw_lock.cc system_wrappers/source/rw_lock_posix.cc system_wrappers/source/sleep.cc system_wrappers/source/trace_impl.cc system_wrappers/source/trace_posix.cc)
 
@@ -48,7 +64,13 @@ ADD_LIBRARY(module_audio OBJECT modules/audio_coding/codecs/isac/main/source/ari
 # all files refer to "ui/...", so we include "../.." here
 SET(include_dirs ${INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/..)
 
-ADD_LIBRARY(webrtc SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:syswrap> $<TARGET_OBJECTS:audio> $<TARGET_OBJECTS:module_audio>)
+IF(FULL)
+  ADD_LIBRARY(webrtc SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:base_full> $<TARGET_OBJECTS:base_full-openssl> $<TARGET_OBJECTS:syswrap> $<TARGET_OBJECTS:audio> $<TARGET_OBJECTS:module_audio>)
+  SET(link_libraries -lssl -lcrypto -lpthread)  
+ELSE()
+  ADD_LIBRARY(webrtc SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:syswrap> $<TARGET_OBJECTS:audio> $<TARGET_OBJECTS:module_audio>)
+ENDIF(FULL)
+
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(webrtc ${link_libraries})
 
