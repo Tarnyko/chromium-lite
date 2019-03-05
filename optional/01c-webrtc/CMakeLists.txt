@@ -30,10 +30,19 @@ IF(NOT NOISESUPPR)
 ENDIF(NOT NOISESUPPR)
 MESSAGE(STATUS "Chosen Noise Suppression Method: ${NOISESUPPR}")
 
-#CMake modules
+# CMake modules
 INCLUDE(GNUInstallDirs)
 
 # Optional dependencies and definitions
+IF(FULL)
+  INCLUDE(FindThreads)
+  INCLUDE(FindPkgConfig)
+
+  FIND_PACKAGE(Threads)
+  PKG_CHECK_MODULES(openssl REQUIRED openssl)
+  PKG_CHECK_MODULES(jsoncpp REQUIRED jsoncpp)
+ENDIF(FULL)
+#
 IF(NOISESUPPR STREQUAL "FIXED")
   ADD_DEFINITIONS(-DWEBRTC_NS_FIXED=1)
   SET(NOISESUPPR_SOURCE_FILES modules/audio_processing/ns/noise_suppression_x.c modules/audio_processing/ns/nsx_core.c modules/audio_processing/ns/nsx_core_c.c)
@@ -56,7 +65,7 @@ ENDIF()
 ADD_LIBRARY(base OBJECT common_types.cc base/criticalsection.cc base/checks.cc base/event.cc base/platform_thread.cc base/platform_file.cc base/stringutils.cc base/thread_checker_impl.cc)
  # FOR FULL BUILD
 IF(FULL)
-  ADD_LIBRARY(base_full OBJECT base/flags.cc base/stringencode.cc base/timeutils.cc base/logging.cc base/event_tracer.cc base/messagehandler.cc base/messagequeue.cc base/socketaddress.cc base/asyncsocket.cc base/physicalsocketserver.cc base/sigslot.cc base/ipaddress.cc base/asyncfile.cc base/asyncresolverinterface.cc base/nethelpers.cc base/signalthread.cc base/thread.cc base/common.cc base/buffer.cc base/stream.cc base/messagedigest.cc base/base64.cc base/md5.cc base/md5digest.cc base/sha1.cc base/sha1digest.cc base/sslidentity.cc base/ssladapter.cc base/sslstreamadapter.cc base/helpers.cc)
+  ADD_LIBRARY(base_full OBJECT base/flags.cc base/stringencode.cc base/timeutils.cc base/logging.cc base/event_tracer.cc base/messagehandler.cc base/messagequeue.cc base/socketaddress.cc base/asyncsocket.cc base/physicalsocketserver.cc base/sigslot.cc base/ipaddress.cc base/asyncfile.cc base/asyncresolverinterface.cc base/nethelpers.cc base/signalthread.cc base/thread.cc base/common.cc base/buffer.cc base/stream.cc base/messagedigest.cc base/base64.cc base/md5.cc base/md5digest.cc base/sha1.cc base/sha1digest.cc base/sslidentity.cc base/ssladapter.cc base/sslstreamadapter.cc base/helpers.cc base/json.cc)
   # OPENSSL-SPECIFIC 
   ADD_LIBRARY(base_full-openssl OBJECT base/openssldigest.cc base/opensslidentity.cc base/openssladapter.cc base/opensslstreamadapter.cc)
 ENDIF(FULL)
@@ -72,7 +81,8 @@ SET(include_dirs ${INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/..)
 
 IF(FULL)
   ADD_LIBRARY(webrtc SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:base_full> $<TARGET_OBJECTS:base_full-openssl> $<TARGET_OBJECTS:syswrap> $<TARGET_OBJECTS:audio> $<TARGET_OBJECTS:module_audio> ${TOOLCHAIN_OPTS_SOURCE_FILES})
-  SET(link_libraries -lssl -lcrypto -lpthread)  
+  INCLUDE_DIRECTORIES(${include_dirs} ${jsoncpp_INCLUDE_DIRS})
+  SET(link_libraries ${openssl_LIBRARIES} ${jsoncpp_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})  
 ELSE()
   ADD_LIBRARY(webrtc SHARED $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:syswrap> $<TARGET_OBJECTS:audio> $<TARGET_OBJECTS:module_audio> ${TOOLCHAIN_OPTS_SOURCE_FILES})
 ENDIF(FULL)
