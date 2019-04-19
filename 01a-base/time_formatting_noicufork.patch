@@ -1,18 +1,62 @@
---- i18n/time_formatting.cc	2016-02-07 22:46:59.529355877 +0000
-+++ i18n/time_formatting.cc	2016-02-07 22:47:50.577081998 +0000
-@@ -8,9 +8,15 @@
- #include "base/memory/scoped_ptr.h"
+--- i18n/time_formatting.cc	2019-04-18 11:51:23.120198827 +0200
++++ i18n/time_formatting.cc	2019-04-18 11:53:09.145199146 +0200
+@@ -11,12 +11,21 @@
+ #include "base/logging.h"
  #include "base/strings/utf_string_conversions.h"
  #include "base/time/time.h"
 +
 +#include <unicode/datefmt.h>
++#include <unicode/dtitvfmt.h>
 +#include <unicode/dtptngen.h>
++#include <unicode/fmtable.h>
++#include <unicode/measfmt.h>
 +#include <unicode/smpdtfmt.h>
 +#if 0
  #include "third_party/icu/source/i18n/unicode/datefmt.h"
+ #include "third_party/icu/source/i18n/unicode/dtitvfmt.h"
  #include "third_party/icu/source/i18n/unicode/dtptngen.h"
+ #include "third_party/icu/source/i18n/unicode/fmtable.h"
+ #include "third_party/icu/source/i18n/unicode/measfmt.h"
  #include "third_party/icu/source/i18n/unicode/smpdtfmt.h"
 +#endif
  
  namespace base {
  namespace {
+--- i18n/case_conversion.cc	2019-04-18 18:33:58.267271540 +0200
++++ i18n/case_conversion.cc	2019-04-18 18:44:09.208273379 +0200
+@@ -9,9 +9,14 @@
+ #include "base/numerics/safe_conversions.h"
+ #include "base/strings/string16.h"
+ #include "base/strings/string_util.h"
++#include <unicode/uchar.h>
++#include <unicode/unistr.h>
++#include <unicode/ustring.h>
++#if 0
+ #include "third_party/icu/source/common/unicode/uchar.h"
+ #include "third_party/icu/source/common/unicode/unistr.h"
+ #include "third_party/icu/source/common/unicode/ustring.h"
++#endif
+ 
+ namespace base {
+ namespace i18n {
+--- i18n/message_formatter.cc	2019-04-18 19:47:34.455284834 +0200
++++ i18n/message_formatter.cc	2019-04-18 19:59:53.342287058 +0200
+@@ -7,10 +7,16 @@
+ #include "base/logging.h"
+ #include "base/numerics/safe_conversions.h"
+ #include "base/time/time.h"
++#include <unicode/unistr.h>
++#include <unicode/utypes.h>
++#include <unicode/fmtable.h>
++#include <unicode/msgfmt.h>
++#if 0
+ #include "third_party/icu/source/common/unicode/unistr.h"
+ #include "third_party/icu/source/common/unicode/utypes.h"
+ #include "third_party/icu/source/i18n/unicode/fmtable.h"
+ #include "third_party/icu/source/i18n/unicode/msgfmt.h"
++#endif
+ 
+ using icu::UnicodeString;
+--- ../third_party/icu/source/i18n/unicode/dtitvinf.h	2019-04-18 20:59:53.342287058 +0200
++++ /dev/null
+ 
