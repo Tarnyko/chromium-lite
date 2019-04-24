@@ -25,7 +25,7 @@ int main (int argc, char *argv[])
 	std::string challenge (length, '\0');
 	std::string encoded_challenge;
 
-	crypto::RandBytes (string_as_array (&challenge), challenge.length ());
+	crypto::RandBytes (base::string_as_array (&challenge), challenge.length ());
 	base::Base64Encode (challenge, &encoded_challenge);
 
 	std::cout << "Random challenge of length " << length << " : " <<  encoded_challenge << std::endl;

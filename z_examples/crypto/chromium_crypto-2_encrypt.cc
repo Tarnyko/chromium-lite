@@ -21,7 +21,7 @@ int main (int argc, char *argv[])
 	std::string plaintext (argv[1]);
 
 
-	auto *key = crypto::SymmetricKey::GenerateRandomKey (crypto::SymmetricKey::AES, 256);
+	std::unique_ptr<crypto::SymmetricKey> key = crypto::SymmetricKey::GenerateRandomKey (crypto::SymmetricKey::AES, 256);
 
 	 // display the AES key on screen
 
@@ -36,7 +36,7 @@ int main (int argc, char *argv[])
 	std::string encrypted_str;
 	std::string decrypted_str;
 
-	encryptor.Init (key, crypto::Encryptor::CBC, salt);
+	encryptor.Init (key.release(), crypto::Encryptor::CBC, salt);
 	encryptor.Encrypt (plaintext, &encrypted_str);
 	encryptor.Decrypt (encrypted_str, &decrypted_str);
 

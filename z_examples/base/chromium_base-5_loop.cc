@@ -57,7 +57,7 @@ int main (int argc, char *argv[])
 	auto duration = base::TimeDelta::FromSeconds (seconds);
 
 	base::MessageLoop main_loop;
-	main_loop.PostDelayedTask (FROM_HERE, callback_delayed, duration);
+	main_loop.task_runner()->PostDelayedTask (FROM_HERE, callback_delayed, duration);
 
 
 	int result;
