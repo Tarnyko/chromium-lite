@@ -15,6 +15,8 @@ PKG_CHECK_MODULES(sqlite REQUIRED sqlite3)
 
 # Common definitions
 ADD_DEFINITIONS(-DSQL_IMPLEMENTATION -DUSE_SYSTEM_SQLITE)
+# required for "PRIxPTR"
+ADD_DEFINITIONS(-D__STDC_FORMAT_MACROS)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
@@ -23,7 +25,7 @@ ENDIF()
 
 # SOURCES FILE LIST
 
-ADD_LIBRARY(src OBJECT connection.cc error_delegate_util.cc meta_table.cc recovery.cc sql_memory_dump_provider.cc statement.cc transaction.cc)
+ADD_LIBRARY(src OBJECT connection.cc connection_memory_dump_provider.cc error_delegate_util.cc meta_table.cc recovery.cc sql_memory_dump_provider.cc statement.cc transaction.cc vfs_wrapper.cc)
 
 
 # all files refer to "sql/...", so we include ".." here

@@ -22,7 +22,7 @@ ENDIF()
 
 
 # SOURCES FILE LIST
-ADD_LIBRARY(common OBJECT common/buffer.cc common/capabilities.cc common/cmd_buffer_common.cc common/debug_marker_manager.cc common/gles2_cmd_format.cc common/gles2_cmd_utils.cc common/id_allocator.cc common/mailbox.cc common/mailbox_holder.cc common/value_state.cc)
+ADD_LIBRARY(common OBJECT common/buffer.cc common/capabilities.cc common/cmd_buffer_common.cc common/debug_marker_manager.cc common/gles2_cmd_format.cc common/gles2_cmd_utils.cc common/id_allocator.cc common/mailbox.cc common/mailbox_holder.cc common/sync_token.cc)
 
 
 # all files refer to "gpu/...", so we include "../.." here

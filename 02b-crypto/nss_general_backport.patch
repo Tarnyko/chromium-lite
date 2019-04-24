@@ -1,0 +1,536 @@
+--- aead.cc	2019-04-24 09:51:25.841033871 +0200
++++ aead.cc	2019-04-24 09:51:50.141033944 +0200
+@@ -4,6 +4,8 @@
+ 
+ #include "crypto/aead.h"
+ 
++#if defined(USE_OPENSSL)
++
+ #include <stddef.h>
+ #include <stdint.h>
+ #include <string>
+@@ -121,3 +123,5 @@
+ }
+ 
+ }  // namespace
++
++#endif
+--- ec_private_key.h	2019-04-24 09:57:34.463034980 +0200
++++ ec_private_key.h	2019-04-24 10:04:19.892036201 +0200
+@@ -15,7 +15,16 @@
+ #include "base/macros.h"
+ #include "build/build_config.h"
+ #include "crypto/crypto_export.h"
++
++#if defined(USE_OPENSSL)
+ #include "third_party/boringssl/src/include/openssl/base.h"
++#else
++// Forward declaration.
++typedef struct CERTSubjectPublicKeyInfoStr CERTSubjectPublicKeyInfo;
++typedef struct PK11SlotInfoStr PK11SlotInfo;
++typedef struct SECKEYPrivateKeyStr SECKEYPrivateKey;
++typedef struct SECKEYPublicKeyStr SECKEYPublicKey;
++#endif
+ 
+ namespace crypto {
+ 
+@@ -50,10 +59,33 @@
+       const std::vector<uint8_t>& encrypted_private_key_info,
+       const std::vector<uint8_t>& subject_public_key_info);
+ 
++#if !defined(USE_OPENSSL)
++  // Imports the key pair into |slot| and returns in |public_key| and |key|.
++  // Shortcut for code that needs to keep a reference directly to NSS types
++  // without having to create a ECPrivateKey object and make a copy of them.
++  // TODO(mattm): move this function to some NSS util file.
++  static bool ImportFromEncryptedPrivateKeyInfo(
++      PK11SlotInfo* slot,
++      const std::string& password,
++      const uint8_t* encrypted_private_key_info,
++      size_t encrypted_private_key_info_len,
++      CERTSubjectPublicKeyInfo* decoded_spki,
++      bool permanent,
++      bool sensitive,
++      SECKEYPrivateKey** key,
++      SECKEYPublicKey** public_key);
++#endif
++
++
+   // Returns a copy of the object.
+   std::unique_ptr<ECPrivateKey> Copy() const;
+ 
++#if defined(USE_OPENSSL)
+   EVP_PKEY* key() { return key_.get(); }
++#else
++  SECKEYPrivateKey* key() { return key_; }
++  SECKEYPublicKey* public_key() { return public_key_; }
++#endif
+ 
+   // Exports the private key to a PKCS #8 PrivateKeyInfo block.
+   bool ExportPrivateKey(std::vector<uint8_t>* output) const;
+@@ -76,7 +108,12 @@
+   // Constructor is private. Use one of the Create*() methods above instead.
+   ECPrivateKey();
+ 
++#if defined(USE_OPENSSL)
+   bssl::UniquePtr<EVP_PKEY> key_;
++#else
++  SECKEYPrivateKey* key_;
++  SECKEYPublicKey* public_key_;
++#endif
+ 
+   DISALLOW_COPY_AND_ASSIGN(ECPrivateKey);
+ };
+--- rsa_private_key.h	2019-04-24 10:18:53.522038831 +0200
++++ rsa_private_key.h	2019-04-24 10:22:08.410039417 +0200
+@@ -14,7 +14,15 @@
+ #include "base/macros.h"
+ #include "build/build_config.h"
+ #include "crypto/crypto_export.h"
++
++#if defined(USE_OPENSSL)
+ #include "third_party/boringssl/src/include/openssl/base.h"
++#else
++// Forward declaration.
++typedef struct PK11SlotInfoStr PK11SlotInfo;
++typedef struct SECKEYPrivateKeyStr SECKEYPrivateKey;
++typedef struct SECKEYPublicKeyStr SECKEYPublicKey;
++#endif
+ 
+ namespace crypto {
+ 
+@@ -34,12 +42,23 @@
+   static std::unique_ptr<RSAPrivateKey> CreateFromPrivateKeyInfo(
+       const std::vector<uint8_t>& input);
+ 
++#if defined(USE_OPENSSL)
+   // Create a new instance from an existing EVP_PKEY, taking a
+   // reference to it. |key| must be an RSA key. Returns NULL on
+   // failure.
+   static std::unique_ptr<RSAPrivateKey> CreateFromKey(EVP_PKEY* key);
++#else
++  // Create a new instance by referencing an existing private key
++  // structure.  Does not import the key.
++  static RSAPrivateKey* CreateFromKey(SECKEYPrivateKey* key);
++#endif
+ 
++#if defined(USE_OPENSSL)
+   EVP_PKEY* key() { return key_.get(); }
++#else
++  SECKEYPrivateKey* key() { return key_; }
++  SECKEYPublicKey* public_key() { return public_key_; }
++#endif
+ 
+   // Creates a copy of the object.
+   std::unique_ptr<RSAPrivateKey> Copy() const;
+@@ -54,7 +73,12 @@
+   // Constructor is private. Use one of the Create*() methods above instead.
+   RSAPrivateKey();
+ 
++#if defined(USE_OPENSSL)
+   bssl::UniquePtr<EVP_PKEY> key_;
++#else
++  SECKEYPrivateKey* key_;
++  SECKEYPublicKey* public_key_;
++#endif
+ 
+   DISALLOW_COPY_AND_ASSIGN(RSAPrivateKey);
+ };
+--- signature_creator.h	2019-04-24 10:26:18.521040170 +0200
++++ signature_creator.h	2019-04-24 10:35:56.859041911 +0200
+@@ -14,8 +14,13 @@
+ #include "build/build_config.h"
+ #include "crypto/crypto_export.h"
+ 
++#if defined(USE_OPENSSL)
+ // Forward declaration for openssl/*.h
+ typedef struct env_md_ctx_st EVP_MD_CTX;
++#elif defined(USE_NSS_CERTS) || defined(OS_WIN) || defined(OS_MACOSX)
++// Forward declaration.
++struct SGNContextStr;
++#endif
+ 
+ namespace crypto {
+ 
+@@ -57,7 +62,11 @@
+   // Private constructor. Use the Create() method instead.
+   SignatureCreator();
+ 
++#if defined(USE_OPENSSL)
+   EVP_MD_CTX* sign_context_;
++#elif defined(USE_NSS_CERTS) || defined(OS_WIN) || defined(OS_MACOSX)
++  SGNContextStr* sign_context_;
++#endif
+ 
+   DISALLOW_COPY_AND_ASSIGN(SignatureCreator);
+ };
+--- signature_verifier.h	2019-04-24 10:39:41.031042586 +0200
++++ signature_verifier.h	2019-04-24 10:43:04.383043198 +0200
+@@ -13,8 +13,14 @@
+ #include "build/build_config.h"
+ #include "crypto/crypto_export.h"
+ 
++#if defined(USE_OPENSSL)
+ typedef struct env_md_st EVP_MD;
+ typedef struct evp_pkey_ctx_st EVP_PKEY_CTX;
++#else
++typedef struct HASHContextStr HASHContext;
++typedef struct SECKEYPublicKeyStr SECKEYPublicKey;
++typedef struct VFYContextStr VFYContext;
++#endif
+ 
+ namespace crypto {
+ 
+@@ -91,6 +97,7 @@
+   bool VerifyFinal();
+ 
+  private:
++#if defined(USE_OPENSSL)
+   bool CommonInit(int pkey_type,
+                   const EVP_MD* digest,
+                   const uint8_t* signature,
+@@ -98,13 +105,29 @@
+                   const uint8_t* public_key_info,
+                   int public_key_info_len,
+                   EVP_PKEY_CTX** pkey_ctx);
++#else
++  static SECKEYPublicKey* DecodePublicKeyInfo(const uint8_t* public_key_info,
++                                              int public_key_info_len);
++#endif
+ 
+   void Reset();
+ 
+   std::vector<uint8_t> signature_;
+ 
++#if defined(USE_OPENSSL)
+   struct VerifyContext;
+   std::unique_ptr<VerifyContext> verify_context_;
++#else
++  // Used for all signature types except RSA-PSS.
++  VFYContext* vfy_context_;
++
++  // Used for RSA-PSS signatures.
++  HashAlgorithm hash_alg_;
++  HashAlgorithm mask_hash_alg_;
++  unsigned int salt_len_;
++  SECKEYPublicKey* public_key_;
++  HASHContext* hash_context_;
++#endif
+ };
+ 
+ }  // namespace crypto
+--- symmetric_key.h	2019-04-24 13:33:35.422089915 +0200
++++ symmetric_key.h	2019-04-24 13:53:45.919093559 +0200
+@@ -14,6 +14,10 @@
+ #include "build/build_config.h"
+ #include "crypto/crypto_export.h"
+ 
++#if defined(USE_NSS_CERTS) || (!defined(USE_OPENSSL) && (defined(OS_WIN)||defined(OS_MACOSX)) )
++#include "crypto/scoped_nss_types.h"
++#endif
++
+ namespace crypto {
+ 
+ // Wraps a platform-specific symmetric key and allows it to be held in a
+@@ -55,7 +59,11 @@
+   static std::unique_ptr<SymmetricKey> Import(Algorithm algorithm,
+                                               const std::string& raw_key);
+ 
++#if defined(USE_OPENSSL)
+   const std::string& key() { return key_; }
++#elif defined(USE_NSS_CERTS) || defined(OS_WIN) || defined(OS_MACOSX)
++  PK11SymKey* key() const { return key_.get(); }
++#endif
+ 
+   // Extracts the raw key from the platform specific data.
+   // Warning: |raw_key| holds the raw key as bytes and thus must be handled
+@@ -63,9 +71,13 @@
+   bool GetRawKey(std::string* raw_key);
+ 
+  private:
++#if defined(USE_OPENSSL)
+   SymmetricKey();
+-
+   std::string key_;
++#elif defined(USE_NSS_CERTS) || defined(OS_WIN) || defined(OS_MACOSX)
++  explicit SymmetricKey(PK11SymKey* key);
++  ScopedPK11SymKey key_;
++#endif
+ 
+   DISALLOW_COPY_AND_ASSIGN(SymmetricKey);
+ };
+--- encryptor.h	2019-04-24 10:08:59.593037043 +0200
++++ encryptor.h	2019-04-24 21:23:33.352071453 +0200
+@@ -15,6 +15,10 @@
+ #include "build/build_config.h"
+ #include "crypto/crypto_export.h"
+ 
++#if !defined(USE_OPENSSL)
++#include "crypto/scoped_nss_types.h"
++#endif
++
+ namespace crypto {
+ 
+ class SymmetricKey;
+@@ -84,10 +88,34 @@
+   // TODO(albertb): Support streaming encryption.
+ 
+  private:
++  // Generates a mask using |counter_| to be used for encryption in CTR mode.
++  // Resulting mask will be written to |mask| with |mask_len| bytes.
++  //
++  // Make sure there's enough space in mask when calling this method.
++  // Reserve at least |plaintext_len| + 16 bytes for |mask|.
++  //
++  // The generated mask will always have at least |plaintext_len| bytes and
++  // will be a multiple of the counter length.
++  //
++  // This method is used only in CTR mode.
++  //
++  // Returns false if this call failed.
++  bool GenerateCounterMask(size_t plaintext_len,
++                           uint8* mask,
++                           size_t* mask_len);
++
++  // Mask the |plaintext| message using |mask|. The output will be written to
++  // |ciphertext|. |ciphertext| must have at least |plaintext_len| bytes.
++  void MaskMessage(const void* plaintext,
++                   size_t plaintext_len,
++                   const void* mask,
++                   void* ciphertext) const;
++
+   SymmetricKey* key_;
+   Mode mode_;
+   std::unique_ptr<Counter> counter_;
+ 
++#if defined(USE_OPENSSL)
+   bool Crypt(bool do_encrypt,  // Pass true to encrypt, false to decrypt.
+              const base::StringPiece& input,
+              std::string* output);
+@@ -95,6 +123,15 @@
+                 const base::StringPiece& input,
+                 std::string* output);
+   std::string iv_;
++#else
++  bool Crypt(PK11Context* context,
++             const base::StringPiece& input,
++             std::string* output);
++  bool CryptCTR(PK11Context* context,
++                const base::StringPiece& input,
++                std::string* output);
++  ScopedSECItem param_;
++#endif
+ };
+ 
+ }  // namespace crypto
+--- encryptor.cc	2019-04-24 21:21:23.832071063 +0200
++++ encryptor.cc	2019-04-24 21:40:44.167074556 +0200
+@@ -12,13 +12,16 @@
+ #include "base/sys_byteorder.h"
+ #include "crypto/openssl_util.h"
+ #include "crypto/symmetric_key.h"
++#if defined(USE_OPENSSL)
+ #include "third_party/boringssl/src/include/openssl/aes.h"
+ #include "third_party/boringssl/src/include/openssl/evp.h"
++#endif
+ 
+ namespace crypto {
+ 
+ namespace {
+ 
++#if defined(USE_OPENSSL)
+ const EVP_CIPHER* GetCipherForKey(SymmetricKey* key) {
+   switch (key->key().length()) {
+     case 16: return EVP_aes_128_cbc();
+@@ -44,6 +47,7 @@
+  private:
+   EVP_CIPHER_CTX ctx_;
+ };
++#endif
+ 
+ }  // namespace
+ 
+@@ -85,6 +89,7 @@
+ /////////////////////////////////////////////////////////////////////////////
+ // Encryptor Implementation.
+ 
++#if defined(USE_OPENSSL)
+ Encryptor::Encryptor() : key_(nullptr), mode_(CBC) {}
+ 
+ Encryptor::~Encryptor() {
+@@ -124,6 +129,7 @@
+       CryptCTR(false, ciphertext, plaintext) :
+       Crypt(false, ciphertext, plaintext);
+ }
++#endif
+ 
+ bool Encryptor::SetCounter(const base::StringPiece& counter) {
+   if (mode_ != CTR)
+@@ -135,6 +141,44 @@
+   return true;
+ }
+ 
++bool Encryptor::GenerateCounterMask(size_t plaintext_len,
++                                    uint8* mask,
++                                    size_t* mask_len) {
++  DCHECK_EQ(CTR, mode_);
++  CHECK(mask);
++  CHECK(mask_len);
++
++  const size_t kBlockLength = counter_->GetLengthInBytes();
++  size_t blocks = (plaintext_len + kBlockLength - 1) / kBlockLength;
++  CHECK(blocks);
++
++  *mask_len = blocks * kBlockLength;
++
++  for (size_t i = 0; i < blocks; ++i) {
++    counter_->Write(mask);
++    mask += kBlockLength;
++
++    bool ret = counter_->Increment();
++    if (!ret)
++      return false;
++  }
++  return true;
++}
++
++void Encryptor::MaskMessage(const void* plaintext,
++                            size_t plaintext_len,
++                            const void* mask,
++                            void* ciphertext) const {
++  DCHECK_EQ(CTR, mode_);
++  const uint8* plaintext_ptr = reinterpret_cast<const uint8*>(plaintext);
++  const uint8* mask_ptr = reinterpret_cast<const uint8*>(mask);
++  uint8* ciphertext_ptr = reinterpret_cast<uint8*>(ciphertext);
++
++  for (size_t i = 0; i < plaintext_len; ++i)
++    ciphertext_ptr[i] = plaintext_ptr[i] ^ mask_ptr[i];
++}
++
++#if defined(USE_OPENSSL)
+ bool Encryptor::Crypt(bool do_encrypt,
+                       const base::StringPiece& input,
+                       std::string* output) {
+@@ -222,5 +266,6 @@
+   output->swap(result);
+   return true;
+ }
++#endif
+ 
+ }  // namespace crypto
+--- hmac.h	2019-04-25 00:10:52.956101675 +0200
++++ hmac.h	2019-04-25 00:10:14.332101558 +0200
+@@ -18,8 +18,20 @@
+ #include "base/strings/string_piece.h"
+ #include "crypto/crypto_export.h"
+ 
++#if !defined(USE_OPENSSL)
++#include "crypto/scoped_nss_types.h"
++#endif
++
+ namespace crypto {
+ 
++#if !defined(USE_OPENSSL)
++struct HMACPlatformData {
++  CK_MECHANISM_TYPE mechanism_;
++  ScopedPK11Slot slot_;
++  ScopedPK11SymKey sym_key_;
++};
++#endif
++
+ // Simplify the interface and reduce includes by abstracting out the internals.
+ class SymmetricKey;
+ 
+@@ -88,6 +100,9 @@
+   HashAlgorithm hash_alg_;
+   bool initialized_;
+   std::vector<unsigned char> key_;
++#if !defined(USE_OPENSSL)
++  std::unique_ptr<HMACPlatformData> plat_;
++#endif
+ 
+   DISALLOW_COPY_AND_ASSIGN(HMAC);
+ };
+--- rsa_private_key.cc	2019-04-25 00:32:24.789105563 +0200
++++ rsa_private_key.cc	2019-04-25 00:32:08.125105513 +0200
+@@ -11,14 +11,17 @@
+ 
+ #include "base/logging.h"
+ #include "crypto/openssl_util.h"
++#if defined(USE_OPENSSL)
+ #include "third_party/boringssl/src/include/openssl/bn.h"
+ #include "third_party/boringssl/src/include/openssl/bytestring.h"
+ #include "third_party/boringssl/src/include/openssl/evp.h"
+ #include "third_party/boringssl/src/include/openssl/mem.h"
+ #include "third_party/boringssl/src/include/openssl/rsa.h"
++#endif
+ 
+ namespace crypto {
+ 
++#if defined(USE_OPENSSL)
+ // static
+ std::unique_ptr<RSAPrivateKey> RSAPrivateKey::Create(uint16_t num_bits) {
+   OpenSSLErrStackTracer err_tracer(FROM_HERE);
+@@ -110,5 +113,6 @@
+   OPENSSL_free(der);
+   return true;
+ }
++#endif
+ 
+ }  // namespace crypto
+--- hmac.cc	2019-04-25 00:13:39.781102177 +0200
++++ hmac.cc	2019-04-25 01:09:00.697059877 +0200
+@@ -13,10 +13,13 @@
+ #include "crypto/openssl_util.h"
+ #include "crypto/secure_util.h"
+ #include "crypto/symmetric_key.h"
++#if defined(USE_OPENSSL)
+ #include "third_party/boringssl/src/include/openssl/hmac.h"
++#endif
+ 
+ namespace crypto {
+ 
++#if defined(USE_OPENSSL)
+ HMAC::HMAC(HashAlgorithm hash_alg) : hash_alg_(hash_alg), initialized_(false) {
+   // Only SHA-1 and SHA-256 hash algorithms are supported now.
+   DCHECK(hash_alg_ == SHA1 || hash_alg_ == SHA256);
+@@ -27,6 +30,7 @@
+   key_.assign(key_.size(), 0);
+   base::STLClearObject(&key_);
+ }
++#endif
+ 
+ size_t HMAC::DigestLength() const {
+   switch (hash_alg_) {
+@@ -40,6 +44,7 @@
+   }
+ }
+ 
++#if defined(USE_OPENSSL)
+ bool HMAC::Init(const unsigned char* key, size_t key_length) {
+   // Init must not be called more than once on the same HMAC object.
+   DCHECK(!initialized_);
+@@ -47,6 +52,7 @@
+   key_.assign(key, key + key_length);
+   return true;
+ }
++#endif
+ 
+ bool HMAC::Init(SymmetricKey* key) {
+   std::string raw_key;
+@@ -57,6 +63,7 @@
+   return result;
+ }
+ 
++#if defined(USE_OPENSSL)
+ bool HMAC::Sign(const base::StringPiece& data,
+                 unsigned char* digest,
+                 size_t digest_length) const {
+@@ -68,6 +75,7 @@
+                   reinterpret_cast<const unsigned char*>(data.data()),
+                   data.size(), result.safe_buffer(), nullptr);
+ }
++#endif
+ 
+ bool HMAC::Verify(const base::StringPiece& data,
+                   const base::StringPiece& digest) const {

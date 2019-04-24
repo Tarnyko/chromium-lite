@@ -1,10 +1,15 @@
---- nss_util.h	2016-02-17 12:16:18.334387278 +0000
-+++ nss_util.h	2016-02-17 12:17:15.475206695 +0000
-@@ -27,6 +27,15 @@
+--- nss_util.h	2019-04-19 22:32:52.548181886 +0200
++++ nss_util.h	2019-04-19 22:44:46.116184034 +0200
+@@ -23,11 +23,22 @@
+ // initialization functions.
+ namespace crypto {
+ 
++#if defined(USE_NSS_CERTS)
+ // EarlySetupForNSSInit performs lightweight setup which must occur before the
  // process goes multithreaded. This does not initialise NSS. For test, see
  // EnsureNSSInit.
  CRYPTO_EXPORT void EarlySetupForNSSInit();
-+
+ 
 +// Load NSS library files. This function has no effect on Mac and Windows.
 +// This loads the necessary NSS library files so that NSS can be initialized
 +// after loading additional library files is disallowed, for example when the
@@ -13,12 +18,14 @@
 +// Note that this does not load libnssckbi.so which contains the root
 +// certificates.
 +CRYPTO_EXPORT void LoadNSSLibraries();
- #endif
- 
++#endif
++
  // Initialize NRPR if it isn't already initialized.  This function is
---- nss_util.cc	2016-02-17 12:17:40.963572386 +0000
-+++ nss_util.cc	2016-02-17 12:19:21.636017855 +0000
-@@ -905,6 +905,60 @@
+ // thread-safe, and NSPR will only ever be initialized once.
+ CRYPTO_EXPORT void EnsureNSPRInit();
+--- nss_util.cc	2019-04-19 22:33:02.733181917 +0200
++++ nss_util.cc	2019-04-19 22:46:08.054184281 +0200
+@@ -870,6 +870,60 @@
    g_nss_singleton.Get();
  }
  
