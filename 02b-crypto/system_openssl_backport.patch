@@ -1,0 +1,201 @@
+--- signature_creator.cc	2019-04-25 02:01:38.867069384 +0200
++++ signature_creator.cc	2019-04-25 02:02:18.543069504 +0200
+@@ -10,8 +10,8 @@
+ #include "base/logging.h"
+ #include "crypto/openssl_util.h"
+ #include "crypto/rsa_private_key.h"
+-#include "third_party/boringssl/src/include/openssl/evp.h"
+-#include "third_party/boringssl/src/include/openssl/rsa.h"
++#include <openssl/evp.h>
++#include <openssl/rsa.h>
+ 
+ namespace crypto {
+ 
+--- rsa_private_key.h	2019-04-25 02:04:21.489069874 +0200
++++ rsa_private_key.h	2019-04-25 02:19:58.047072693 +0200
+@@ -16,6 +16,8 @@
+ #include "crypto/crypto_export.h"
+ 
+ #if defined(USE_OPENSSL)
++#include <openssl/evp.h>
++#include <openssl/rsa.h>
+ #include "third_party/boringssl/src/include/openssl/base.h"
+ #else
+ // Forward declaration.
+--- signature_verifier.cc	2019-04-25 02:31:59.333074864 +0200
++++ signature_verifier.cc	2019-04-25 02:46:27.631077478 +0200
+@@ -11,10 +11,11 @@
+ 
+ #include "base/logging.h"
+ #include "crypto/openssl_util.h"
++#include <openssl/ossl_typ.h>
+ #include "third_party/boringssl/src/include/openssl/bytestring.h"
+ #include "third_party/boringssl/src/include/openssl/digest.h"
+-#include "third_party/boringssl/src/include/openssl/evp.h"
+-#include "third_party/boringssl/src/include/openssl/rsa.h"
++#include <openssl/evp.h>
++#include <openssl/rsa.h>
+ 
+ namespace crypto {
+ 
+--- ../third_party/boringssl/src/include/openssl/base.h	2019-04-25 02:12:29.925071344 +0200
++++ ../third_party/boringssl/src/include/openssl/base.h	2019-04-25 03:06:31.836081103 +0200
+@@ -130,8 +130,10 @@
+ #define OPENSSL_IS_BORINGSSL
+ #define BORINGSSL_201512
+ #define BORINGSSL_201603
++#if 0
+ #define OPENSSL_VERSION_NUMBER 0x100020af
+ #define SSLEAY_VERSION_NUMBER OPENSSL_VERSION_NUMBER
++#endif
+ 
+ /* BORINGSSL_API_VERSION is a positive integer that increments as BoringSSL
+  * changes over time. The value itself is not meaningful. It will be incremented
+@@ -143,6 +145,8 @@
+  * recommended to do so for longer than is necessary. */
+ #define BORINGSSL_API_VERSION 2
+ 
++#if 0
++
+ #if defined(BORINGSSL_SHARED_LIBRARY)
+ 
+ #if defined(OPENSSL_WINDOWS)
+@@ -169,6 +173,7 @@
+ 
+ #endif  /* defined(BORINGSSL_SHARED_LIBRARY) */
+ 
++#endif  /* if 0 */
+ 
+ #if defined(__GNUC__)
+ /* MinGW has two different printf implementations. Ensure the format macro
+@@ -198,8 +203,10 @@
+ #define BORINGSSL_UNSAFE_DETERMINISTIC_MODE
+ #endif
+ 
++#if 0
+ /* CRYPTO_THREADID is a dummy value. */
+ typedef int CRYPTO_THREADID;
++#endif
+ 
+ typedef int ASN1_BOOLEAN;
+ typedef int ASN1_NULL;
+@@ -252,8 +259,10 @@
+ typedef struct X509_req_st X509_REQ;
+ typedef struct X509_sig_st X509_SIG;
+ typedef struct X509_val_st X509_VAL;
++#if 0
+ typedef struct bignum_ctx BN_CTX;
+ typedef struct bignum_st BIGNUM;
++#endif
+ typedef struct bio_method_st BIO_METHOD;
+ typedef struct bio_st BIO;
+ typedef struct bn_gencb_st BN_GENCB;
+@@ -271,7 +280,9 @@
+ typedef struct ec_group_st EC_GROUP;
+ typedef struct ec_key_st EC_KEY;
+ typedef struct ec_point_st EC_POINT;
++#if 0
+ typedef struct ecdsa_method_st ECDSA_METHOD;
++#endif
+ typedef struct ecdsa_sig_st ECDSA_SIG;
+ typedef struct engine_st ENGINE;
+ typedef struct env_md_ctx_st EVP_MD_CTX;
+@@ -279,7 +290,9 @@
+ typedef struct evp_aead_st EVP_AEAD;
+ typedef struct evp_cipher_ctx_st EVP_CIPHER_CTX;
+ typedef struct evp_cipher_st EVP_CIPHER;
++#if 0
+ typedef struct evp_encode_ctx_st EVP_ENCODE_CTX;
++#endif
+ typedef struct evp_pkey_asn1_method_st EVP_PKEY_ASN1_METHOD;
+ typedef struct evp_pkey_ctx_st EVP_PKEY_CTX;
+ typedef struct evp_pkey_method_st EVP_PKEY_METHOD;
+@@ -321,7 +334,6 @@
+ 
+ typedef void *OPENSSL_BLOCK;
+ 
+-
+ #if defined(__cplusplus)
+ }  /* extern C */
+ 
+@@ -410,6 +422,13 @@
+   };                                              \
+   }
+ 
++// Module-specific macros HERE !!!
++#include <openssl/rsa.h>
++BORINGSSL_MAKE_DELETER(RSA, RSA_free)
++#include <openssl/evp.h>
++BORINGSSL_MAKE_DELETER(EVP_PKEY, EVP_PKEY_free)
++BORINGSSL_MAKE_DELETER(EVP_PKEY_CTX, EVP_PKEY_CTX_free)
++
+ // This makes a unique_ptr to STACK_OF(type) that owns all elements on the
+ // stack, i.e. it uses sk_pop_free() to clean up.
+ #define BORINGSSL_MAKE_STACK_DELETER(type, deleter) \
+--- ../third_party/boringssl/src/include/openssl/bytestring.h	2019-04-25 02:34:12.053075264 +0200
++++ ../third_party/boringssl/src/include/openssl/bytestring.h	2019-04-25 02:35:05.202075424 +0200
+@@ -15,7 +15,7 @@
+ #ifndef OPENSSL_HEADER_BYTESTRING_H
+ #define OPENSSL_HEADER_BYTESTRING_H
+ 
+-#include <openssl/base.h>
++#include "./base.h"
+ 
+ #if defined(__cplusplus)
+ extern "C" {
+--- ../third_party/boringssl/src/include/openssl/digest.h	2019-04-25 02:35:54.691075573 +0200
++++ ../third_party/boringssl/src/include/openssl/digest.h	2019-04-25 03:09:33.401081650 +0200
+@@ -57,7 +57,7 @@
+ #ifndef OPENSSL_HEADER_DIGEST_H
+ #define OPENSSL_HEADER_DIGEST_H
+ 
+-#include <openssl/base.h>
++#include "./base.h"
+ 
+ #if defined(__cplusplus)
+ extern "C" {
+@@ -176,6 +176,7 @@
+  * These functions allow code to learn details about an abstract hash
+  * function. */
+ 
++#if 0
+ /* EVP_MD_type returns a NID identifying |md|. (For example, |NID_sha256|.) */
+ OPENSSL_EXPORT int EVP_MD_type(const EVP_MD *md);
+ 
+@@ -188,6 +189,7 @@
+ 
+ /* EVP_MD_block_size returns the native block-size of |md|, in bytes. */
+ OPENSSL_EXPORT size_t EVP_MD_block_size(const EVP_MD *md);
++#endif
+ 
+ /* EVP_MD_FLAG_PKEY_DIGEST indicates the the digest function is used with a
+  * specific public key in order to verify signatures. (For example,
+@@ -210,9 +212,11 @@
+  * compatibility with OpenSSL. */
+ OPENSSL_EXPORT int EVP_add_digest(const EVP_MD *digest);
+ 
++#if 0
+ /* EVP_get_digestbyname returns an |EVP_MD| given a human readable name in
+  * |name|, or NULL if the name is unknown. */
+ OPENSSL_EXPORT const EVP_MD *EVP_get_digestbyname(const char *);
++#endif
+ 
+ /* EVP_dss1 returns the value of EVP_sha1(). This was provided by OpenSSL to
+  * specifiy the original DSA signatures, which were fixed to use SHA-1. Note,
+@@ -243,6 +247,7 @@
+ 
+ struct evp_md_pctx_ops;
+ 
++#if 0
+ struct env_md_ctx_st {
+   /* digest is the underlying digest function, or NULL if not set. */
+   const EVP_MD *digest;
+@@ -258,7 +263,7 @@
+    * manipulate |pctx|. */
+   const struct evp_md_pctx_ops *pctx_ops;
+ } /* EVP_MD_CTX */;
+-
++#endif
+ 
+ #if defined(__cplusplus)
+ }  /* extern C */
