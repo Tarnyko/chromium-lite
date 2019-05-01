@@ -107,8 +107,8 @@ std::unique_ptr<ECPrivateKey> ECPrivateKey::CreateFromPrivateKeyInfo(
   return nullptr;
 }
 
-#if 0
-std::unique_ptr<ECPrivateKey> ECPrivateKey::CreateFromPrivateKeyInfo(
+// static
+std::unique_ptr<ECPrivateKey> ECPrivateKey::CreateFromEncryptedPrivateKeyInfo(
     const std::string& password,
     const std::vector<uint8_t>& encrypted_private_key_info,
     const std::vector<uint8_t>& subject_public_key_info) {
@@ -152,7 +152,6 @@ std::unique_ptr<ECPrivateKey> ECPrivateKey::CreateFromPrivateKeyInfo(
 
   return nullptr;
 }
-#endif
 
 // static
 bool ECPrivateKey::ImportFromEncryptedPrivateKeyInfo(
@@ -246,12 +245,6 @@ std::unique_ptr<ECPrivateKey> ECPrivateKey::Copy() const {
   return copy;
 }
 
-bool ECPrivateKey::ExportEncryptedPrivateKey(
-    std::vector<uint8_t>* output) const {
-  return false;
-}
-
-#if 0
 bool ECPrivateKey::ExportEncryptedPrivateKey(const std::string& password,
                                              int iterations,
                                              std::vector<uint8_t>* output) {
@@ -295,7 +288,6 @@ bool ECPrivateKey::ExportEncryptedPrivateKey(const std::string& password,
 
   return true;
 }
-#endif
 
 bool ECPrivateKey::ExportPublicKey(std::vector<uint8_t>* output) const {
   ScopedSECItem der_pubkey(

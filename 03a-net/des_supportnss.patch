@@ -1,35 +1,27 @@
---- http/des.cc	2016-01-06 02:02:05.817040917 +0000
-+++ http/des.cc	2016-02-07 22:34:38.592858684 +0000
-@@ -9,15 +9,22 @@
- #if defined(USE_OPENSSL)
- #include <openssl/des.h>
+--- http/des.cc	2019-04-25 19:04:11.519100130 +0200
++++ http/des.cc	2019-04-25 19:13:08.876101747 +0200
+@@ -5,8 +5,14 @@
+ #include "net/http/des.h"
+ 
+ #include "base/logging.h"
++#if defined(USE_OPENSSL)
  #include "crypto/openssl_util.h"
--#elif defined(OS_IOS)
+ #include "third_party/boringssl/src/include/openssl/des.h"
 +#elif defined(USE_NSS_CERTS)
 +#include <nss.h>
 +#include <pk11pub.h>
 +#include "crypto/nss_util.h"
-+#elif defined(OS_MACOSX)
- #include <CommonCrypto/CommonCryptor.h>
--#else
--#error "Unknown platform"
-+#elif defined(OS_WIN)
-+#include <windows.h>
-+#include <wincrypt.h>
-+#include "crypto/scoped_capi_types.h"
- #endif
++#endif
  
--// The iOS version of DESEncrypt is our own code.
--// DESSetKeyParity and DESMakeKey are based on
--// mozilla/security/manager/ssl/src/nsNTLMAuthModule.cpp, CVS rev. 1.14.
-+// The Mac and Windows (CryptoAPI) versions of DESEncrypt are our own code.
-+// DESSetKeyParity, DESMakeKey, and the Linux (NSS) version of DESEncrypt are
-+// based on mozilla/security/manager/ssl/src/nsNTLMAuthModule.cpp,
-+// CVS rev. 1.14.
+ // The iOS version of DESEncrypt is our own code.
+ // DESSetKeyParity and DESMakeKey are based on
+@@ -73,15 +79,77 @@
+   key[7] = DESSetKeyParity((raw[6] << 1));
+ }
  
- /* ***** BEGIN LICENSE BLOCK *****
-  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
-@@ -86,14 +93,71 @@
++#if defined(USE_OPENSSL)
++
+ void DESEncrypt(const uint8_t* key, const uint8_t* src, uint8_t* hash) {
    crypto::EnsureOpenSSLInit();
  
    DES_key_schedule ks;
@@ -41,9 +33,9 @@
 -  DES_ecb_encrypt(reinterpret_cast<const DES_cblock*>(src),
 +  DES_ecb_encrypt(reinterpret_cast<const_DES_cblock*>(const_cast<uint8*>(src)),
                    reinterpret_cast<DES_cblock*>(hash), &ks, DES_ENCRYPT);
- }
- 
--#elif defined(OS_IOS)
++
++}
++
 +#elif defined(USE_NSS_CERTS)
 +
 +void DESEncrypt(const uint8* key, const uint8* src, uint8* hash) {
@@ -99,63 +91,8 @@
 +    SECITEM_FreeItem(param, PR_TRUE);
 +  if (slot)
 +    PK11_FreeSlot(slot);
-+}
-+
-+#elif defined(OS_MACOSX)
- 
- void DESEncrypt(const uint8* key, const uint8* src, uint8* hash) {
-   CCCryptorStatus status;
-@@ -104,6 +168,53 @@
-   DCHECK(data_out_moved == 8);
  }
  
-+#elif defined(OS_WIN)
++#endif
 +
-+void DESEncrypt(const uint8* key, const uint8* src, uint8* hash) {
-+  crypto::ScopedHCRYPTPROV provider;
-+  if (!CryptAcquireContext(provider.receive(), NULL, NULL, PROV_RSA_FULL,
-+                           CRYPT_VERIFYCONTEXT))
-+    return;
-+
-+  {
-+    // Import the DES key.
-+    struct KeyBlob {
-+      BLOBHEADER header;
-+      DWORD key_size;
-+      BYTE key_data[8];
-+    };
-+    KeyBlob key_blob;
-+    key_blob.header.bType = PLAINTEXTKEYBLOB;
-+    key_blob.header.bVersion = CUR_BLOB_VERSION;
-+    key_blob.header.reserved = 0;
-+    key_blob.header.aiKeyAlg = CALG_DES;
-+    key_blob.key_size = 8;  // 64 bits
-+    memcpy(key_blob.key_data, key, 8);
-+
-+    crypto::ScopedHCRYPTKEY key;
-+    BOOL import_ok = CryptImportKey(provider,
-+                                    reinterpret_cast<BYTE*>(&key_blob),
-+                                    sizeof key_blob, 0, 0, key.receive());
-+    // Destroy the copy of the key.
-+    SecureZeroMemory(key_blob.key_data, sizeof key_blob.key_data);
-+    if (!import_ok)
-+      return;
-+
-+    // No initialization vector required.
-+    DWORD cipher_mode = CRYPT_MODE_ECB;
-+    if (!CryptSetKeyParam(key, KP_MODE, reinterpret_cast<BYTE*>(&cipher_mode),
-+                          0))
-+      return;
-+
-+    // CryptoAPI requires us to copy the plaintext to the output buffer first.
-+    CopyMemory(hash, src, 8);
-+    // Pass a 'Final' of FALSE, otherwise CryptEncrypt appends one additional
-+    // block of padding to the data.
-+    DWORD hash_len = 8;
-+    CryptEncrypt(key, 0, FALSE, 0, hash, &hash_len, 8);
-+  }
-+}
-+
- #endif
- 
  }  // namespace net

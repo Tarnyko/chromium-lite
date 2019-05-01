@@ -24,8 +24,8 @@ int main (int argc, char *argv[])
 
 	 // initialize it (false = no proxy ; LOW = low priority)
 
-	net::HttpBasicState state (new net::ClientSocketHandle (), false);
-	state.Initialize (&request, net::LOW, net::BoundNetLog(), net::CompletionCallback());
+	net::HttpBasicState state (std::unique_ptr<net::ClientSocketHandle> (new net::ClientSocketHandle ()), false, true);
+	state.Initialize (&request, net::LOW, net::NetLogWithSource(), net::CompletionCallback());
 
 	 // display it raw
 

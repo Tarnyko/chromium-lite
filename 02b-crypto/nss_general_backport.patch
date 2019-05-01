@@ -15,72 +15,6 @@
  }  // namespace
 +
 +#endif
---- ec_private_key.h	2019-04-24 09:57:34.463034980 +0200
-+++ ec_private_key.h	2019-04-24 10:04:19.892036201 +0200
-@@ -15,7 +15,16 @@
- #include "base/macros.h"
- #include "build/build_config.h"
- #include "crypto/crypto_export.h"
-+
-+#if defined(USE_OPENSSL)
- #include "third_party/boringssl/src/include/openssl/base.h"
-+#else
-+// Forward declaration.
-+typedef struct CERTSubjectPublicKeyInfoStr CERTSubjectPublicKeyInfo;
-+typedef struct PK11SlotInfoStr PK11SlotInfo;
-+typedef struct SECKEYPrivateKeyStr SECKEYPrivateKey;
-+typedef struct SECKEYPublicKeyStr SECKEYPublicKey;
-+#endif
- 
- namespace crypto {
- 
-@@ -50,10 +59,33 @@
-       const std::vector<uint8_t>& encrypted_private_key_info,
-       const std::vector<uint8_t>& subject_public_key_info);
- 
-+#if !defined(USE_OPENSSL)
-+  // Imports the key pair into |slot| and returns in |public_key| and |key|.
-+  // Shortcut for code that needs to keep a reference directly to NSS types
-+  // without having to create a ECPrivateKey object and make a copy of them.
-+  // TODO(mattm): move this function to some NSS util file.
-+  static bool ImportFromEncryptedPrivateKeyInfo(
-+      PK11SlotInfo* slot,
-+      const std::string& password,
-+      const uint8_t* encrypted_private_key_info,
-+      size_t encrypted_private_key_info_len,
-+      CERTSubjectPublicKeyInfo* decoded_spki,
-+      bool permanent,
-+      bool sensitive,
-+      SECKEYPrivateKey** key,
-+      SECKEYPublicKey** public_key);
-+#endif
-+
-+
-   // Returns a copy of the object.
-   std::unique_ptr<ECPrivateKey> Copy() const;
- 
-+#if defined(USE_OPENSSL)
-   EVP_PKEY* key() { return key_.get(); }
-+#else
-+  SECKEYPrivateKey* key() { return key_; }
-+  SECKEYPublicKey* public_key() { return public_key_; }
-+#endif
- 
-   // Exports the private key to a PKCS #8 PrivateKeyInfo block.
-   bool ExportPrivateKey(std::vector<uint8_t>* output) const;
-@@ -76,7 +108,12 @@
-   // Constructor is private. Use one of the Create*() methods above instead.
-   ECPrivateKey();
- 
-+#if defined(USE_OPENSSL)
-   bssl::UniquePtr<EVP_PKEY> key_;
-+#else
-+  SECKEYPrivateKey* key_;
-+  SECKEYPublicKey* public_key_;
-+#endif
- 
-   DISALLOW_COPY_AND_ASSIGN(ECPrivateKey);
- };
 --- rsa_private_key.h	2019-04-24 10:18:53.522038831 +0200
 +++ rsa_private_key.h	2019-04-24 10:22:08.410039417 +0200
 @@ -14,7 +14,15 @@
@@ -534,3 +468,111 @@
  
  bool HMAC::Verify(const base::StringPiece& data,
                    const base::StringPiece& digest) const {
+--- ec_private_key.cc	2019-04-30 13:11:12.685039578 +0200
++++ ec_private_key.cc	2019-04-30 13:11:57.236039712 +0200
+@@ -93,6 +93,7 @@
+   return result;
+ }
+ 
++#if defined(USE_OPENSSL)
+ // static
+ std::unique_ptr<ECPrivateKey> ECPrivateKey::CreateFromEncryptedPrivateKeyInfo(
+     const std::vector<uint8_t>& encrypted_private_key_info,
+@@ -133,6 +134,7 @@
+ 
+   return result;
+ }
++#endif
+ 
+ std::unique_ptr<ECPrivateKey> ECPrivateKey::Copy() const {
+   std::unique_ptr<ECPrivateKey> copy(new ECPrivateKey());
+--- ec_private_key.h	2019-04-24 09:57:34.463034980 +0200
++++ ec_private_key.h	2019-04-30 13:34:31.290043788 +0200
+@@ -15,7 +15,16 @@
+ #include "base/macros.h"
+ #include "build/build_config.h"
+ #include "crypto/crypto_export.h"
++
++#if defined(USE_OPENSSL)
+ #include "third_party/boringssl/src/include/openssl/base.h"
++#else
++// Forward declaration.
++typedef struct CERTSubjectPublicKeyInfoStr CERTSubjectPublicKeyInfo;
++typedef struct PK11SlotInfoStr PK11SlotInfo;
++typedef struct SECKEYPrivateKeyStr SECKEYPrivateKey;
++typedef struct SECKEYPublicKeyStr SECKEYPublicKey;
++#endif
+ 
+ namespace crypto {
+ 
+@@ -46,14 +55,44 @@
+   //
+   // This function is deprecated. Use CreateFromPrivateKeyInfo for new code.
+   // See https://crbug.com/603319.
++#if defined(USE_OPENSSL)
+   static std::unique_ptr<ECPrivateKey> CreateFromEncryptedPrivateKeyInfo(
+       const std::vector<uint8_t>& encrypted_private_key_info,
+       const std::vector<uint8_t>& subject_public_key_info);
++#else
++  static std::unique_ptr<ECPrivateKey> CreateFromEncryptedPrivateKeyInfo(
++    const std::string& password,
++    const std::vector<uint8_t>& encrypted_private_key_info,
++    const std::vector<uint8_t>& subject_public_key_info);
++#endif
++
++#if !defined(USE_OPENSSL)
++  // Imports the key pair into |slot| and returns in |public_key| and |key|.
++  // Shortcut for code that needs to keep a reference directly to NSS types
++  // without having to create a ECPrivateKey object and make a copy of them.
++  // TODO(mattm): move this function to some NSS util file.
++  static bool ImportFromEncryptedPrivateKeyInfo(
++      PK11SlotInfo* slot,
++      const std::string& password,
++      const uint8_t* encrypted_private_key_info,
++      size_t encrypted_private_key_info_len,
++      CERTSubjectPublicKeyInfo* decoded_spki,
++      bool permanent,
++      bool sensitive,
++      SECKEYPrivateKey** key,
++      SECKEYPublicKey** public_key);
++#endif
++
+ 
+   // Returns a copy of the object.
+   std::unique_ptr<ECPrivateKey> Copy() const;
+ 
++#if defined(USE_OPENSSL)
+   EVP_PKEY* key() { return key_.get(); }
++#else
++  SECKEYPrivateKey* key() { return key_; }
++  SECKEYPublicKey* public_key() { return public_key_; }
++#endif
+ 
+   // Exports the private key to a PKCS #8 PrivateKeyInfo block.
+   bool ExportPrivateKey(std::vector<uint8_t>* output) const;
+@@ -66,6 +105,12 @@
+   // https://crbug.com/603319.
+   bool ExportEncryptedPrivateKey(std::vector<uint8_t>* output) const;
+ 
++#if !defined(USE_OPENSSL)
++  bool ExportEncryptedPrivateKey(const std::string& password,
++                                 int iterations,
++                                 std::vector<uint8_t>* output);
++#endif
++
+   // Exports the public key to an X.509 SubjectPublicKeyInfo block.
+   bool ExportPublicKey(std::vector<uint8_t>* output) const;
+ 
+@@ -76,7 +121,12 @@
+   // Constructor is private. Use one of the Create*() methods above instead.
+   ECPrivateKey();
+ 
++#if defined(USE_OPENSSL)
+   bssl::UniquePtr<EVP_PKEY> key_;
++#else
++  SECKEYPrivateKey* key_;
++  SECKEYPublicKey* public_key_;
++#endif
+ 
+   DISALLOW_COPY_AND_ASSIGN(ECPrivateKey);
+ };

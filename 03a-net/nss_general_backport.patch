@@ -1,0 +1,1808 @@
+--- cert/cert_verify_proc.cc	2019-04-28 12:47:22.320029567 +0200
++++ cert/cert_verify_proc.cc	2019-04-28 12:48:13.853029723 +0200
+@@ -30,7 +30,7 @@
+ #include "net/der/encode_values.h"
+ #include "url/url_canon.h"
+ 
+-#if defined(USE_NSS_CERTS)
++#if defined(USE_NSS_VERIFIER)
+ #include "net/cert/cert_verify_proc_nss.h"
+ #elif defined(USE_OPENSSL_CERTS) && !defined(OS_ANDROID)
+ #include "net/cert/cert_verify_proc_openssl.h"
+@@ -436,7 +436,7 @@
+ 
+ // static
+ CertVerifyProc* CertVerifyProc::CreateDefault() {
+-#if defined(USE_NSS_CERTS)
++#if defined(USE_NSS_VERIFIER)
+   return new CertVerifyProcNSS();
+ #elif defined(USE_OPENSSL_CERTS) && !defined(OS_ANDROID)
+   return new CertVerifyProcOpenSSL();
+--- cert/ct_log_verifier.h	2019-04-28 12:55:10.502030977 +0200
++++ cert/ct_log_verifier.h	2019-04-28 12:56:36.408031235 +0200
+@@ -16,7 +16,11 @@
+ 
+ // Forward declare the crypto types to avoid having to include the full
+ // headers.
++#if defined(USE_OPENSSL)
+ typedef struct evp_pkey_st EVP_PKEY;
++#else
++typedef struct SECKEYPublicKeyStr SECKEYPublicKey;
++#endif
+ 
+ namespace net {
+ 
+@@ -112,7 +116,11 @@
+   ct::DigitallySigned::HashAlgorithm hash_algorithm_;
+   ct::DigitallySigned::SignatureAlgorithm signature_algorithm_;
+ 
++#if defined(USE_OPENSSL)
+   EVP_PKEY* public_key_;
++#else
++  SECKEYPublicKey* public_key_;
++#endif
+ };
+ 
+ }  // namespace net
+--- cert/ev_root_ca_metadata.cc	2019-04-28 12:57:49.234031455 +0200
++++ cert/ev_root_ca_metadata.cc	2019-04-28 12:59:46.731031808 +0200
+@@ -4,7 +4,7 @@
+ 
+ #include "net/cert/ev_root_ca_metadata.h"
+ 
+-#if defined(USE_NSS_CERTS)
++#if defined(USE_NSS_VERIFIER)
+ #include <cert.h>
+ #include <pkcs11n.h>
+ #include <secerr.h>
+@@ -15,7 +15,7 @@
+ 
+ #include "base/lazy_instance.h"
+ #include "base/logging.h"
+-#if defined(USE_NSS_CERTS)
++#if defined(USE_NSS_VERIFIER)
+ #include "crypto/nss_util.h"
+ #elif defined(OS_MACOSX)
+ #include "net/der/input.h"
+@@ -25,7 +25,7 @@
+ 
+ namespace net {
+ 
+-#if defined(USE_NSS_CERTS) || defined(OS_WIN) || defined(OS_MACOSX)
++#if defined(USE_NSS_VERIFIER) || defined(OS_WIN) || defined(OS_MACOSX)
+ // Raw metadata.
+ struct EVMetadata {
+   // kMaxOIDsPerCA is the number of OIDs that we can support per root CA. At
+@@ -630,7 +630,7 @@
+         {"2.16.840.1.114404.1.1.2.4.1", ""},
+     }};
+ 
+-#endif  // defined(USE_NSS_CERTS) || defined(OS_IOS) || defined(OS_WIN)
++#endif  // defined(USE_NSS_VERIFIER) || defined(OS_IOS) || defined(OS_WIN)
+ 
+ static base::LazyInstance<EVRootCAMetadata>::Leaky
+     g_ev_root_ca_metadata = LAZY_INSTANCE_INITIALIZER;
+@@ -640,7 +640,7 @@
+   return g_ev_root_ca_metadata.Pointer();
+ }
+ 
+-#if defined(USE_NSS_CERTS)
++#if defined(USE_NSS_VERIFIER)
+ bool EVRootCAMetadata::IsEVPolicyOID(PolicyOID policy_oid) const {
+   return policy_oids_.find(policy_oid) != policy_oids_.end();
+ }
+@@ -841,7 +841,7 @@
+ 
+ EVRootCAMetadata::EVRootCAMetadata() {
+   // Constructs the object from the raw metadata in ev_root_ca_metadata.
+-#if defined(USE_NSS_CERTS)
++#if defined(USE_NSS_VERIFIER)
+   crypto::EnsureNSSInit();
+ 
+   for (size_t i = 0; i < arraysize(ev_root_ca_metadata); i++) {
+--- cert/ev_root_ca_metadata.h	2019-04-28 13:00:50.499032000 +0200
++++ cert/ev_root_ca_metadata.h	2019-04-28 13:02:03.834032221 +0200
+@@ -7,7 +7,7 @@
+ 
+ #include "build/build_config.h"
+ 
+-#if defined(USE_NSS_CERTS)
++#if defined(USE_NSS_VERIFIER)
+ #include <secoidt.h>
+ #endif
+ 
+@@ -35,7 +35,7 @@
+ // extended-validation (EV) certificates.
+ class NET_EXPORT_PRIVATE EVRootCAMetadata {
+  public:
+-#if defined(USE_NSS_CERTS)
++#if defined(USE_NSS_VERIFIER)
+   typedef SECOidTag PolicyOID;
+ #elif defined(OS_WIN)
+   typedef const char* PolicyOID;
+@@ -46,7 +46,7 @@
+ 
+   static EVRootCAMetadata* GetInstance();
+ 
+-#if defined(USE_NSS_CERTS) || defined(OS_WIN) || defined(OS_MACOSX)
++#if defined(USE_NSS_VERIFIER) || defined(OS_WIN) || defined(OS_MACOSX)
+   // Returns true if policy_oid is an EV policy OID of some root CA.
+   bool IsEVPolicyOID(PolicyOID policy_oid) const;
+ 
+@@ -71,7 +71,7 @@
+   EVRootCAMetadata();
+   ~EVRootCAMetadata();
+ 
+-#if defined(USE_NSS_CERTS)
++#if defined(USE_NSS_VERIFIER)
+   typedef std::map<SHA1HashValue, std::vector<PolicyOID>,
+                    SHA1HashValueLessThan> PolicyOIDMap;
+ 
+--- cert/internal/signature_policy.cc	2019-04-28 13:14:12.647034415 +0200
++++ cert/internal/signature_policy.cc	2019-04-28 13:13:03.373034206 +0200
+@@ -7,7 +7,9 @@
+ #include "base/logging.h"
+ #include "net/cert/internal/cert_error_params.h"
+ #include "net/cert/internal/cert_errors.h"
++#if defined(USE_OPENSSL)
+ #include "third_party/boringssl/src/include/openssl/obj.h"
++#endif
+ 
+ namespace net {
+ 
+@@ -39,12 +41,14 @@
+ 
+ bool SignaturePolicy::IsAcceptableCurveForEcdsa(int curve_nid,
+                                                 CertErrors* errors) const {
++#if defined(USE_OPENSSL)
+   switch (curve_nid) {
+     case NID_X9_62_prime256v1:
+     case NID_secp384r1:
+     case NID_secp521r1:
+       return true;
+   }
++#endif
+ 
+   errors->AddError(kUnacceptableCurveForEcdsa);
+   return false;
+--- cert/internal/verify_signed_data.cc	2019-04-28 13:15:19.769034617 +0200
++++ cert/internal/verify_signed_data.cc	2019-04-28 13:21:41.123035765 +0200
+@@ -4,16 +4,39 @@
+ 
+ #include "net/cert/internal/verify_signed_data.h"
+ 
+-#include "base/compiler_specific.h"
+ #include "base/logging.h"
++#include "net/der/parse_values.h"
++
++// TODO(eroman): There is no intention to implement this for non-OpenSSL. Remove
++// this branch once the migration is complete. This could have been done as a
++// conditional file (_openssl.cc) in the build file instead, but that is likely
++// not worth the effort at this point.
++
++#if !defined(USE_OPENSSL)
++
++namespace net {
++
++bool VerifySignedData(const SignatureAlgorithm& signature_algorithm,
++                      const der::Input& signed_data,
++                      const der::BitString& signature_value,
++                      const der::Input& public_key,
++                      const SignaturePolicy* policy) {
++  NOTIMPLEMENTED();
++  return false;
++}
++
++} // namespace net
++
++#else
++
++#include "base/compiler_specific.h"
+ #include "base/numerics/safe_math.h"
+-#include "crypto/openssl_util.h"
+ #include "net/cert/internal/cert_errors.h"
+ #include "net/cert/internal/signature_algorithm.h"
+ #include "net/cert/internal/signature_policy.h"
+ #include "net/der/input.h"
+-#include "net/der/parse_values.h"
+ #include "net/der/parser.h"
++#include "crypto/openssl_util.h"
+ #include "third_party/boringssl/src/include/openssl/bn.h"
+ #include "third_party/boringssl/src/include/openssl/bytestring.h"
+ #include "third_party/boringssl/src/include/openssl/digest.h"
+@@ -321,3 +344,5 @@
+ }
+ 
+ }  // namespace net
++
++#endif
+--- cert/multi_threaded_cert_verifier.cc	2019-04-28 13:23:28.221036087 +0200
++++ cert/multi_threaded_cert_verifier.cc	2019-04-28 13:26:13.105036584 +0200
+@@ -36,7 +36,7 @@
+ #include "net/log/net_log_source_type.h"
+ #include "net/log/net_log_with_source.h"
+ 
+-#if defined(USE_NSS_CERTS)
++#if defined(USE_NSS_VERIFIER)
+ #include <private/pprthred.h>  // PR_DetachThread
+ #endif
+ 
+@@ -194,7 +194,7 @@
+   *error = verify_proc->Verify(cert.get(), hostname, ocsp_response, flags,
+                                crl_set.get(), additional_trust_anchors, result);
+ 
+-#if defined(USE_NSS_CERTS)
++#if defined(USE_NSS_VERIFIER)
+   // Detach the thread from NSPR.
+   // Calling NSS functions attaches the thread to NSPR, which stores
+   // the NSPR thread ID in thread-specific data.
+--- cert/test_root_certs.h	2019-04-28 14:24:08.043047044 +0200
++++ cert/test_root_certs.h	2019-04-28 14:25:56.293047370 +0200
+@@ -11,7 +11,7 @@
+ #include "build/build_config.h"
+ #include "net/base/net_export.h"
+ 
+-#if defined(USE_NSS_CERTS)
++#if defined(USE_NSS_VERIFIER)
+ #include <cert.h>
+ #include <vector>
+ #elif defined(USE_OPENSSL_CERTS) && !defined(OS_ANDROID)
+@@ -67,7 +67,7 @@
+ 
+ #if defined(USE_NSS_CERTS)
+   bool Contains(CERTCertificate* cert) const;
+-#elif defined(OS_MACOSX) && !defined(USE_NSS_CERTS)
++#elif defined(OS_MACOSX) && !defined(USE_NSS_VERIFIER)
+   CFArrayRef temporary_roots() const { return temporary_roots_; }
+ 
+   // Modifies the root certificates of |trust_ref| to include the
+@@ -102,7 +102,7 @@
+   // Performs platform-dependent initialization.
+   void Init();
+ 
+-#if defined(USE_NSS_CERTS)
++#if defined(USE_NSS_VERIFIER)
+   // TrustEntry is used to store the original CERTCertificate and CERTCertTrust
+   // for a certificate whose trust status has been changed by the
+   // TestRootCerts.
+--- cert/x509_util_nss.h	2019-04-28 14:34:33.536048927 +0200
++++ cert/x509_util_nss.h	2019-04-28 14:35:25.230049083 +0200
+@@ -28,7 +28,7 @@
+ 
+ namespace x509_util {
+ 
+-#if defined(USE_NSS_CERTS)
++#if defined(USE_NSS_VERIFIER)
+ // Parses the Principal attribute from |name| and outputs the result in
+ // |principal|.
+ void ParsePrincipal(CERTName* name,
+@@ -127,7 +127,7 @@
+ std::string GetUniqueNicknameForSlot(const std::string& nickname,
+                                      const SECItem* subject,
+                                      PK11SlotInfo* slot);
+-#endif  // defined(USE_NSS_CERTS)
++#endif  // defined(USE_NSS_VERIFIER)
+ 
+ } // namespace x509_util
+ 
+--- cert/x509_util_nss.cc	2019-04-28 14:36:55.732049355 +0200
++++ cert/x509_util_nss.cc	2019-04-28 14:40:16.706049960 +0200
+@@ -1,7 +1,9 @@
+-// Copyright 2015 The Chromium Authors. All rights reserved.
++// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+ 
++#include "net/cert/x509_util_nss.h"
++
+ #include <cert.h>  // Must be included before certdb.h
+ #include <certdb.h>
+ #include <cryptohi.h>
+@@ -17,7 +19,6 @@
+ #include "base/debug/leak_annotations.h"
+ #include "base/logging.h"
+ #include "base/memory/singleton.h"
+-#include "base/numerics/safe_conversions.h"
+ #include "base/pickle.h"
+ #include "base/strings/stringprintf.h"
+ #include "crypto/ec_private_key.h"
+@@ -25,391 +26,167 @@
+ #include "crypto/nss_util_internal.h"
+ #include "crypto/rsa_private_key.h"
+ #include "crypto/scoped_nss_types.h"
++#include "crypto/third_party/nss/chromium-nss.h"
+ #include "net/cert/x509_certificate.h"
+ #include "net/cert/x509_util.h"
+-#include "net/cert/x509_util_nss.h"
+ 
+ namespace net {
+ 
+ namespace {
+ 
+-// Microsoft User Principal Name: 1.3.6.1.4.1.311.20.2.3
+-const uint8_t kUpnOid[] = {0x2b, 0x6,  0x1,  0x4, 0x1,
+-                           0x82, 0x37, 0x14, 0x2, 0x3};
+-
+-// Callback for CERT_DecodeCertPackage(), used in
+-// CreateOSCertHandlesFromBytes().
+-SECStatus PR_CALLBACK CollectCertsCallback(void* arg,
+-                                           SECItem** certs,
+-                                           int num_certs) {
+-  X509Certificate::OSCertHandles* results =
+-      reinterpret_cast<X509Certificate::OSCertHandles*>(arg);
+-
+-  for (int i = 0; i < num_certs; ++i) {
+-    X509Certificate::OSCertHandle handle =
+-        X509Certificate::CreateOSCertHandleFromBytes(
+-            reinterpret_cast<char*>(certs[i]->data), certs[i]->len);
+-    if (handle)
+-      results->push_back(handle);
+-  }
+-
+-  return SECSuccess;
+-}
+-
+-typedef std::unique_ptr<CERTName,
+-                        crypto::NSSDestroyer<CERTName, CERT_DestroyName>>
+-    ScopedCERTName;
+-
+-// Create a new CERTName object from its encoded representation.
+-// |arena| is the allocation pool to use.
+-// |data| points to a DER-encoded X.509 DistinguishedName.
+-// Return a new CERTName pointer on success, or NULL.
+-CERTName* CreateCertNameFromEncoded(PLArenaPool* arena,
+-                                    const base::StringPiece& data) {
+-  if (!arena)
++// Creates a Certificate object that may be passed to the SignCertificate
++// method to generate an X509 certificate.
++// Returns NULL if an error is encountered in the certificate creation
++// process.
++// Caller responsible for freeing returned certificate object.
++CERTCertificate* CreateCertificate(SECKEYPublicKey* public_key,
++                                   const std::string& subject,
++                                   uint32_t serial_number,
++                                   base::Time not_valid_before,
++                                   base::Time not_valid_after) {
++  // Create info about public key.
++  CERTSubjectPublicKeyInfo* spki =
++      SECKEY_CreateSubjectPublicKeyInfo(public_key);
++  if (!spki)
+     return NULL;
+ 
+-  ScopedCERTName name(PORT_ArenaZNew(arena, CERTName));
+-  if (!name.get())
++  // Create the certificate request.
++  CERTName* subject_name =
++      CERT_AsciiToName(const_cast<char*>(subject.c_str()));
++  CERTCertificateRequest* cert_request =
++      CERT_CreateCertificateRequest(subject_name, spki, NULL);
++  SECKEY_DestroySubjectPublicKeyInfo(spki);
++
++  if (!cert_request) {
++    PRErrorCode prerr = PR_GetError();
++    LOG(ERROR) << "Failed to create certificate request: " << prerr;
++    CERT_DestroyName(subject_name);
+     return NULL;
+-
+-  SECItem item;
+-  item.len = static_cast<unsigned int>(data.length());
+-  item.data = reinterpret_cast<unsigned char*>(const_cast<char*>(data.data()));
+-
+-  SECStatus rv = SEC_ASN1DecodeItem(arena, name.get(),
+-                                    SEC_ASN1_GET(CERT_NameTemplate), &item);
+-  if (rv != SECSuccess)
+-    return NULL;
+-
+-  return name.release();
+-}
+-
+-}  // namespace
+-
+-namespace x509_util {
+-
+-void ParsePrincipal(CERTName* name, CertPrincipal* principal) {
+-// Starting in NSS 3.15, CERTGetNameFunc takes a const CERTName* argument.
+-#if NSS_VMINOR >= 15
+-  typedef char* (*CERTGetNameFunc)(const CERTName* name);
+-#else
+-  typedef char* (*CERTGetNameFunc)(CERTName * name);
+-#endif
+-
+-  // TODO(jcampan): add business_category and serial_number.
+-  // TODO(wtc): NSS has the CERT_GetOrgName, CERT_GetOrgUnitName, and
+-  // CERT_GetDomainComponentName functions, but they return only the most
+-  // general (the first) RDN.  NSS doesn't have a function for the street
+-  // address.
+-  static const SECOidTag kOIDs[] = {
+-      SEC_OID_AVA_STREET_ADDRESS, SEC_OID_AVA_ORGANIZATION_NAME,
+-      SEC_OID_AVA_ORGANIZATIONAL_UNIT_NAME, SEC_OID_AVA_DC};
+-
+-  std::vector<std::string>* values[] = {
+-      &principal->street_addresses, &principal->organization_names,
+-      &principal->organization_unit_names, &principal->domain_components};
+-  DCHECK_EQ(arraysize(kOIDs), arraysize(values));
+-
+-  CERTRDN** rdns = name->rdns;
+-  for (size_t rdn = 0; rdns[rdn]; ++rdn) {
+-    CERTAVA** avas = rdns[rdn]->avas;
+-    for (size_t pair = 0; avas[pair] != 0; ++pair) {
+-      SECOidTag tag = CERT_GetAVATag(avas[pair]);
+-      for (size_t oid = 0; oid < arraysize(kOIDs); ++oid) {
+-        if (kOIDs[oid] == tag) {
+-          SECItem* decode_item = CERT_DecodeAVAValue(&avas[pair]->value);
+-          if (!decode_item)
+-            break;
+-          // TODO(wtc): Pass decode_item to CERT_RFC1485_EscapeAndQuote.
+-          std::string value(reinterpret_cast<char*>(decode_item->data),
+-                            decode_item->len);
+-          values[oid]->push_back(value);
+-          SECITEM_FreeItem(decode_item, PR_TRUE);
+-          break;
+-        }
+-      }
+-    }
+   }
+ 
+-  // Get CN, L, S, and C.
+-  CERTGetNameFunc get_name_funcs[4] = {CERT_GetCommonName, CERT_GetLocalityName,
+-                                       CERT_GetStateName, CERT_GetCountryName};
+-  std::string* single_values[4] = {
+-      &principal->common_name, &principal->locality_name,
+-      &principal->state_or_province_name, &principal->country_name};
+-  for (size_t i = 0; i < arraysize(get_name_funcs); ++i) {
+-    char* value = get_name_funcs[i](name);
+-    if (value) {
+-      single_values[i]->assign(value);
+-      PORT_Free(value);
+-    }
++  CERTValidity* validity = CERT_CreateValidity(
++      crypto::BaseTimeToPRTime(not_valid_before),
++      crypto::BaseTimeToPRTime(not_valid_after));
++  if (!validity) {
++    PRErrorCode prerr = PR_GetError();
++    LOG(ERROR) << "Failed to create certificate validity object: " << prerr;
++    CERT_DestroyName(subject_name);
++    CERT_DestroyCertificateRequest(cert_request);
++    return NULL;
+   }
+-}
+-
+-void ParseDate(const SECItem* der_date, base::Time* result) {
+-  PRTime prtime;
+-  SECStatus rv = DER_DecodeTimeChoice(&prtime, der_date);
+-  DCHECK_EQ(SECSuccess, rv);
+-  *result = crypto::PRTimeToBaseTime(prtime);
+-}
++  CERTCertificate* cert = CERT_CreateCertificate(serial_number, subject_name,
++                                                 validity, cert_request);
++  if (!cert) {
++    PRErrorCode prerr = PR_GetError();
++    LOG(ERROR) << "Failed to create certificate: " << prerr;
++  }
++
++  // Cleanup for resources used to generate the cert.
++  CERT_DestroyName(subject_name);
++  CERT_DestroyValidity(validity);
++  CERT_DestroyCertificateRequest(cert_request);
++
++  return cert;
++}
++
++SECOidTag ToSECOid(x509_util::DigestAlgorithm alg) {
++  switch (alg) {
++    case x509_util::DIGEST_SHA1:
++      return SEC_OID_SHA1;
++    case x509_util::DIGEST_SHA256:
++      return SEC_OID_SHA256;
++  }
++  return SEC_OID_UNKNOWN;
++}
++
++// Signs a certificate object, with |key| generating a new X509Certificate
++// and destroying the passed certificate object (even when NULL is returned).
++// The logic of this method references SignCert() in NSS utility certutil:
++// http://mxr.mozilla.org/security/ident?i=SignCert.
++// Returns true on success or false if an error is encountered in the
++// certificate signing process.
++bool SignCertificate(
++    CERTCertificate* cert,
++    SECKEYPrivateKey* key,
++    SECOidTag hash_algorithm) {
++  // |arena| is used to encode the cert.
++  PLArenaPool* arena = cert->arena;
++  SECOidTag algo_id = SEC_GetSignatureAlgorithmOidTag(key->keyType,
++                                                      hash_algorithm);
++  if (algo_id == SEC_OID_UNKNOWN)
++    return false;
+ 
+-std::string ParseSerialNumber(const CERTCertificate* certificate) {
+-  return std::string(reinterpret_cast<char*>(certificate->serialNumber.data),
+-                     certificate->serialNumber.len);
+-}
+-
+-void GetSubjectAltName(CERTCertificate* cert_handle,
+-                       std::vector<std::string>* dns_names,
+-                       std::vector<std::string>* ip_addrs) {
+-  if (dns_names)
+-    dns_names->clear();
+-  if (ip_addrs)
+-    ip_addrs->clear();
+-
+-  SECItem alt_name;
+-  SECStatus rv = CERT_FindCertExtension(
+-      cert_handle, SEC_OID_X509_SUBJECT_ALT_NAME, &alt_name);
++  SECStatus rv = SECOID_SetAlgorithmID(arena, &cert->signature, algo_id, 0);
+   if (rv != SECSuccess)
+-    return;
++    return false;
+ 
+-  PLArenaPool* arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
+-  DCHECK(arena != NULL);
++  // Generate a cert of version 3.
++  *(cert->version.data) = 2;
++  cert->version.len = 1;
+ 
+-  CERTGeneralName* alt_name_list;
+-  alt_name_list = CERT_DecodeAltNameExtension(arena, &alt_name);
+-  SECITEM_FreeItem(&alt_name, PR_FALSE);
+-
+-  CERTGeneralName* name = alt_name_list;
+-  while (name) {
+-    // DNSName and IPAddress are encoded as IA5String and OCTET STRINGs
+-    // respectively, both of which can be byte copied from
+-    // SECItemType::data into the appropriate output vector.
+-    if (dns_names && name->type == certDNSName) {
+-      dns_names->push_back(
+-          std::string(reinterpret_cast<char*>(name->name.other.data),
+-                      name->name.other.len));
+-    } else if (ip_addrs && name->type == certIPAddress) {
+-      ip_addrs->push_back(
+-          std::string(reinterpret_cast<char*>(name->name.other.data),
+-                      name->name.other.len));
+-    }
+-    name = CERT_GetNextGeneralName(name);
+-    if (name == alt_name_list)
+-      break;
+-  }
+-  PORT_FreeArena(arena, PR_FALSE);
+-}
++  SECItem der = { siBuffer, NULL, 0 };
+ 
+-void GetRFC822SubjectAltNames(CERTCertificate* cert_handle,
+-                              std::vector<std::string>* names) {
+-  crypto::ScopedSECItem alt_name(SECITEM_AllocItem(NULL, NULL, 0));
+-  DCHECK(alt_name.get());
+-
+-  names->clear();
+-  SECStatus rv = CERT_FindCertExtension(
+-      cert_handle, SEC_OID_X509_SUBJECT_ALT_NAME, alt_name.get());
+-  if (rv != SECSuccess)
+-    return;
++  // Use ASN1 DER to encode the cert.
++  void* encode_result = SEC_ASN1EncodeItem(
++      NULL, &der, cert, SEC_ASN1_GET(CERT_CertificateTemplate));
++  if (!encode_result)
++    return false;
+ 
+-  crypto::ScopedPLArenaPool arena(PORT_NewArena(DER_DEFAULT_CHUNKSIZE));
+-  DCHECK(arena.get());
++  // Allocate space to contain the signed cert.
++  SECItem result = { siBuffer, NULL, 0 };
+ 
+-  CERTGeneralName* alt_name_list;
+-  alt_name_list = CERT_DecodeAltNameExtension(arena.get(), alt_name.get());
+-
+-  CERTGeneralName* name = alt_name_list;
+-  while (name) {
+-    if (name->type == certRFC822Name) {
+-      names->push_back(
+-          std::string(reinterpret_cast<char*>(name->name.other.data),
+-                      name->name.other.len));
+-    }
+-    name = CERT_GetNextGeneralName(name);
+-    if (name == alt_name_list)
+-      break;
++  // Sign the ASN1 encoded cert and save it to |result|.
++  rv = DerSignData(arena, &result, &der, key, algo_id);
++  PORT_Free(der.data);
++  if (rv != SECSuccess) {
++    DLOG(ERROR) << "DerSignData: " << PORT_GetError();
++    return false;
+   }
+-}
+ 
+-void GetUPNSubjectAltNames(CERTCertificate* cert_handle,
+-                           std::vector<std::string>* names) {
+-  crypto::ScopedSECItem alt_name(SECITEM_AllocItem(NULL, NULL, 0));
+-  DCHECK(alt_name.get());
+-
+-  names->clear();
+-  SECStatus rv = CERT_FindCertExtension(
+-      cert_handle, SEC_OID_X509_SUBJECT_ALT_NAME, alt_name.get());
+-  if (rv != SECSuccess)
+-    return;
++  // Save the signed result to the cert.
++  cert->derCert = result;
+ 
+-  crypto::ScopedPLArenaPool arena(PORT_NewArena(DER_DEFAULT_CHUNKSIZE));
+-  DCHECK(arena.get());
+-
+-  CERTGeneralName* alt_name_list;
+-  alt_name_list = CERT_DecodeAltNameExtension(arena.get(), alt_name.get());
+-
+-  CERTGeneralName* name = alt_name_list;
+-  while (name) {
+-    if (name->type == certOtherName) {
+-      OtherName* on = &name->name.OthName;
+-      if (on->oid.len == sizeof(kUpnOid) &&
+-          memcmp(on->oid.data, kUpnOid, sizeof(kUpnOid)) == 0) {
+-        SECItem decoded;
+-        if (SEC_QuickDERDecodeItem(arena.get(), &decoded,
+-                                   SEC_ASN1_GET(SEC_UTF8StringTemplate),
+-                                   &name->name.OthName.name) == SECSuccess) {
+-          names->push_back(
+-              std::string(reinterpret_cast<char*>(decoded.data), decoded.len));
+-        }
+-      }
+-    }
+-    name = CERT_GetNextGeneralName(name);
+-    if (name == alt_name_list)
+-      break;
+-  }
+-}
+-
+-X509Certificate::OSCertHandles CreateOSCertHandlesFromBytes(
+-    const char* data,
+-    size_t length,
+-    X509Certificate::Format format) {
+-  X509Certificate::OSCertHandles results;
+-
+-  crypto::EnsureNSSInit();
+-
+-  if (!NSS_IsInitialized())
+-    return results;
+-
+-  switch (format) {
+-    case X509Certificate::FORMAT_SINGLE_CERTIFICATE: {
+-      X509Certificate::OSCertHandle handle =
+-          X509Certificate::CreateOSCertHandleFromBytes(data, length);
+-      if (handle)
+-        results.push_back(handle);
+-      break;
+-    }
+-    case X509Certificate::FORMAT_PKCS7: {
+-      // Make a copy since CERT_DecodeCertPackage may modify it
+-      std::vector<char> data_copy(data, data + length);
+-
+-      SECStatus result = CERT_DecodeCertPackage(
+-          data_copy.data(), base::checked_cast<int>(data_copy.size()),
+-          CollectCertsCallback, &results);
+-      if (result != SECSuccess)
+-        results.clear();
+-      break;
+-    }
+-    default:
+-      NOTREACHED() << "Certificate format " << format << " unimplemented";
+-      break;
+-  }
+-
+-  return results;
++  return true;
+ }
+ 
+-X509Certificate::OSCertHandle ReadOSCertHandleFromPickle(
+-    base::PickleIterator* pickle_iter) {
+-  const char* data;
+-  int length;
+-  if (!pickle_iter->ReadData(&data, &length))
+-    return NULL;
+-
+-  return X509Certificate::CreateOSCertHandleFromBytes(data, length);
+-}
+-
+-void GetPublicKeyInfo(CERTCertificate* handle,
+-                      size_t* size_bits,
+-                      X509Certificate::PublicKeyType* type) {
+-  // Since we might fail, set the output parameters to default values first.
+-  *type = X509Certificate::kPublicKeyTypeUnknown;
+-  *size_bits = 0;
+-
+-  crypto::ScopedSECKEYPublicKey key(CERT_ExtractPublicKey(handle));
+-  if (!key.get())
+-    return;
+-
+-  *size_bits = SECKEY_PublicKeyStrengthInBits(key.get());
+-
+-  switch (key->keyType) {
+-    case rsaKey:
+-      *type = X509Certificate::kPublicKeyTypeRSA;
+-      break;
+-    case dsaKey:
+-      *type = X509Certificate::kPublicKeyTypeDSA;
+-      break;
+-    case dhKey:
+-      *type = X509Certificate::kPublicKeyTypeDH;
+-      break;
+-    case ecKey:
+-      *type = X509Certificate::kPublicKeyTypeECDSA;
+-      break;
+-    default:
+-      *type = X509Certificate::kPublicKeyTypeUnknown;
+-      *size_bits = 0;
+-      break;
+-  }
+-}
+-
+-bool GetIssuersFromEncodedList(const std::vector<std::string>& encoded_issuers,
+-                               PLArenaPool* arena,
+-                               std::vector<CERTName*>* out) {
+-  std::vector<CERTName*> result;
+-  for (size_t n = 0; n < encoded_issuers.size(); ++n) {
+-    CERTName* name = CreateCertNameFromEncoded(arena, encoded_issuers[n]);
+-    if (name != NULL)
+-      result.push_back(name);
+-  }
+-
+-  if (result.size() == encoded_issuers.size()) {
+-    out->swap(result);
+-    return true;
+-  }
++}  // namespace
+ 
+-  for (size_t n = 0; n < result.size(); ++n)
+-    CERT_DestroyName(result[n]);
+-  return false;
+-}
++namespace x509_util {
+ 
+-bool IsCertificateIssuedBy(const std::vector<CERTCertificate*>& cert_chain,
+-                           const std::vector<CERTName*>& valid_issuers) {
+-  for (size_t n = 0; n < cert_chain.size(); ++n) {
+-    CERTName* cert_issuer = &cert_chain[n]->issuer;
+-    for (size_t i = 0; i < valid_issuers.size(); ++i) {
+-      if (CERT_CompareName(valid_issuers[i], cert_issuer) == SECEqual)
+-        return true;
+-    }
+-  }
++bool CreateSelfSignedCert(crypto::RSAPrivateKey* key,
++                          DigestAlgorithm alg,
++                          const std::string& subject,
++                          uint32_t serial_number,
++                          base::Time not_valid_before,
++                          base::Time not_valid_after,
++                          std::string* der_cert) {
++  DCHECK(key);
++  DCHECK(!strncmp(subject.c_str(), "CN=", 3U));
++  CERTCertificate* cert = CreateCertificate(key->public_key(),
++                                            subject,
++                                            serial_number,
++                                            not_valid_before,
++                                            not_valid_after);
++  if (!cert)
++    return false;
++
++  if (!SignCertificate(cert, key->key(), ToSECOid(alg))) {
++    CERT_DestroyCertificate(cert);
++    return false;
++  }
++
++  der_cert->assign(reinterpret_cast<char*>(cert->derCert.data),
++                   cert->derCert.len);
++  CERT_DestroyCertificate(cert);
++  return true;
++}
++
++bool GetTLSServerEndPointChannelBinding(const X509Certificate& certificate,
++                                        std::string* token) {
++  NOTIMPLEMENTED();
+   return false;
+ }
+ 
+-std::string GetUniqueNicknameForSlot(const std::string& nickname,
+-                                     const SECItem* subject,
+-                                     PK11SlotInfo* slot) {
+-  int index = 2;
+-  std::string new_name = nickname;
+-  std::string temp_nickname = new_name;
+-  std::string token_name;
+-
+-  if (!slot)
+-    return new_name;
+-
+-  if (!PK11_IsInternalKeySlot(slot)) {
+-    token_name.assign(PK11_GetTokenName(slot));
+-    token_name.append(":");
+-
+-    temp_nickname = token_name + new_name;
+-  }
+-
+-  while (SEC_CertNicknameConflict(temp_nickname.c_str(),
+-                                  const_cast<SECItem*>(subject),
+-                                  CERT_GetDefaultCertDB())) {
+-    base::SStringPrintf(&new_name, "%s #%d", nickname.c_str(), index++);
+-    temp_nickname = token_name + new_name;
+-  }
+-
+-  return new_name;
+-}
+-
+-}  // namespace x509_util
++} // namespace x509_util
+ 
+-}  // namespace net
++} // namespace net
+--- quic/core/crypto/aes_128_gcm_12_decrypter.h	2019-04-28 14:50:06.586051736 +0200
++++ quic/core/crypto/aes_128_gcm_12_decrypter.h	2019-04-28 16:27:45.095069372 +0200
+@@ -29,6 +29,15 @@
+   Aes128Gcm12Decrypter();
+   ~Aes128Gcm12Decrypter() override;
+ 
++#if !defined(USE_OPENSSL)
++   protected:
++  // AeadBaseDecrypter methods:
++  void FillAeadParams(base::StringPiece nonce,
++                      base::StringPiece associated_data,
++                      size_t auth_tag_size,
++                      AeadParams* aead_params) const override;
++#endif
++
+   const char* cipher_name() const override;
+   uint32_t cipher_id() const override;
+ 
+--- quic/core/crypto/aes_128_gcm_12_encrypter.h	2019-04-28 16:30:04.519069791 +0200
++++ quic/core/crypto/aes_128_gcm_12_encrypter.h	2019-04-28 16:30:49.754069927 +0200
+@@ -27,6 +27,15 @@
+   Aes128Gcm12Encrypter();
+   ~Aes128Gcm12Encrypter() override;
+ 
++#if !defined(USE_OPENSSL)
++   protected:
++  // AeadBaseEncrypter methods:
++  void FillAeadParams(base::StringPiece nonce,
++                      base::StringPiece associated_data,
++                      size_t auth_tag_size,
++                      AeadParams* aead_params) const override;
++#endif
++
+  private:
+   DISALLOW_COPY_AND_ASSIGN(Aes128Gcm12Encrypter);
+ };
+--- quic/chromium/quic_stream_factory.cc	2019-04-28 16:59:09.875075045 +0200
++++ quic/chromium/quic_stream_factory.cc	2019-04-28 17:18:55.901078616 +0200
+@@ -24,7 +24,6 @@
+ #include "base/trace_event/process_memory_dump.h"
+ #include "base/trace_event/trace_event.h"
+ #include "base/values.h"
+-#include "crypto/openssl_util.h"
+ #include "net/base/ip_address.h"
+ #include "net/base/net_errors.h"
+ #include "net/base/proxy_delegate.h"
+@@ -58,10 +57,16 @@
+ #include "net/socket/socket_performance_watcher_factory.h"
+ #include "net/socket/udp_client_socket.h"
+ #include "net/ssl/token_binding.h"
+-#include "third_party/boringssl/src/include/openssl/aead.h"
+ #include "url/gurl.h"
+ #include "url/url_constants.h"
+ 
++#if defined(USE_OPENSSL)
++#include "third_party/boringssl/src/include/openssl/aead.h"
++#include "crypto/openssl_util.h"
++#else
++#include "base/cpu.h"
++#endif
++
+ using NetworkHandle = net::NetworkChangeNotifier::NetworkHandle;
+ 
+ namespace net {
+@@ -846,8 +851,13 @@
+   }
+   if (enable_token_binding && channel_id_service)
+     crypto_config_.tb_key_params.push_back(kTB10);
++#if defined(USE_OPENSSL)
+   crypto::EnsureOpenSSLInit();
+   bool has_aes_hardware_support = !!EVP_has_aes_hardware();
++#else
++  base::CPU cpu;
++  bool has_aes_hardware_support = cpu.has_aesni() && cpu.has_avx();
++#endif
+   UMA_HISTOGRAM_BOOLEAN("Net.QuicSession.PreferAesGcm",
+                         has_aes_hardware_support);
+   if (has_aes_hardware_support || prefer_aes_)
+--- socket/ssl_client_socket.cc	2019-04-28 17:30:08.110080639 +0200
++++ socket/ssl_client_socket.cc	2019-04-28 17:53:08.565084795 +0200
+@@ -10,7 +10,9 @@
+ #include "build/build_config.h"
+ #include "crypto/ec_private_key.h"
+ #include "net/base/net_errors.h"
++#if defined(USE_OPENSSL)
+ #include "net/socket/ssl_client_socket_impl.h"
++#endif
+ #include "net/ssl/channel_id_service.h"
+ #include "net/ssl/ssl_config_service.h"
+ 
+@@ -24,7 +26,7 @@
+ void SSLClientSocket::SetSSLKeyLogFile(
+     const base::FilePath& path,
+     const scoped_refptr<base::SequencedTaskRunner>& task_runner) {
+-#if !defined(OS_NACL)
++#if defined(USE_OPENSSL) && !defined(OS_NACL)
+   SSLClientSocketImpl::SetSSLKeyLogFile(path, task_runner);
+ #else
+   NOTIMPLEMENTED();
+--- cert/cert_verifier.h	2019-04-29 17:23:51.321078055 +0200
++++ cert/cert_verifier.h	2019-04-29 17:26:34.126078545 +0200
+@@ -128,6 +128,9 @@
+     scoped_refptr<X509Certificate> certificate_;
+     std::string hostname_;
+     int flags_;
++#if !defined(USE_OPENSSL)
++    std::vector<SHA1HashValue> request_data_;
++#endif
+     std::string ocsp_response_;
+     CertificateList additional_trust_anchors_;
+ 
+--- cert/cert_verifier.cc	2019-04-28 19:36:25.206103448 +0200
++++ cert/cert_verifier.cc	2019-04-28 19:49:07.848105744 +0200
+@@ -11,7 +11,11 @@
+ #include "base/strings/string_util.h"
+ #include "build/build_config.h"
+ #include "net/cert/cert_verify_proc.h"
++#if defined(OPENSSL)
+ #include "third_party/boringssl/src/include/openssl/sha.h"
++#else
++#include "base/sha1.h"
++#endif
+ 
+ #if defined(OS_NACL)
+ #include "base/logging.h"
+@@ -33,6 +37,7 @@
+       flags_(flags),
+       ocsp_response_(ocsp_response),
+       additional_trust_anchors_(std::move(additional_trust_anchors)) {
++#if defined(USE_OPENSSL)
+   // For efficiency sake, rather than compare all of the fields for each
+   // comparison, compute a hash of their values. This is done directly in
+   // this class, rather than as an overloaded hash operator, for efficiency's
+@@ -56,6 +61,21 @@
+   SHA256_Final(reinterpret_cast<uint8_t*>(
+                    base::WriteInto(&key_, SHA256_DIGEST_LENGTH + 1)),
+                &ctx);
++#else
++  // Rather than store all of the original data, create a fingerprint based
++  // on the hash of the request data.
++  SHA1HashValue ocsp_hash;
++  base::SHA1HashBytes(
++      reinterpret_cast<const unsigned char*>(ocsp_response.data()),
++      ocsp_response.size(), ocsp_hash.data);
++
++  request_data_.reserve(additional_trust_anchors.size() + 3);
++  request_data_.push_back(ocsp_hash);
++  request_data_.push_back(certificate->fingerprint());
++  request_data_.push_back(certificate->ca_fingerprint());
++  for (const auto& trust_anchor : additional_trust_anchors)
++    request_data_.push_back(trust_anchor->fingerprint());
++#endif
+ }
+ 
+ CertVerifier::RequestParams::RequestParams(const RequestParams& other) =
+@@ -69,7 +89,17 @@
+ 
+ bool CertVerifier::RequestParams::operator<(
+     const CertVerifier::RequestParams& other) const {
++#if defined(USE_OPENSSL)
+   return key_ < other.key_;
++#else
++  if (flags_ != other.flags_)
++    return flags_ < other.flags_;
++  if (hostname_ != other.hostname_)
++    return hostname_ < other.hostname_;
++  return std::lexicographical_compare(
++      request_data_.begin(), request_data_.end(), other.request_data_.begin(),
++      other.request_data_.end(), SHA1HashValueLessThan());
++#endif
+ }
+ 
+ bool CertVerifier::SupportsOCSPStapling() {
+
+--- cert/x509_certificate.h	2019-04-29 17:30:09.636079194 +0200
++++ cert/x509_certificate.h	2019-04-29 17:40:11.471081005 +0200
+@@ -196,6 +196,16 @@
+   const base::Time& valid_start() const { return valid_start_; }
+   const base::Time& valid_expiry() const { return valid_expiry_; }
+ 
++#if !defined(USE_OPENSSL)
++  // The fingerprint of this certificate.
++  const SHA1HashValue& fingerprint() const { return fingerprint_; }
++
++  // The fingerprint of the intermediate CA certificates.
++  const SHA1HashValue& ca_fingerprint() const {
++    return ca_fingerprint_;
++  }
++#endif
++
+   // Gets the DNS names in the certificate.  Pursuant to RFC 2818, Section 3.1
+   // Server Identity, if the certificate has a subjectAltName extension of
+   // type dNSName, this method gets the DNS names in that extension.
+@@ -369,10 +379,29 @@
+   // Frees (or releases a reference to) an OS certificate handle.
+   static void FreeOSCertHandle(OSCertHandle cert_handle);
+ 
++#if !defined(USE_OPENSSL)
++  // Calculates the SHA-1 fingerprint of the certificate.  Returns an empty
++  // (all zero) fingerprint on failure.
++  //
++  // For calculating fingerprints, prefer SHA-1 for performance when indexing,
++  // but callers should use IsSameOSCert() before assuming two certificates are
++  // the same.
++  static SHA1HashValue CalculateFingerprint(OSCertHandle cert_handle);
++#endif
++
+   // Calculates the SHA-256 fingerprint of the certificate.  Returns an empty
+   // (all zero) fingerprint on failure.
+   static SHA256HashValue CalculateFingerprint256(OSCertHandle cert_handle);
+ 
++#if !defined(USE_OPENSSL)
++  // Calculates the SHA-1 fingerprint of the intermediate CA certificates.
++  // Returns an empty (all zero) fingerprint on failure.
++  //
++  // See SHA-1 caveat on CalculateFingerprint().
++  static SHA1HashValue CalculateCAFingerprint(
++      const OSCertHandles& intermediates);
++#endif
++
+   // Calculates the SHA-256 fingerprint of the intermediate CA certificates.
+   // Returns an empty (all zero) fingerprint on failure.
+   static SHA256HashValue CalculateCAFingerprint256(
+@@ -456,6 +485,14 @@
+   // This certificate is not valid after |valid_expiry_|
+   base::Time valid_expiry_;
+ 
++#if !defined(USE_OPENSSL)
++  // The fingerprint of this certificate.
++  SHA1HashValue fingerprint_;
++
++  // The fingerprint of the intermediate CA certificates.
++  SHA1HashValue ca_fingerprint_;
++#endif
++
+   // The serial number of this certificate, DER encoded.
+   std::string serial_number_;
+ 
+--- cert/x509_certificate_nss.cc	2019-04-29 17:48:18.084082470 +0200
++++ cert/x509_certificate_nss.cc	2019-04-29 17:57:24.995084116 +0200
+@@ -33,6 +33,11 @@
+   x509_util::ParseDate(&cert_handle_->validity.notBefore, &valid_start_);
+   x509_util::ParseDate(&cert_handle_->validity.notAfter, &valid_expiry_);
+ 
++#if !defined(USE_OPENSSL)
++  fingerprint_ = CalculateFingerprint(cert_handle_);
++  ca_fingerprint_ = CalculateCAFingerprint(intermediate_ca_certs_);
++#endif
++
+   serial_number_ = x509_util::ParseSerialNumber(cert_handle_);
+ }
+ 
+@@ -180,6 +185,23 @@
+   CERT_DestroyCertificate(cert_handle);
+ }
+ 
++#if !defined(USE_OPENSSL)
++SHA1HashValue X509Certificate::CalculateFingerprint(
++    OSCertHandle cert) {
++  SHA1HashValue sha1;
++  memset(sha1.data, 0, sizeof(sha1.data));
++
++  DCHECK(NULL != cert->derCert.data);
++  DCHECK_NE(0U, cert->derCert.len);
++
++  SECStatus rv = HASH_HashBuf(HASH_AlgSHA1, sha1.data,
++                              cert->derCert.data, cert->derCert.len);
++  DCHECK_EQ(SECSuccess, rv);
++
++  return sha1;
++}
++#endif
++
+ // static
+ SHA256HashValue X509Certificate::CalculateFingerprint256(OSCertHandle cert) {
+   SHA256HashValue sha256;
+@@ -195,6 +217,29 @@
+   return sha256;
+ }
+ 
++#if !defined(USE_OPENSSL)
++// static
++SHA1HashValue X509Certificate::CalculateCAFingerprint(
++    const OSCertHandles& intermediates) {
++  SHA1HashValue sha1;
++  memset(sha1.data, 0, sizeof(sha1.data));
++
++  HASHContext* sha1_ctx = HASH_Create(HASH_AlgSHA1);
++  if (!sha1_ctx)
++    return sha1;
++  HASH_Begin(sha1_ctx);
++  for (size_t i = 0; i < intermediates.size(); ++i) {
++    CERTCertificate* ca_cert = intermediates[i];
++    HASH_Update(sha1_ctx, ca_cert->derCert.data, ca_cert->derCert.len);
++  }
++  unsigned int result_len;
++  HASH_End(sha1_ctx, sha1.data, &result_len, HASH_ResultLenContext(sha1_ctx));
++  HASH_Destroy(sha1_ctx);
++
++  return sha1;
++}
++#endif
++
+ // static
+ SHA256HashValue X509Certificate::CalculateCAFingerprint256(
+     const OSCertHandles& intermediates) {
+--- cert/ct_log_verifier.cc	2019-04-29 18:23:52.285088895 +0200
++++ cert/ct_log_verifier.cc	2019-04-29 18:32:54.691090527 +0200
+@@ -16,8 +16,12 @@
+ #include "net/cert/merkle_audit_proof.h"
+ #include "net/cert/merkle_consistency_proof.h"
+ #include "net/cert/signed_tree_head.h"
++#if defined(USE_OPENSSL)
+ #include "third_party/boringssl/src/include/openssl/bytestring.h"
+ #include "third_party/boringssl/src/include/openssl/evp.h"
++#else
++
++#endif
+ 
+ namespace net {
+ 
+@@ -33,6 +37,7 @@
+   return n != 0 && (n & (n - 1)) == 0;
+ }
+ 
++#if defined(USE_OPENSSL)
+ const EVP_MD* GetEvpAlg(ct::DigitallySigned::HashAlgorithm alg) {
+   switch (alg) {
+     case ct::DigitallySigned::HASH_ALGO_MD5:
+@@ -53,6 +58,7 @@
+       return NULL;
+   }
+ }
++#endif
+ 
+ }  // namespace
+ 
+@@ -300,6 +306,7 @@
+   return sn == 0 && r == root_hash;
+ }
+ 
++#if defined(USE_OPENSSL)
+ CTLogVerifier::~CTLogVerifier() {
+   crypto::OpenSSLErrStackTracer err_tracer(FROM_HERE);
+ 
+@@ -368,5 +375,6 @@
+   EVP_MD_CTX_cleanup(&ctx);
+   return ok;
+ }
++#endif
+ 
+ }  // namespace net
+--- http/http_response_info.cc	2019-04-30 08:38:47.721013101 +0200
++++ http/http_response_info.cc	2019-04-30 09:06:09.167018042 +0200
+@@ -15,8 +15,10 @@
+ #include "net/cert/x509_certificate.h"
+ #include "net/http/http_response_headers.h"
+ #include "net/ssl/ssl_cert_request_info.h"
++#if defined(USE_OPENSSL)
+ #include "net/ssl/ssl_connection_status_flags.h"
+ #include "third_party/boringssl/src/include/openssl/ssl.h"
++#endif
+ 
+ using base::Time;
+ 
+@@ -36,6 +38,7 @@
+   }
+ }
+ 
++#if defined(USE_OPENSSL)
+ bool KeyExchangeGroupIsValid(int ssl_connection_status) {
+   // TLS 1.3 and later always treat the field correctly.
+   if (SSLConnectionStatusToVersion(ssl_connection_status) >=
+@@ -48,6 +51,7 @@
+       SSLConnectionStatusToCipherSuite(ssl_connection_status));
+   return cipher && SSL_CIPHER_is_ECDHE(cipher);
+ }
++#endif
+ 
+ }  // namespace
+ 
+@@ -109,8 +113,13 @@
+ 
+   RESPONSE_INFO_UNUSED_SINCE_PREFETCH = 1 << 21,
+ 
++#if defined(USE_OPENSSL)
+   // This bit is set if the response has a key exchange group.
+   RESPONSE_INFO_HAS_KEY_EXCHANGE_GROUP = 1 << 22,
++#else
++  // This bit is set if the response has a key-exchange-info field at the end..
++  RESPONSE_INFO_HAS_KEY_EXCHANGE_INFO = 1 << 22,
++#endif
+ 
+   // This bit is set if ssl_info recorded that PKP was bypassed due to a local
+   // trust anchor.
+@@ -301,6 +310,7 @@
+     }
+   }
+ 
++#if defined(USE_OPENSSL)
+   // Read key_exchange_group
+   if (flags & RESPONSE_INFO_HAS_KEY_EXCHANGE_GROUP) {
+     int key_exchange_group;
+@@ -313,6 +323,16 @@
+     if (KeyExchangeGroupIsValid(ssl_info.connection_status))
+       ssl_info.key_exchange_group = key_exchange_group;
+   }
++#else
++  // Read key_exchange_info
++  if (flags & RESPONSE_INFO_HAS_KEY_EXCHANGE_INFO) {
++    int key_exchange_info;
++    if (!iter.ReadInt(&key_exchange_info))
++      return false;
++
++  ssl_info.key_exchange_info = key_exchange_info;
++ }
++#endif
+ 
+   was_fetched_via_spdy = (flags & RESPONSE_INFO_WAS_SPDY) != 0;
+ 
+@@ -340,8 +360,13 @@
+     flags |= RESPONSE_INFO_HAS_CERT_STATUS;
+     if (ssl_info.security_bits != -1)
+       flags |= RESPONSE_INFO_HAS_SECURITY_BITS;
++#if defined(USE_OPENSSL)
+     if (ssl_info.key_exchange_group != 0)
+       flags |= RESPONSE_INFO_HAS_KEY_EXCHANGE_GROUP;
++#else
++    if (ssl_info.key_exchange_info != 0)
++      flags |= RESPONSE_INFO_HAS_KEY_EXCHANGE_INFO;
++#endif
+     if (ssl_info.connection_status != 0)
+       flags |= RESPONSE_INFO_HAS_SSL_CONNECTION_STATUS;
+   }
+@@ -416,8 +441,13 @@
+   if (connection_info != CONNECTION_INFO_UNKNOWN)
+     pickle->WriteInt(static_cast<int>(connection_info));
+ 
++#if defined(USE_OPENSSL)
+   if (ssl_info.is_valid() && ssl_info.key_exchange_group != 0)
+     pickle->WriteInt(ssl_info.key_exchange_group);
++#else
++  if (ssl_info.is_valid() && ssl_info.key_exchange_info != 0)
++    pickle->WriteInt(ssl_info.key_exchange_info);
++#endif
+ }
+ 
+ bool HttpResponseInfo::DidUseQuic() const {
+--- ssl/ssl_info.h	2019-04-30 08:50:53.772015287 +0200
++++ ssl/ssl_info.h	2019-04-30 08:51:55.233015472 +0200
+@@ -82,9 +82,20 @@
+   // -1 means the security strength is unknown.
+   int security_bits;
+ 
++#if defined(USE_OPENSSL)
+   // The ID of the (EC)DH group used by the key exchange or zero if unknown
+   // (older cache entries may not store the value) or not applicable.
+   uint16_t key_exchange_group;
++#else
++  // Security information of the SSL connection handshake.
++  // The meaning depends on the cipher used, see BoringSSL's |SSL_SESSION|'s
++  // key_exchange_info for more information.
++  // A zero indicates that the value is unknown.
++  //
++  // This field is deprecated. Use GetKeyExchangeGroup instead. See
++  // https://crbug.com/639421.
++  int key_exchange_info;
++#endif
+ 
+   // Information about the SSL connection itself. See
+   // ssl_connection_status_flags.h for values. The protocol version,
+--- quic/core/crypto/curve25519_key_exchange.cc	2019-04-30 12:41:17.846034175 +0200
++++ quic/core/crypto/curve25519_key_exchange.cc	2019-04-30 12:57:42.119037138 +0200
+@@ -4,10 +4,13 @@
+ 
+ #include "net/quic/core/crypto/curve25519_key_exchange.h"
+ 
+-#include <cstdint>
+-
+ #include "net/quic/core/crypto/quic_random.h"
++#if defined(USE_OPENSSL)
++#include <cstdint>
+ #include "third_party/boringssl/src/include/openssl/curve25519.h"
++#else
++#include "crypto/curve25519.h"
++#endif
+ 
+ using base::StringPiece;
+ using std::string;
+@@ -21,6 +24,7 @@
+ // static
+ Curve25519KeyExchange* Curve25519KeyExchange::New(StringPiece private_key) {
+   Curve25519KeyExchange* ka;
++#if defined(USE_OPENSSL)
+   // We don't want to #include the BoringSSL headers in the public header file,
+   // so we use literals for the sizes of private_key_ and public_key_. Here we
+   // assert that those values are equal to the values from the BoringSSL
+@@ -33,17 +37,46 @@
+   if (private_key.size() != X25519_PRIVATE_KEY_LEN) {
+     return nullptr;
+   }
++#else
++  static_assert(sizeof(ka->private_key_) == crypto::curve25519::kScalarBytes,
++                "header out of sync");
++  static_assert(sizeof(ka->public_key_) == crypto::curve25519::kBytes,
++                "header out of sync");
++
++  if (private_key.size() != crypto::curve25519::kScalarBytes) {
++    return nullptr;
++  }
++#endif
++
+ 
+   ka = new Curve25519KeyExchange();
++#if defined(USE_OPENSSL)
+   memcpy(ka->private_key_, private_key.data(), X25519_PRIVATE_KEY_LEN);
+   X25519_public_from_private(ka->public_key_, ka->private_key_);
++#else
++  memcpy(ka->private_key_, private_key.data(),
++         crypto::curve25519::kScalarBytes);
++  crypto::curve25519::ScalarBaseMult(ka->private_key_, ka->public_key_);
++#endif
+   return ka;
+ }
+ 
+ // static
+ string Curve25519KeyExchange::NewPrivateKey(QuicRandom* rand) {
++#if defined(USE_OPENSSL)
+   uint8_t private_key[X25519_PRIVATE_KEY_LEN];
++#else
++  uint8_t private_key[crypto::curve25519::kScalarBytes];
++#endif
+   rand->RandBytes(private_key, sizeof(private_key));
++
++#if !defined(USE_OPENSSL)
++  // This makes |private_key| a valid scalar, as specified on
++  // http://cr.yp.to/ecdh.html
++  private_key[0] &= 248;
++  private_key[31] &= 127;
++  private_key[31] |= 64;
++#endif
+   return string(reinterpret_cast<char*>(private_key), sizeof(private_key));
+ }
+ 
+@@ -54,13 +87,24 @@
+ 
+ bool Curve25519KeyExchange::CalculateSharedKey(StringPiece peer_public_value,
+                                                string* out_result) const {
++#if defined(USE_OPENSSL)
+   if (peer_public_value.size() != X25519_PUBLIC_VALUE_LEN) {
++#else
++  if (peer_public_value.size() != crypto::curve25519::kBytes) {
++#endif
+     return false;
+   }
+ 
++#if defined(USE_OPENSSL)
+   uint8_t result[X25519_PUBLIC_VALUE_LEN];
+   if (!X25519(result, private_key_,
+               reinterpret_cast<const uint8_t*>(peer_public_value.data()))) {
++#else
++  uint8_t result[crypto::curve25519::kBytes];
++  if (!crypto::curve25519::ScalarMult(
++          private_key_,
++          reinterpret_cast<const uint8_t*>(peer_public_value.data()), result)) {
++#endif
+     return false;
+   }
+ 
+--- quic/core/crypto/curve25519_key_exchange.h	2019-04-30 12:58:08.459037217 +0200
++++ quic/core/crypto/curve25519_key_exchange.h	2019-04-30 12:58:35.571037298 +0200
+@@ -5,7 +5,11 @@
+ #ifndef NET_QUIC_CORE_CRYPTO_CURVE25519_KEY_EXCHANGE_H_
+ #define NET_QUIC_CORE_CRYPTO_CURVE25519_KEY_EXCHANGE_H_
+ 
++#if defined(USE_OPENSSL)
+ #include <cstdint>
++#else
++#include <stdint.h>
++#endif
+ #include <string>
+ 
+ #include "base/compiler_specific.h"
+--- extras/sqlite/sqlite_channel_id_store.cc	2019-04-30 13:17:59.741040803 +0200
++++ extras/sqlite/sqlite_channel_id_store.cc	2019-04-30 13:25:06.143042087 +0200
+@@ -227,7 +227,12 @@
+     smt.ColumnBlobAsVector(2, &public_key_from_db);
+     std::unique_ptr<crypto::ECPrivateKey> key(
+         crypto::ECPrivateKey::CreateFromEncryptedPrivateKeyInfo(
++#if defined(USE_OPENSSL)
+             private_key_from_db, public_key_from_db));
++#else
++            ChannelIDService::kEPKIPassword, private_key_from_db,
++            public_key_from_db));
++#endif
+     if (!key)
+       continue;
+     std::unique_ptr<DefaultChannelIDStore::ChannelID> channel_id(
+@@ -497,7 +502,12 @@
+         add_statement.Reset(true);
+         add_statement.BindString(0, po->channel_id().server_identifier());
+         std::vector<uint8_t> private_key, public_key;
++#if defined(USE_OPENSSL)
+         if (!po->channel_id().key()->ExportEncryptedPrivateKey(&private_key))
++#else
++        if (!po->channel_id().key()->ExportEncryptedPrivateKey(
++               ChannelIDService::kEPKIPassword, 1, &private_key))
++#endif
+           continue;
+         if (!po->channel_id().key()->ExportPublicKey(&public_key))
+           continue;
+--- ssl/channel_id_service.h.old	2019-04-30 13:28:26.925042691 +0200
++++ ssl/channel_id_service.h	2019-04-30 13:29:08.169042815 +0200
+@@ -71,6 +71,13 @@
+     ChannelIDServiceJob* job_;
+   };
+ 
++#if !defined(USE_OPENSSL)
++  // Password used on EncryptedPrivateKeyInfo data stored in EC private_key
++  // values.  (This is not used to provide any security, but to workaround NSS
++  // being unable to import unencrypted PrivateKeyInfo for EC keys.)
++  static const char kEPKIPassword[];
++#endif
++
+   // This object owns |channel_id_store|.
+   explicit ChannelIDService(ChannelIDStore* channel_id_store);
+ 
+--- ssl/channel_id_service.cc	2019-04-28 17:55:48.570085276 +0200
++++ ssl/channel_id_service.cc	2019-04-30 13:30:01.961042977 +0200
+@@ -31,6 +31,10 @@
+ #include "net/cert/x509_util.h"
+ #include "url/gurl.h"
+ 
++#if !defined(USE_OPENSSL)
++#include <private/pprthred.h>  // PR_DetachThread
++#endif
++
+ namespace net {
+ 
+ namespace {
+@@ -148,6 +152,16 @@
+     int error = ERR_FAILED;
+     std::unique_ptr<ChannelIDStore::ChannelID> channel_id =
+         GenerateChannelID(server_identifier_, &error);
++#if !defined(USE_OPENSSL)
++    // Detach the thread from NSPR.
++    // Calling NSS functions attaches the thread to NSPR, which stores
++    // the NSPR thread ID in thread-specific data.
++    // The threads in our thread pool terminate after we have called
++    // PR_Cleanup. Unless we detach them from NSPR, net_unittests gets
++    // segfaults on shutdown when the threads' thread-specific data
++    // destructors run.
++    PR_DetachThread();
++#endif
+     origin_task_runner_->PostTask(
+         FROM_HERE, base::Bind(callback_, server_identifier_, error,
+                               base::Passed(&channel_id)));
+@@ -207,6 +221,9 @@
+   bool create_if_missing_;
+ };
+ 
++// static
++const char ChannelIDService::kEPKIPassword[] = "";
++
+ ChannelIDService::Request::Request() : service_(NULL) {
+ }
+ 
+--- quic/core/crypto/p256_key_exchange.h	2019-04-28 16:43:06.835072146 +0200
++++ quic/core/crypto/p256_key_exchange.h	2019-04-30 20:20:18.433026449 +0200
+@@ -12,7 +12,12 @@
+ #include "base/strings/string_piece.h"
+ #include "net/quic/core/crypto/key_exchange.h"
+ #include "net/quic/platform/api/quic_export.h"
++#if defined(USE_OPENSSL)
+ #include "third_party/boringssl/src/include/openssl/base.h"
++#else
++#include "crypto/ec_private_key.h"
++#include "crypto/scoped_nss_types.h"
++#endif
+ 
+ namespace net {
+ 
+@@ -50,12 +55,21 @@
+     kUncompressedECPointForm = 0x04,
+   };
+ 
++#if defined(USE_OPENSSL)
+   // P256KeyExchange wraps |private_key|, and expects |public_key| consists of
+   // |kUncompressedP256PointBytes| bytes.
+   P256KeyExchange(bssl::UniquePtr<EC_KEY> private_key,
+                   const uint8_t* public_key);
+ 
+   bssl::UniquePtr<EC_KEY> private_key_;
++#else
++  // P256KeyExchange takes ownership of |key_pair|, and expects
++  // |public_key| consists of |kUncompressedP256PointBytes| bytes.
++  P256KeyExchange(crypto::ECPrivateKey* key_pair, const uint8_t* public_key);
++
++  std::unique_ptr<crypto::ECPrivateKey> key_pair_;
++#endif
++
+   // The public key stored as an uncompressed P-256 point.
+   uint8_t public_key_[kUncompressedP256PointBytes];
+ 
+--- quic/chromium/quic_chromium_client_session.cc	2019-04-30 21:26:06.010038332 +0200
++++ quic/chromium/quic_chromium_client_session.cc	2019-04-30 23:27:30.252060260 +0200
+@@ -39,7 +39,9 @@
+ #include "net/ssl/ssl_connection_status_flags.h"
+ #include "net/ssl/ssl_info.h"
+ #include "net/ssl/token_binding.h"
++#if defined(USE_OPENSSL)
+ #include "third_party/boringssl/src/include/openssl/ssl.h"
++#endif
+ 
+ namespace net {
+ 
+@@ -585,11 +587,19 @@
+   int security_bits;
+   switch (aead) {
+     case kAESG:
++#if defined(USE_OPENSSL)
+       cipher_suite = TLS1_CK_AES_128_GCM_SHA256 & 0xffff;
++#else
++      cipher_suite = 0xc02f;  // TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
++#endif
+       security_bits = 128;
+       break;
+     case kCC20:
++#if defined(USE_OPENSSL)
+       cipher_suite = TLS1_CK_CHACHA20_POLY1305_SHA256 & 0xffff;
++#else
++      cipher_suite = 0xcc13;  // TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
++#endif
+       security_bits = 256;
+       break;
+     default:
+@@ -602,17 +612,31 @@
+                                 &ssl_connection_status);
+ 
+   // Report the QUIC key exchange as the corresponding TLS curve.
++#if !defined(USE_OPENSSL)
++  uint16_t curve;
++#endif
+   switch (crypto_stream_->crypto_negotiated_params().key_exchange) {
+     case kP256:
++#if defined(USE_OPENSSL)
+       ssl_info->key_exchange_group = SSL_CURVE_SECP256R1;
++#else
++      curve = 23;  // SSL_CURVE_SECP256R1
++#endif
+       break;
+     case kC255:
++#if defined(USE_OPENSSL)
+       ssl_info->key_exchange_group = SSL_CURVE_X25519;
++#else
++      curve = 20; // SSL_CURVE_X25519
++#endif
+       break;
+     default:
+       NOTREACHED();
+       return false;
+   }
++#if !defined(USE_OPENSSL)
++  ssl_info->key_exchange_info = curve;
++#endif
+ 
+   ssl_info->public_key_hashes = cert_verify_result_->public_key_hashes;
+   ssl_info->is_issued_by_known_root =
+--- socket/client_socket_factory.cc	2019-04-28 17:25:09.731079741 +0200
++++ socket/client_socket_factory.cc	2019-05-01 10:06:31.000175676 +0200
+@@ -10,10 +10,15 @@
+ #include "build/build_config.h"
+ #include "net/cert/cert_database.h"
+ #include "net/socket/client_socket_handle.h"
+-#include "net/socket/ssl_client_socket_impl.h"
+ #include "net/socket/tcp_client_socket.h"
+ #include "net/socket/udp_client_socket.h"
+ 
++#if defined(USE_OPENSSL)
++#include "net/socket/ssl_client_socket_impl.h"
++#else
++#include "net/socket/ssl_client_socket_nss.h"
++#endif
++
+ namespace net {
+ 
+ class X509Certificate;
+@@ -61,8 +66,13 @@
+       const HostPortPair& host_and_port,
+       const SSLConfig& ssl_config,
+       const SSLClientSocketContext& context) override {
++#if defined(USE_OPENSSL)
+     return std::unique_ptr<SSLClientSocket>(new SSLClientSocketImpl(
+         std::move(transport_socket), host_and_port, ssl_config, context));
++#else
++    return std::unique_ptr<SSLClientSocket>(new SSLClientSocketNSS(
++        std::move(transport_socket), host_and_port, ssl_config, context));
++#endif
+   }
+ 
+   void ClearSSLSessionCache() override { SSLClientSocket::ClearSessionCache(); }
+--- ssl/ssl_cipher_suite_names.h	2019-05-01 16:20:17.795243187 +0200
++++ ssl/ssl_cipher_suite_names.h	2019-05-01 16:20:23.666243204 +0200
+@@ -73,6 +73,11 @@
+ // - Cipher: not an AEAD cipher
+ NET_EXPORT int ObsoleteSSLStatus(int connection_status);
+ 
++// Currently, this function follows these criteria:
++// 1) Only uses ECDHE-based key exchanges authenticated by a certificate
++// 2) Only uses AEADs
++NET_EXPORT bool IsSecureTLSCipherSuite(uint16_t cipher_suite);
++
+ // Returns true if |cipher_suite| is suitable for use with HTTP/2. See
+ // https://http2.github.io/http2-spec/#rfc.section.9.2.2.
+ NET_EXPORT bool IsTLSCipherSuiteAllowedByHTTP2(uint16_t cipher_suite);
+--- ssl/ssl_cipher_suite_names.cc	2019-04-28 17:58:29.870085762 +0200
++++ ssl/ssl_cipher_suite_names.cc	2019-05-01 16:21:24.091243386 +0200
+@@ -10,7 +10,9 @@
+ #include "base/strings/string_number_conversions.h"
+ #include "base/strings/string_util.h"
+ #include "net/ssl/ssl_connection_status_flags.h"
++#if defined(USE_OPENSSL)
+ #include "third_party/boringssl/src/include/openssl/ssl.h"
++#endif
+ 
+ // Rather than storing the names of all the ciphersuites we eliminate the
+ // redundancy and break each cipher suite into a key exchange method, cipher
+@@ -439,6 +441,39 @@
+   return obsolete_ssl;
+ }
+ 
++bool IsSecureTLSCipherSuite(uint16_t cipher_suite) {
++  int key_exchange, cipher, mac;
++  if (!GetCipherProperties(cipher_suite, &key_exchange, &cipher, &mac))
++    return false;
++ 
++  // Only allow ECDHE key exchanges.
++  switch (key_exchange) {
++    case 14:  // ECDHE_ECDSA
++    case 16:  // ECDHE_RSA
++    case 18:  // CECPQ1_RSA
++    case 19:  // CECPQ1_ECDSA
++    case 20:  // ECDHE_PSK
++      break;
++    default:
++      return false;
++  }
++
++  switch (cipher) {
++    case 13:  // AES_128_GCM
++    case 14:  // AES_256_GCM
++    case 17:  // CHACHA20_POLY1305
++      break;
++    default:
++      return false;
++  }
++ 
++  // Only AEADs allowed.
++  if (mac != kAEADMACValue)
++    return false;
++
++  return true;
++}
++
+ bool IsTLSCipherSuiteAllowedByHTTP2(uint16_t cipher_suite) {
+   int key_exchange, cipher, mac;
+   if (!GetCipherProperties(cipher_suite, &key_exchange, &cipher, &mac))
+--- socket/ssl_client_socket_pool.cc	2019-05-01 16:39:37.164246677 +0200
++++ socket/ssl_client_socket_pool.cc	2019-05-01 16:47:21.457248074 +0200
+@@ -29,7 +29,11 @@
+ #include "net/ssl/ssl_cert_request_info.h"
+ #include "net/ssl/ssl_connection_status_flags.h"
+ #include "net/ssl/ssl_info.h"
++#if defined(USE_OPENSSL)
+ #include "third_party/boringssl/src/include/openssl/ssl.h"
++#else
++#include "net/ssl/ssl_cipher_suite_names.h"
++#endif
+ 
+ namespace net {
+ 
+@@ -377,10 +381,31 @@
+         SSLConnectionStatusToCipherSuite(ssl_info.connection_status);
+     UMA_HISTOGRAM_SPARSE_SLOWLY("Net.SSL_CipherSuite", cipher_suite);
+ 
++#if defined(USE_OPENSSL)
+     if (ssl_info.key_exchange_group != 0) {
+       UMA_HISTOGRAM_SPARSE_SLOWLY("Net.SSL_KeyExchange.ECDHE",
+                                   ssl_info.key_exchange_group);
+     }
++#else
++    const char *str, *cipher_str, *mac_str;
++    bool is_aead, is_tls13;
++    bool is_cecpq1 = false;
++    SSLCipherSuiteToStrings(&str, &cipher_str, &mac_str, &is_aead, &is_tls13,
++                            cipher_suite);
++    // UMA_HISTOGRAM_... macros cache the Histogram instance and thus only work
++    // if the histogram name is constant, so don't generate it dynamically.
++    if (strncmp(str, "DHE_", 4) == 0) {
++      UMA_HISTOGRAM_SPARSE_SLOWLY("Net.SSL_KeyExchange.DHE",
++                                  ssl_info.key_exchange_info);
++    } else if (strncmp(str, "ECDHE_", 6) == 0) {
++       UMA_HISTOGRAM_SPARSE_SLOWLY("Net.SSL_KeyExchange.ECDHE",
++                                  ssl_info.key_exchange_info);
++    } else if (strncmp(str, "CECPQ1_", 7) == 0) {
++      is_cecpq1 = true;
++    } else {
++      DCHECK_EQ(0, strcmp(str, "RSA"));
++    }
++#endif
+ 
+     if (ssl_info.handshake_type == SSLInfo::HANDSHAKE_RESUME) {
+       UMA_HISTOGRAM_CUSTOM_TIMES("Net.SSL_Connection_Latency_Resume_Handshake",
+--- ssl/ssl_info.cc	2019-04-30 08:52:30.396015577 +0200
++++ ssl/ssl_info.cc	2019-05-01 17:19:42.123253916 +0200
+@@ -9,8 +9,10 @@
+ #include "net/cert/ct_policy_status.h"
+ #include "net/cert/signed_certificate_timestamp.h"
+ #include "net/cert/x509_certificate.h"
+-#include "net/ssl/ssl_connection_status_flags.h"
++#if defined (USE_OPENSSL)
+ #include "third_party/boringssl/src/include/openssl/ssl.h"
++#include "net/ssl/ssl_connection_status_flags.h"
++#endif
+ 
+ namespace net {
+ 
+@@ -30,7 +32,11 @@
+   unverified_cert = info.unverified_cert;
+   cert_status = info.cert_status;
+   security_bits = info.security_bits;
++#if defined(USE_OPENSSL)
+   key_exchange_group = info.key_exchange_group;
++#else
++  key_exchange_info = info.key_exchange_info;
++#endif
+   connection_status = info.connection_status;
+   is_issued_by_known_root = info.is_issued_by_known_root;
+   pkp_bypassed = info.pkp_bypassed;
+@@ -54,7 +60,11 @@
+   unverified_cert = NULL;
+   cert_status = 0;
+   security_bits = -1;
++#if defined(USE_OPENSSL)
+   key_exchange_group = 0;
++#else
++  key_exchange_info = 0;
++#endif
+   connection_status = 0;
+   is_issued_by_known_root = false;
+   pkp_bypassed = false;
+--- url_request/url_request_context.cc	2019-05-01 17:34:19.046256556 +0200
++++ url_request/url_request_context.cc	2019-05-01 18:02:01.133261559 +0200
+@@ -17,7 +17,11 @@
+ #include "net/cookies/cookie_store.h"
+ #include "net/dns/host_resolver.h"
+ #include "net/http/http_transaction_factory.h"
++#if defined(USE_OPENSSL)
+ #include "net/socket/ssl_client_socket_impl.h"
++#else
++#include "net/socket/ssl_client_socket_nss.h"
++#endif
+ #include "net/url_request/http_user_agent_settings.h"
+ #include "net/url_request/url_request.h"
+ 
+@@ -138,7 +142,9 @@
+     if (network_session)
+       network_session->DumpMemoryStats(pmd, dump->absolute_name());
+   }
++#if defined(USE_OPENSSL)
+   SSLClientSocketImpl::DumpSSLClientSessionMemoryStats(pmd);
++#endif
+   if (sdch_manager_)
+     sdch_manager_->DumpMemoryStats(pmd, dump->absolute_name());
+   return true;
