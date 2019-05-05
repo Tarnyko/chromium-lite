@@ -30,4 +30,13 @@ bool ProofSourceChromium::GetProof(const QuicSocketAddress& server_ip,
   return false;
 }
 
+void ProofSourceChromium::GetProof(const QuicSocketAddress& server_addr,
+                                   const std::string& hostname,
+                                   const std::string& server_config,
+                                   QuicVersion quic_version,
+                                   base::StringPiece chlo_hash,
+                                   const QuicTagVector& connection_options,
+                                   std::unique_ptr<Callback> callback) {
+}
+
 }  // namespace net

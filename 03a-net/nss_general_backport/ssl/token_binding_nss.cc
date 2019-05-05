@@ -18,6 +18,13 @@ bool SignTokenBindingEkm(base::StringPiece ekm,
   return false;
 }
 
+bool CreateTokenBindingSignature(base::StringPiece ekm,
+                                 TokenBindingType type,
+                                 crypto::ECPrivateKey* key,
+                                 std::vector<uint8_t>* out) {
+  return false;
+}
+
 Error BuildTokenBindingMessageFromTokenBindings(
     const std::vector<base::StringPiece>& token_bindings,
     std::string* out) {

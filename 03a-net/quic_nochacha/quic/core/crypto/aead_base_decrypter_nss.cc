@@ -12,6 +12,7 @@
 #include "net/quic/core/quic_utils.h"
 
 using base::StringPiece;
+using std::string;
 
 namespace net {
 
@@ -44,6 +45,28 @@ bool AeadBaseDecrypter::SetNoncePrefix(StringPiece nonce_prefix) {
     return false;
   }
   memcpy(nonce_prefix_, nonce_prefix.data(), nonce_prefix.size());
+  return true;
+}
+
+bool AeadBaseDecrypter::SetDiversificationNonce(
+    const DiversificationNonce& nonce) {
+  if (!have_preliminary_key_) {
+    return true;
+  }
+
+  string key, nonce_prefix;
+  DiversifyPreliminaryKey(
+      StringPiece(reinterpret_cast<const char*>(key_), key_size_),
+      StringPiece(reinterpret_cast<const char*>(nonce_prefix_),
+                  nonce_prefix_size_),
+      nonce, key_size_, nonce_prefix_size_, &key, &nonce_prefix);
+
+  if (!SetKey(key) || !SetNoncePrefix(nonce_prefix)) {
+    DCHECK(false);
+    return false;
+  }
+
+  have_preliminary_key_ = false;
   return true;
 }
 

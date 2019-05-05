@@ -13,6 +13,11 @@ using base::StringPiece;
 namespace net {
 
 // static
+const char ChannelIDVerifier::kContextStr[] = "QUIC ChannelID";
+// static
+const char ChannelIDVerifier::kClientToServerStr[] = "client -> server";
+
+// static
 bool ChannelIDVerifier::Verify(StringPiece key,
                                StringPiece signed_data,
                                StringPiece signature) {

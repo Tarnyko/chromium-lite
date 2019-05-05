@@ -1,0 +1,12 @@
+--- url_request/url_request_http_job.cc	2019-05-05 09:53:58.730023864 +0200
++++ url_request/url_request_http_job.cc	2019-05-05 09:54:27.457023950 +0200
+@@ -1096,7 +1096,9 @@
+     SourceStream::SourceType type = *r_iter;
+     switch (type) {
+       case SourceStream::TYPE_BROTLI:
++#if 0
+         downstream = CreateBrotliSourceStream(std::move(upstream));
++#endif
+         break;
+       case SourceStream::TYPE_SDCH:
+       case SourceStream::TYPE_SDCH_POSSIBLE: {

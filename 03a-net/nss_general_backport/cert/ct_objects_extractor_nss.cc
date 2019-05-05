@@ -517,7 +517,7 @@ bool GetX509LogEntry(X509Certificate::OSCertHandle leaf, LogEntry* result) {
 
 bool ExtractSCTListFromOCSPResponse(X509Certificate::OSCertHandle issuer,
                                     const std::string& cert_serial_number,
-                                    const std::string& ocsp_response,
+                                    base::StringPiece ocsp_response,
                                     std::string* sct_list) {
   DCHECK(issuer);
 

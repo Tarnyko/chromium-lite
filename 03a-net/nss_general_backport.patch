@@ -1806,3 +1806,381 @@
    if (sdch_manager_)
      sdch_manager_->DumpMemoryStats(pmd, dump->absolute_name());
    return true;
+--- der/input.h	2019-05-04 15:47:56.140548122 +0200
++++ der/input.h	2019-05-04 15:57:10.366549791 +0200
+@@ -18,16 +18,27 @@
+ 
+ namespace der {
+ 
++class Mark;
++
+ // An opaque class that represents a fixed buffer of data of a fixed length,
+ // to be used as an input to other operations. An Input object does not own
+ // the data it references, so callers are responsible for making sure that
+ // the data outlives the Input object and any other associated objects.
+ //
+-// All data access for an Input should be done through the ByteReader class.
+-// This class and associated classes are designed with safety in mind to make it
+-// difficult to read memory outside of an Input. ByteReader provides a simple
+-// API for reading through the Input sequentially. For more complicated uses,
+-// multiple instances of a ByteReader for a particular Input can be created.
++// All data access for an Input should be done through the ByteReader and Mark
++// classes. This class and associated classes are designed with safety in mind
++// to make it difficult to read memory outside of an Input. ByteReader provides
++// a simple API for reading through the Input sequentially. For more
++// complicated uses, multiple instances of a ByteReader for a particular Input
++// can be created, and instances of Mark can be used to coordinate between the
++// ByteReaders.
++//
++// One such use case of multiple ByteReaders would be looking ahead in an
++// input: A ByteReader is copied and then is used to read some number of
++// bytes into the input, based on the content it is reading. A Mark can then be
++// set using the temporary ByteReader to indicate how far it read into the
++// Input. The original ByteReader can then be synchronized with how far the
++// temporary ByteReader read, by using either AdvanceToMark() or ReadToMark().
+ class NET_EXPORT_PRIVATE Input {
+  public:
+   // Creates an empty Input, one from which no data can be read.
+@@ -73,7 +84,6 @@
+   // constructor, a std::string could be passed in to the base::StringPiece
+   // constructor because of StringPiece's implicit constructor.
+   Input(std::string) = delete;
+-
+   const uint8_t* data_;
+   size_t len_;
+ };
+@@ -124,6 +134,25 @@
+   // Returns whether there is any more data to be read.
+   bool HasMore();
+ 
++  // Creates a new Mark at the current position of this ByteReader. If another
++  // ByteReader is advanced to this mark, the next byte read by the other
++  // ByteReader will be the same as the next byte read by this ByteReader.
++  Mark NewMark();
++
++  // Advances this ByteReader to the position marked by |mark|. Note that
++  // a ByteReader can only advance forward - it is not possible to "rewind"
++  // to a previous mark. To do this, one would need to create a new ByteReader
++  // (from the same input) and AdvanceToMark() on the new ByteReader.
++  //
++  // If it is not possible to advance this ByteReader to the mark, this method
++  // returns false and does nothing.
++  bool AdvanceToMark(Mark mark) WARN_UNUSED_RESULT;
++
++  // Reads all data from the cursor of this ByteReader up to the mark, and
++  // initializes an Input to point to that data. If the Mark is not valid for
++  // this ByteReader, then this method returns false and does not modify |*out|.
++  bool ReadToMark(Mark mark, Input* out) WARN_UNUSED_RESULT;
++
+  private:
+   void Advance(size_t len);
+ 
+@@ -131,6 +160,27 @@
+   size_t len_;
+ };
+ 
++// An immutable opaque pointer into the data represented by an Input. A Mark
++// object is used to save and restore the state (position) of a ByteReader to
++// allow for lookahead or backtracking. All interaction with a Mark object is
++// done through the ByteReader class.
++class NET_EXPORT_PRIVATE Mark {
++ public:
++  // Creates a null Mark. This Mark will not be usable with any ByteReader.
++  // This only exists so that a class can have a Mark member which may or may
++  // not be a valid Mark at any given time.
++  static Mark NullMark();
++
++  // Checks whether a given Mark is an empty Mark.
++  bool IsEmpty();
++  friend class ByteReader;
++
++ private:
++  explicit Mark(const uint8_t* ptr);
++  Mark();
++  const uint8_t* ptr_;
++};
++
+ }  // namespace der
+ 
+ }  // namespace net
+--- der/input.cc	2019-05-04 15:47:48.820548100 +0200
++++ der/input.cc	2019-05-04 16:02:11.906550698 +0200
+@@ -2,13 +2,12 @@
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+ 
+-#include "net/der/input.h"
+-
+ #include <string.h>
+ 
+ #include <algorithm>
+ 
+ #include "base/logging.h"
++#include "net/der/input.h"
+ 
+ namespace net {
+ 
+@@ -74,12 +73,49 @@
+   return len_ > 0;
+ }
+ 
++Mark ByteReader::NewMark() {
++  return Mark(data_);
++}
++
++bool ByteReader::AdvanceToMark(Mark mark) {
++  if (mark.ptr_ < data_)
++    return false;
++  // mark.ptr_ >= data_, so no concern of integer underflow here.
++  size_t advance_len = mark.ptr_ - data_;
++  if (advance_len > len_)
++    return false;
++  Advance(advance_len);
++  return true;
++}
++
++bool ByteReader::ReadToMark(Mark mark, Input* out) {
++  if (mark.ptr_ < data_)
++    return false;
++  // mark.ptr_ >= data_, so no concern of integer underflow here.
++  size_t len = mark.ptr_ - data_;
++  return ReadBytes(len, out);
++}
++
+ void ByteReader::Advance(size_t len) {
+   CHECK_LE(len, len_);
+   data_ += len;
+   len_ -= len;
+ }
+ 
++Mark Mark::NullMark() {
++  return Mark();
++}
++
++bool Mark::IsEmpty() {
++  return ptr_ == nullptr;
++}
++
++Mark::Mark(const uint8_t* ptr) : ptr_(ptr) {
++}
++
++Mark::Mark() : ptr_(nullptr) {
++}
++
+ }  // namespace der
+ 
+ }  // namespace net
+--- der/parser.h	2019-05-04 15:44:25.141547487 +0200
++++ der/parser.h	2019-05-04 15:46:32.344547870 +0200
+@@ -12,7 +12,6 @@
+ #include "net/base/net_export.h"
+ #include "net/der/input.h"
+ #include "net/der/tag.h"
+-#include "third_party/boringssl/src/include/openssl/bytestring.h"
+ 
+ namespace net {
+ 
+@@ -194,8 +193,8 @@
+   bool Advance();
+ 
+  private:
+-  CBS cbs_;
+-  size_t advance_len_;
++  ByteReader input_;
++  Mark advance_mark_;
+ 
+   DISALLOW_COPY(Parser);
+ };
+--- der/parser.cc	2019-05-04 15:43:49.196547379 +0200
++++ der/parser.cc	2019-05-04 15:44:00.688547414 +0200
+@@ -2,54 +2,121 @@
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+ 
+-#include "net/der/parser.h"
+-
++#include "base/logging.h"
++#include "base/numerics/safe_math.h"
+ #include "net/der/parse_values.h"
++#include "net/der/parser.h"
+ 
+ namespace net {
+ 
+ namespace der {
+ 
+-Parser::Parser() : advance_len_(0) {
+-  CBS_init(&cbs_, nullptr, 0);
++Parser::Parser() : input_(Input()), advance_mark_(Mark::NullMark()) {
+ }
+ 
+-Parser::Parser(const Input& input) : advance_len_(0) {
+-  CBS_init(&cbs_, input.UnsafeData(), input.Length());
++Parser::Parser(const Input& input)
++    : input_(input), advance_mark_(Mark::NullMark()) {
+ }
+ 
+ bool Parser::PeekTagAndValue(Tag* tag, Input* out) {
+-  CBS peeker = cbs_;
+-  CBS tmp_out;
+-  size_t header_len;
+-  unsigned tag_value;
+-  if (!CBS_get_any_asn1_element(&peeker, &tmp_out, &tag_value, &header_len) ||
+-      !CBS_skip(&tmp_out, header_len)) {
+-    return false;
++  ByteReader reader = input_;
++
++  // Don't support tags > 30.
++  uint8_t tag_byte;
++  if (!reader.ReadByte(&tag_byte))
++    return false;
++
++  // ITU-T X.690 section 8.1.2.3 specifies the format for identifiers with a
++  // tag number no greater than 30. This parser only supports tag numbers up
++  // to 30.
++  // If the tag number is 31 (0x1F, the largest value that fits in the allotted
++  // bytes), then the tag is more than one byte long and the continuation bytes
++  // contain the real tag number. We only support tag numbers < 31 (and thus
++  // single-byte tags).
++  if ((tag_byte & kTagNumberMask) == 31)
++    return false;
++
++  // Parse length. The format for the length encoding is specified in
++  // ITU-T X.690 section 8.1.3.
++  size_t value_len = 0;  // Number of bytes used to encode just the value.
++
++  uint8_t length_first_byte;
++  if (!reader.ReadByte(&length_first_byte))
++    return false;
++  if ((length_first_byte & 0x80) == 0) {
++    // Short form for length - it's only one byte long.
++    value_len = length_first_byte & 0x7f;
++  } else {
++    // Long form for length - it's encoded across multiple bytes.
++    if (length_first_byte == 0xff) {
++      // ITU-T X.690 clause 8.1.3.5.c specifies the value 0xff shall not be
++      // used.
++      return false;
++    }
++    // The high bit indicated that this is the long form, while the next 7 bits
++    // encode the number of subsequent octets used to encode the length
++    // (ITU-T X.690 clause 8.1.3.5.b).
++    size_t length_len = length_first_byte & 0x7f;
++    if (length_len == 0) {
++      // ITU-T X.690 section 10.1 (DER length forms) requires encoding the
++      // length with the minimum number of octets. Besides, it makes no sense
++      // for the length to be encoded in 0 octets.
++      return false;
++    }
++    if (length_len > sizeof(value_len)) {
++      // The length is encoded in multiple octets, with the first octet
++      // indicating how many octets follow. Those octets need to be combined
++      // to form a size_t, so the number of octets to follow (length_len)
++      // must be small enough so that they fit in a size_t.
++      return false;
++    }
++    uint8_t length_byte;
++    for (size_t i = 0; i < length_len; i++) {
++      if (!reader.ReadByte(&length_byte))
++        return false;
++      // A first length byte of all zeroes means the length was not encoded in
++      // minimum length.
++      if (i == 0 && length_byte == 0)
++        return false;
++      value_len <<= 8;
++      value_len += length_byte;
++    }
++    if (value_len < 0x80) {
++      // If value_len is < 0x80, then it could have been encoded in a single
++      // byte, meaning it was not encoded in minimum length.
++      return false;
++    }
+   }
+-  advance_len_ = CBS_len(&tmp_out) + header_len;
+-  *tag = tag_value;
+-  *out = Input(CBS_data(&tmp_out), CBS_len(&tmp_out));
++
++  if (!reader.ReadBytes(value_len, out))
++    return false;
++  advance_mark_ = reader.NewMark();
++  *tag = tag_byte;
+   return true;
+ }
+ 
+ bool Parser::Advance() {
+-  if (advance_len_ == 0)
++  if (advance_mark_.IsEmpty())
++    return false;
++  if (!input_.AdvanceToMark(advance_mark_))
+     return false;
+-  bool ret = !!CBS_skip(&cbs_, advance_len_);
+-  advance_len_ = 0;
+-  return ret;
++  advance_mark_ = Mark::NullMark();
++  return true;
+ }
+ 
+ bool Parser::HasMore() {
+-  return CBS_len(&cbs_) > 0;
++  return input_.HasMore();
+ }
+ 
+ bool Parser::ReadRawTLV(Input* out) {
+-  CBS tmp_out;
+-  if (!CBS_get_any_asn1_element(&cbs_, &tmp_out, nullptr, nullptr))
++  Tag tag;
++  Input value;
++  if (!PeekTagAndValue(&tag, &value))
++    return false;
++  if (!input_.ReadToMark(advance_mark_, out))
+     return false;
+-  *out = Input(CBS_data(&tmp_out), CBS_len(&tmp_out));
++  advance_mark_ = Mark::NullMark();
++
+   return true;
+ }
+ 
+@@ -61,13 +128,23 @@
+ }
+ 
+ bool Parser::ReadOptionalTag(Tag tag, Input* out, bool* present) {
+-  CBS tmp_out;
+-  int out_present;
+-  if (!CBS_get_optional_asn1(&cbs_, &tmp_out, &out_present, tag))
+-    return false;
+-  *present = (out_present != 0);
+-  if (*present)
+-    *out = Input(CBS_data(&tmp_out), CBS_len(&tmp_out));
++  if (!HasMore()) {
++    *present = false;
++    return true;
++  }
++
++  Tag read_tag;
++  Input value;
++  if (!PeekTagAndValue(&read_tag, &value))
++    return false;
++  *present = false;
++  if (read_tag == tag) {
++    *present = true;
++    *out = value;
++    CHECK(Advance());
++  } else {
++    advance_mark_ = Mark::NullMark();
++  }
+   return true;
+ }
+ 
+@@ -77,11 +154,8 @@
+ }
+ 
+ bool Parser::ReadTag(Tag tag, Input* out) {
+-  CBS tmp_out;
+-  if (!CBS_get_asn1(&cbs_, &tmp_out, tag))
+-    return false;
+-  *out = Input(CBS_data(&tmp_out), CBS_len(&tmp_out));
+-  return true;
++  bool present;
++  return ReadOptionalTag(tag, out, &present) && present;
+ }
+ 
+ bool Parser::SkipTag(Tag tag) {
