@@ -28,25 +28,36 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF()
 
 
+# PRE-GENERATION .TMPL -> .ZIP (bytecode)
+
+MESSAGE(STATUS "Generating .zip files from .tmpl...")
+
+EXECUTE_PROCESS(COMMAND mkdir -p mojo/public/tools/bindings WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py --use_bundled_pylibs precompile -o ${CMAKE_BINARY_DIR}/mojo/public/tools/bindings ${CMAKE_SOURCE_DIR})
+
+
 # PRE-GENERATION .MOJOM -> .CC,.H
 
 MESSAGE(STATUS "Generating .cc,.h files from .mojom...")
 
 EXECUTE_PROCESS(COMMAND mkdir -p ipc/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py mojo/client_channel.mojom --use_bundled_pylibs -d . -I. -o ${CMAKE_BINARY_DIR}/ipc WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py --use_bundled_pylibs generate ipc.mojom -d . -I. -o ${CMAKE_BINARY_DIR}/ipc --bytecode_path ${CMAKE_BINARY_DIR}/mojo/public/tools/bindings WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py --use_bundled_pylibs generate ipc.mojom -d . -I. -o ${CMAKE_BINARY_DIR}/ipc --bytecode_path ${CMAKE_BINARY_DIR}/mojo/public/tools/bindings --generate_non_variant_code -g c++ WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
 # SOURCES FILE LIST
 
 # core
-ADD_LIBRARY(core OBJECT attachment_broker.cc attachment_broker_privileged.cc attachment_broker_unprivileged.cc brokerable_attachment.cc ipc_channel.cc ipc_channel_factory.cc ipc_channel_common.cc ipc_channel_posix.cc ipc_channel_proxy.cc ipc_channel_reader.cc ipc_endpoint.cc ipc_logging.cc ipc_message.cc ipc_message_attachment.cc ipc_message_attachment_set.cc ipc_message_generator.cc ipc_message_utils.cc ipc_platform_file.cc ipc_platform_file_attachment_posix.cc ipc_switches.cc ipc_sync_channel.cc ipc_sync_message.cc ipc_sync_message_filter.cc message_filter.cc message_filter_router.cc placeholder_brokerable_attachment.cc unix_domain_socket_util.cc)
+ADD_LIBRARY(core OBJECT ipc_channel.cc ipc_channel_factory.cc ipc_channel_common.cc ipc_channel_proxy.cc ipc_channel_reader.cc ipc_logging.cc ipc_message.cc ipc_message_attachment.cc ipc_message_attachment_set.cc ipc_message_utils.cc ipc_platform_file.cc ipc_platform_file_attachment_posix.cc ipc_sync_channel.cc ipc_sync_message.cc ipc_sync_message_filter.cc message_filter.cc message_filter_router.cc)
 
 # mojo
-ADD_LIBRARY(mojo OBJECT mojo/async_handle_waiter.cc mojo/ipc_channel_mojo.cc mojo/ipc_mojo_bootstrap.cc mojo/ipc_mojo_handle_attachment.cc mojo/ipc_mojo_message_helper.cc mojo/ipc_mojo_param_traits.cc mojo/ipc_message_pipe_reader.cc mojo/scoped_ipc_support.cc)
+ADD_LIBRARY(mojo OBJECT ipc_channel_mojo.cc ipc_mojo_bootstrap.cc ipc_mojo_handle_attachment.cc ipc_mojo_message_helper.cc ipc_mojo_param_traits.cc ipc_message_pipe_reader.cc mojo_event.cc)
 
 # generated (these are generated !)
-ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ipc/mojo/client_channel.mojom.cc)
+ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ipc/ipc.mojom.cc ${CMAKE_BINARY_DIR}/ipc/ipc.mojom-shared.cc)
 
 
 # all files refer to "ipc/...", so we include ".." here

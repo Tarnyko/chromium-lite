@@ -105,10 +105,13 @@ ADD_LIBRARY(i18n OBJECT i18n/base_i18n_switches.cc i18n/bidi_line_iterator.cc i1
 ADD_LIBRARY(debug OBJECT debug/debugger.cc debug/debugger_posix.cc debug/profiler.cc debug/crash_logging.cc debug/dump_without_crashing.cc debug/stack_trace.cc debug/stack_trace_posix.cc debug/task_annotator.cc debug/alias.cc debug/activity_tracker.cc debug/thread_heap_usage_tracker.cc)
 
 # lock
-ADD_LIBRARY(lock OBJECT synchronization/lock.cc synchronization/lock_impl_posix.cc synchronization/read_write_lock_posix.cc synchronization/waitable_event_posix.cc synchronization/waitable_event_watcher_posix.cc synchronization/condition_variable_posix.cc synchronization/atomic_flag.cc)
+ADD_LIBRARY(lock OBJECT synchronization/lock.cc synchronization/lock_impl_posix.cc synchronization/read_write_lock_posix.cc synchronization/spin_lock.cc synchronization/waitable_event_posix.cc synchronization/waitable_event_watcher_posix.cc synchronization/condition_variable_posix.cc synchronization/atomic_flag.cc)
 
 # memory
-ADD_LIBRARY(memory OBJECT memory/singleton.cc memory/aligned_memory.cc memory/discardable_memory.cc memory/discardable_shared_memory.cc memory/discardable_memory_allocator.cc memory/ref_counted.cc memory/ref_counted_memory.cc memory/shared_memory_helper.cc memory/shared_memory_posix.cc memory/weak_ptr.cc memory/memory_coordinator_client_registry.cc memory/memory_pressure_listener.cc memory/memory_pressure_monitor.cc allocator/allocator_extension.cc)
+ADD_LIBRARY(memory OBJECT memory/singleton.cc memory/aligned_memory.cc memory/discardable_memory.cc memory/discardable_shared_memory.cc memory/discardable_memory_allocator.cc memory/ref_counted.cc memory/ref_counted_memory.cc memory/shared_memory_helper.cc memory/shared_memory_posix.cc memory/weak_ptr.cc memory/memory_coordinator_client_registry.cc memory/memory_pressure_listener.cc memory/memory_pressure_monitor.cc)
+
+# allocator
+ADD_LIBRARY(allocator OBJECT allocator/allocator_extension.cc allocator/partition_allocator/address_space_randomization.cc allocator/partition_allocator/page_allocator.cc allocator/partition_allocator/partition_alloc.cc)
 
 # message_loop
 ADD_LIBRARY(messageloop OBJECT message_loop/message_loop.cc message_loop/message_loop_task_runner.cc message_loop/message_pump.cc message_loop/message_pump_default.cc message_loop/message_pump_libevent.cc message_loop/incoming_task_queue.cc run_loop.cc)
@@ -198,7 +201,7 @@ ADD_LIBRARY(profiler OBJECT location.cc tracked_objects.cc tracking_info.cc prof
 ADD_LIBRARY(environment OBJECT environment.cc)
 
 # misc
-ADD_LIBRARY(misc OBJECT barrier_closure.cc big_endian.cc build_time.cc feature_list.cc guid.cc sequence_token.cc supports_user_data.cc sync_socket_posix.cc value_conversions.cc)
+ADD_LIBRARY(misc OBJECT barrier_closure.cc big_endian.cc build_time.cc feature_list.cc guid.cc sequence_token.cc unguessable_token.cc supports_user_data.cc sync_socket_posix.cc value_conversions.cc)
 
 
 # all files refer to "base/...", so we include ".." here
@@ -208,7 +211,7 @@ ADD_LIBRARY(misc OBJECT barrier_closure.cc big_endian.cc build_time.cc feature_l
 SET(include_dirs ${INCLUDE_DIRS} ${libevent_INCLUDE_DIRS} ${icui18n_INCLUDE_DIRS} ${ICU_FORK_DIR}/source/i18n ${CED_DIR}/src ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/..)
 SET(link_libraries ${libevent_LIBRARIES} ${icui18n_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -lrt -ldl)
 
-ADD_LIBRARY(base SHARED $<TARGET_OBJECTS:switches> $<TARGET_OBJECTS:command_line> $<TARGET_OBJECTS:strings> $<TARGET_OBJECTS:logging> $<TARGET_OBJECTS:i18n> $<TARGET_OBJECTS:debug> $<TARGET_OBJECTS:lock> $<TARGET_OBJECTS:memory> $<TARGET_OBJECTS:messageloop> $<TARGET_OBJECTS:nativelibrary> $<TARGET_OBJECTS:version> $<TARGET_OBJECTS:vlog> $<TARGET_OBJECTS:pickle> $<TARGET_OBJECTS:paths> $<TARGET_OBJECTS:atexit> $<TARGET_OBJECTS:callback> $<TARGET_OBJECTS:lazyinstance> $<TARGET_OBJECTS:posix> $<TARGET_OBJECTS:sysinfo> $<TARGET_OBJECTS:systemmonitor> $<TARGET_OBJECTS:taskscheduler>  $<TARGET_OBJECTS:threading> $<TARGET_OBJECTS:xdg> $<TARGET_OBJECTS:time> $<TARGET_OBJECTS:timer> $<TARGET_OBJECTS:files> $<TARGET_OBJECTS:metrics> $<TARGET_OBJECTS:randutil> $<TARGET_OBJECTS:hash> $<TARGET_OBJECTS:base64> $<TARGET_OBJECTS:md5> $<TARGET_OBJECTS:sha1> $<TARGET_OBJECTS:values> $<TARGET_OBJECTS:powermonitor> $<TARGET_OBJECTS:process> $<TARGET_OBJECTS:profiler> $<TARGET_OBJECTS:environment> $<TARGET_OBJECTS:misc> third_party/dynamic_annotations/dynamic_annotations.c)
+ADD_LIBRARY(base SHARED $<TARGET_OBJECTS:switches> $<TARGET_OBJECTS:command_line> $<TARGET_OBJECTS:strings> $<TARGET_OBJECTS:logging> $<TARGET_OBJECTS:i18n> $<TARGET_OBJECTS:debug> $<TARGET_OBJECTS:lock> $<TARGET_OBJECTS:memory> $<TARGET_OBJECTS:allocator> $<TARGET_OBJECTS:messageloop> $<TARGET_OBJECTS:nativelibrary> $<TARGET_OBJECTS:version> $<TARGET_OBJECTS:vlog> $<TARGET_OBJECTS:pickle> $<TARGET_OBJECTS:paths> $<TARGET_OBJECTS:atexit> $<TARGET_OBJECTS:callback> $<TARGET_OBJECTS:lazyinstance> $<TARGET_OBJECTS:posix> $<TARGET_OBJECTS:sysinfo> $<TARGET_OBJECTS:systemmonitor> $<TARGET_OBJECTS:taskscheduler>  $<TARGET_OBJECTS:threading> $<TARGET_OBJECTS:xdg> $<TARGET_OBJECTS:time> $<TARGET_OBJECTS:timer> $<TARGET_OBJECTS:files> $<TARGET_OBJECTS:metrics> $<TARGET_OBJECTS:randutil> $<TARGET_OBJECTS:hash> $<TARGET_OBJECTS:base64> $<TARGET_OBJECTS:md5> $<TARGET_OBJECTS:sha1> $<TARGET_OBJECTS:values> $<TARGET_OBJECTS:powermonitor> $<TARGET_OBJECTS:process> $<TARGET_OBJECTS:profiler> $<TARGET_OBJECTS:environment> $<TARGET_OBJECTS:misc> third_party/dynamic_annotations/dynamic_annotations.c)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(base ${link_libraries})
 
