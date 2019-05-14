@@ -8,7 +8,6 @@ SET(PROJECT_NAME "Chromium - UI Gfx")
 
 # Location of direct dependencies
 SET(MOJO_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../mojo")
-SET(UI_MOJO_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../mojo")
 
 # Location of Skia source folders
 SET(SKIA_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../third_party/skia")
@@ -55,7 +54,7 @@ ENDIF(NOT PYTHON_FOUND)
 # Optional definitions
 IF(BACKEND STREQUAL "OZONE")
   # useless, but this variable cannot be empty
-  SET(BACKEND_SOURCE_FILES native_pixmap_handle_ozone.h)
+  SET(BACKEND_SOURCE_FILES native_pixmap_handle.cc)
   ADD_DEFINITIONS(-DUSE_OZONE)
 ENDIF(BACKEND STREQUAL "OZONE")
 
@@ -66,11 +65,20 @@ IF(BACKEND STREQUAL "X11")
 ENDIF(BACKEND STREQUAL "X11")
 
 # Common definitions
-ADD_DEFINITIONS(-DGFX_IMPLEMENTATION -DGFX_IPC_IMPLEMENTATION -DMOJO_GEOMETRY_IMPLEMENTATION -DUSE_AURA -DUSE_SYSTEM_LIBJPEG)
+ADD_DEFINITIONS(-DGFX_IMPLEMENTATION -DGFX_IPC_IMPLEMENTATION -DMOJO_GEOMETRY_IMPLEMENTATION -DUSE_AURA -DUSE_SYSTEM_LIBJPEG -D__STDC_FORMAT_MACROS)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
     ADD_DEFINITIONS(-std=c++11)
 ENDIF()
+
+
+# PRE-GENERATION .TMPL -> .ZIP (bytecode)
+
+MESSAGE(STATUS "Generating .zip files from .tmpl...")
+
+EXECUTE_PROCESS(COMMAND mkdir -p mojo/public/tools/bindings WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+EXECUTE_PROCESS(COMMAND python ${MOJO_SOURCE_DIR}/public/tools/bindings/mojom_bindings_generator.py --use_bundled_pylibs precompile -o ${CMAKE_BINARY_DIR}/mojo/public/tools/bindings ${CMAKE_SOURCE_DIR})
 
 
 # PRE-GENERATION .MOJOM -> .CC,.H
@@ -79,16 +87,21 @@ MESSAGE(STATUS "Generating .cc,.h files from .mojom...")
 
 EXECUTE_PROCESS(COMMAND mkdir -p ui/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-EXECUTE_PROCESS(COMMAND python ${MOJO_SOURCE_DIR}/public/tools/bindings/mojom_bindings_generator.py ${UI_MOJO_SOURCE_DIR}/geometry/geometry.mojom --use_bundled_pylibs -d .. -I. -o ${CMAKE_BINARY_DIR}/ui WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python ${MOJO_SOURCE_DIR}/public/tools/bindings/mojom_bindings_generator.py --use_bundled_pylibs generate geometry/mojo/geometry.mojom -d .. -I. -o ${CMAKE_BINARY_DIR}/ui --bytecode_path ${CMAKE_BINARY_DIR}/mojo/public/tools/bindings WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+EXECUTE_PROCESS(COMMAND python ${MOJO_SOURCE_DIR}/public/tools/bindings/mojom_bindings_generator.py --use_bundled_pylibs generate geometry/mojo/geometry.mojom -d .. -I. -o ${CMAKE_BINARY_DIR}/ui --bytecode_path ${CMAKE_BINARY_DIR}/mojo/public/tools/bindings --generate_non_variant_code -g c++ WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 # PRE-GENERATION .ICON -> .CC,.H
 
 MESSAGE(STATUS "Generating .cc,.h files from .icon files...")
+
+# delete Chrome-specific icons, conflicting with Chromium icon names in .cc,.h files
+EXECUTE_PROCESS(COMMAND rm -rf vector_icons/google_chrome WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
  
-EXECUTE_PROCESS(COMMAND mkdir -p ui/gfx/ WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+EXECUTE_PROCESS(COMMAND mkdir -p ui/gfx/vector_icons WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # the final "/" at the end of working_directory is essential...
-EXECUTE_PROCESS(COMMAND python vector_icons/aggregate_vector_icons.py --working_directory=vector_icons/ --output_cc=${CMAKE_BINARY_DIR}/ui/gfx/vector_icons.cc --output_h=${CMAKE_BINARY_DIR}/ui/gfx/vector_icons.h WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python vector_icons/aggregate_vector_icons.py --working_directory=vector_icons/ --output_cc=${CMAKE_BINARY_DIR}/ui/gfx/vector_icons/vector_icons.cc --output_h=${CMAKE_BINARY_DIR}/ui/gfx/vector_icons/vector_icons.h --use_legacy_template WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
 # SOURCES FILE LIST
@@ -103,28 +116,25 @@ ADD_LIBRARY(animation OBJECT animation/animation.cc animation/animation_containe
 ADD_LIBRARY(codec OBJECT codec/jpeg_codec.cc codec/png_codec.cc)
 
 # image
-ADD_LIBRARY(image OBJECT image/canvas_image_source.cc image/image.cc image/image_family.cc image/image_png_rep.cc image/image_skia.cc image/image_skia_operations.cc image/image_skia_rep.cc image/image_util.cc)
+ADD_LIBRARY(image OBJECT image/canvas_image_source.cc image/image.cc image/image_family.cc image/image_png_rep.cc image/image_skia.cc image/image_skia_operations.cc image/image_skia_source.cc image/image_skia_rep.cc image/image_util.cc)
 
 # font
-ADD_LIBRARY(font OBJECT font.cc font_fallback_linux.cc font_list.cc font_list_impl.cc font_render_params.cc font_render_params_linux.cc render_text.cc render_text_harfbuzz.cc harfbuzz_font_skia.cc hud_font.cc linux_font_delegate.cc platform_font_linux.cc)
+ADD_LIBRARY(font OBJECT font.cc font_fallback_linux.cc font_list.cc font_list_impl.cc font_render_params.cc font_render_params_linux.cc decorated_text.cc render_text.cc render_text_harfbuzz.cc harfbuzz_font_skia.cc linux_font_delegate.cc platform_font_linux.cc)
 
 # range
 ADD_LIBRARY(range OBJECT range/range.cc range/range_f.cc)
 
 # ipc
-ADD_LIBRARY(ipc OBJECT ipc/gfx_param_traits.cc)
+ADD_LIBRARY(ipc OBJECT ipc/gfx_param_traits.cc ipc/geometry/gfx_param_traits.cc)
 
 # backend
 ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
 
 # misc
-ADD_LIBRARY(misc OBJECT blit.cc buffer_format_util.cc canvas.cc canvas_skia.cc color_analysis.cc color_profile.cc color_utils.cc display.cc display_change_notifier.cc display_observer.cc favicon_size.cc generic_shared_memory_id.cc gfx_paths.cc gpu_memory_buffer.cc interpolated_transform.cc nine_image_painter.cc paint_throbber.cc paint_vector_icon.cc path.cc screen.cc screen_aura.cc scrollbar_size.cc selection_model.cc sequential_id_generator.cc shadow_value.cc skbitmap_operations.cc skia_util.cc switches.cc text_elider.cc text_utils.cc text_utils_skia.cc transform.cc transform_util.cc ui_gfx_exports.cc utf16_indexing.cc)
-
-# mojo_geometry
-ADD_LIBRARY(mojo_geometry OBJECT ${MOJO_SOURCE_DIR}/converters/geometry/geometry_type_converters.cc)
+ADD_LIBRARY(misc OBJECT blit.cc buffer_format_util.cc canvas.cc canvas_skia.cc color_analysis.cc color_space.cc color_utils.cc favicon_size.cc generic_shared_memory_id.cc gfx_paths.cc gpu_memory_buffer.cc icc_profile.cc interpolated_transform.cc nine_image_painter.cc paint_throbber.cc paint_vector_icon.cc path.cc scoped_canvas.cc scrollbar_size.cc selection_bound.cc selection_model.cc sequential_id_generator.cc shadow_value.cc skbitmap_operations.cc skia_util.cc skia_paint_util.cc switches.cc text_elider.cc text_utils.cc text_utils_skia.cc transform.cc transform_util.cc ui_gfx_exports.cc utf16_indexing.cc)
 
 # generated (these are generated !)
-ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ui/mojo/geometry/geometry.mojom.cc ${CMAKE_BINARY_DIR}/ui/gfx/vector_icons.cc)
+ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ui/gfx/geometry/mojo/geometry.mojom.cc ${CMAKE_BINARY_DIR}/ui/gfx/vector_icons/vector_icons.cc)
 
 
 # all files refer to "ui/...", so we include "../.." here
@@ -133,7 +143,7 @@ SET(include_dirs ${INCLUDE_DIRS} ${harfbuzz_INCLUDE_DIRS} ${backend_INCLUDE_DIRS
 # TODO : "${MOJO_SOURCE_DIR}/Build" is a HACK ! Fix this once we use .pc files
 SET(link_libraries ${LINK_LIBRARIES} ${harfbuzz_LIBRARIES} ${backend_LIBRARIES} -ljpeg)
 
-ADD_LIBRARY(ui_gfx SHARED $<TARGET_OBJECTS:geometry> $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:codec> $<TARGET_OBJECTS:image> $<TARGET_OBJECTS:font> $<TARGET_OBJECTS:range> $<TARGET_OBJECTS:ipc> $<TARGET_OBJECTS:backend> $<TARGET_OBJECTS:misc> $<TARGET_OBJECTS:mojo_geometry> $<TARGET_OBJECTS:generated>)
+ADD_LIBRARY(ui_gfx SHARED $<TARGET_OBJECTS:geometry> $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:codec> $<TARGET_OBJECTS:image> $<TARGET_OBJECTS:font> $<TARGET_OBJECTS:range> $<TARGET_OBJECTS:ipc> $<TARGET_OBJECTS:backend> $<TARGET_OBJECTS:misc> $<TARGET_OBJECTS:generated>)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ui_gfx ${link_libraries})
 

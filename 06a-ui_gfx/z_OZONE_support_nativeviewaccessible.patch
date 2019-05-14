@@ -1,6 +1,6 @@
---- native_widget_types.h	2016-03-02 04:59:35.097124623 +0000
-+++ native_widget_types.h	2016-03-02 05:07:27.248954284 +0000
-@@ -103,7 +103,7 @@
+--- native_widget_types.h	2019-05-14 16:16:00.395062224 +0200
++++ native_widget_types.h	2019-05-14 16:17:50.615062556 +0200
+@@ -101,7 +101,7 @@
  #endif
  class SkBitmap;
  
@@ -9,10 +9,10 @@
  extern "C" {
  struct _AtkObject;
  typedef struct _AtkObject AtkObject;
-@@ -163,7 +163,7 @@
- #else
- typedef void* NativeDrawingContext;
- #endif  // defined(USE_CAIRO)
+@@ -153,7 +153,7 @@
+ #endif  // __OBJC__
+ #else  // Android, Linux, Chrome OS, etc.
+ // Linux doesn't have a native font type.
 -#if defined(USE_X11) && !defined(OS_CHROMEOS)
 +#if defined(USE_X11) || USE_OZONE && !defined(OS_CHROMEOS)
  typedef AtkObject* NativeViewAccessible;

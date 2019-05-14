@@ -6,6 +6,10 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 SET(PROJECT_NAME "Chromium - UI Accessibility")
 
+# Location of direct dependencies
+SET(SKIA_SRC_DIR "${CMAKE_SOURCE_DIR}/../../third_party/skia")
+SET(SKIA_EXT_DIR "${CMAKE_SOURCE_DIR}/../../skia")
+
 # Lotation of required tools
 SET(JSON_COMPILER_DIR "${CMAKE_SOURCE_DIR}/../../tools/json_schema_compiler")
 
@@ -51,7 +55,7 @@ EXECUTE_PROCESS(COMMAND ${JSON_COMPILER_DIR}/compiler.py ax_enums.idl --root=../
 # SOURCES FILE LIST
 
 # ax
-ADD_LIBRARY(ax OBJECT ax_node.cc ax_node_data.cc ax_serializable_tree.cc ax_text_utils.cc ax_tree.cc ax_tree_data.cc ax_tree_serializer.cc ax_view_state.cc)
+ADD_LIBRARY(ax OBJECT ax_node.cc ax_node_data.cc ax_serializable_tree.cc ax_text_utils.cc ax_tree.cc ax_tree_data.cc ax_tree_serializer.cc)
 
 # platform
 ADD_LIBRARY(platform OBJECT platform/ax_platform_node.cc platform/ax_platform_node_base.cc platform/ax_platform_node_auralinux.cc platform/atk_util_auralinux.cc)
@@ -62,7 +66,7 @@ ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ui/accessibility/ax_enums.cc)
 
 # all files refer to "ui/...", so we include "../.." here
 # we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
-SET(include_dirs ${INCLUDE_DIRS} ${gconf_INCLUDE_DIRS} ${atk_INCLUDE_DIRS} ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/../..)
+SET(include_dirs ${INCLUDE_DIRS} ${gconf_INCLUDE_DIRS} ${atk_INCLUDE_DIRS} ${SKIA_SRC_DIR}/include/core ${SKIA_EXT_DIR}/config ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/../..)
 SET(link_libraries ${LINK_LIBRARIES} ${gconf_LIBRARIES} ${atk_LIBRARIES})
 
 ADD_LIBRARY(ui_accessibility SHARED $<TARGET_OBJECTS:ax> $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:generated>)

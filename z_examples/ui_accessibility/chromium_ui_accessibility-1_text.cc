@@ -20,7 +20,7 @@ int main (int argc, char *argv[])
 	line_offsets.push_back (8);
 	line_offsets.push_back (15);
 
-	result = ui::FindAccessibleTextBoundary (text, line_offsets, ui::LINE_BOUNDARY, 5, ui::FORWARDS_DIRECTION);
+	result = ui::FindAccessibleTextBoundary (text, line_offsets, ui::LINE_BOUNDARY, 5, ui::FORWARDS_DIRECTION, ui::AX_TEXT_AFFINITY_DOWNSTREAM);
 
 	std::cout << "Result : " << result << std::endl;
 

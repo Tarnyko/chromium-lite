@@ -70,13 +70,13 @@ ENDIF()
 ADD_LIBRARY(keycode_converter OBJECT keycodes/dom/keycode_converter.cc)
 
 # base
-ADD_LIBRARY(base OBJECT base_event_utils.cc event.cc event_dispatcher.cc event_handler.cc event_processor.cc event_source.cc event_switches.cc event_target.cc event_utils.cc gesture_event_details.cc gestures/fling_curve.cc gestures/gesture_provider_aura.cc gestures/gesture_recognizer_impl.cc gestures/motion_event_aura.cc keycodes/keyboard_code_conversion.cc keycodes/keyboard_code_conversion_xkb.cc linux/text_edit_command_auralinux.cc linux/text_edit_key_bindings_delegate_auralinux.cc latency_info.cc null_event_targeter.cc scoped_target_handler.cc)
+ADD_LIBRARY(base OBJECT base_event_utils.cc event.cc event_dispatcher.cc event_handler.cc event_processor.cc event_source.cc event_switches.cc event_target.cc event_utils.cc gesture_event_details.cc gestures/fling_curve.cc gestures/gesture_provider_aura.cc gestures/gesture_recognizer_impl.cc gestures/motion_event_aura.cc keycodes/keyboard_code_conversion.cc keycodes/keyboard_code_conversion_xkb.cc latency_info.cc null_event_targeter.cc scoped_target_handler.cc)
 
 # ipc
 ADD_LIBRARY(ipc OBJECT ipc/latency_info_param_traits.cc)
 
 # devices
-ADD_LIBRARY(devices OBJECT devices/device_data_manager.cc devices/device_util_linux.cc devices/input_device.cc devices/keyboard_device.cc devices/touchscreen_device.cc)
+ADD_LIBRARY(devices OBJECT devices/device_data_manager.cc devices/device_util_linux.cc devices/input_device.cc devices/touchscreen_device.cc)
 
 # gesture_detection
 ADD_LIBRARY(gesture_detection OBJECT gesture_detection/filtered_gesture_provider.cc gesture_detection/gesture_configuration.cc gesture_detection/gesture_configuration_aura.cc gesture_detection/gesture_detector.cc gesture_detection/gesture_event_data.cc gesture_detection/gesture_event_data_packet.cc gesture_detection/gesture_listeners.cc gesture_detection/gesture_provider.cc gesture_detection/gesture_provider_config_helper.cc gesture_detection/gesture_touch_uma_histogram.cc gesture_detection/motion_event.cc gesture_detection/motion_event_buffer.cc gesture_detection/motion_event_generic.cc gesture_detection/scale_gesture_detector.cc gesture_detection/scale_gesture_listeners.cc gesture_detection/snap_scroll_controller.cc gesture_detection/touch_disposition_gesture_filter.cc gesture_detection/velocity_tracker.cc gesture_detection/velocity_tracker_state.cc)

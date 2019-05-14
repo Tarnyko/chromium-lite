@@ -20,11 +20,11 @@ int main (int argc, char *argv[])
 	 // choose a yellow bold font
 	auto *render_text = gfx::RenderText::CreateInstance ();
 	render_text->SetColor (SK_ColorYELLOW);
-	render_text->SetStyle (gfx::BOLD, true);
+	render_text->SetStyle (gfx::ITALIC, true);
 
 	 // write "Hello World !"
 	render_text->SetText (base::ASCIIToUTF16 ("Hello"));
-	render_text->MoveCursor (gfx::CHARACTER_BREAK, gfx::CURSOR_RIGHT, false);
+	render_text->MoveCursor (gfx::CHARACTER_BREAK, gfx::CURSOR_RIGHT, gfx::SELECTION_NONE);
 	render_text->SetText (base::ASCIIToUTF16 ("World !"));
 
 	 // convert it to PNG
