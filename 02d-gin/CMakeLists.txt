@@ -21,7 +21,7 @@ ENDIF()
 
 # SOURCES FILE LIST
 
-ADD_LIBRARY(src OBJECT arguments.cc array_buffer.cc context_holder.cc converter.cc debug_impl.cc dictionary.cc function_template.cc interceptor.cc isolate_holder.cc modules/console.cc modules/file_module_provider.cc modules/module_registry.cc modules/module_runner_delegate.cc modules/timer.cc object_template_builder.cc per_context_data.cc per_isolate_data.cc runner.cc run_microtasks_observer.cc shell_runner.cc try_catch.cc v8_initializer.cc v8_isolate_memory_dump_provider.cc v8_platform.cc wrappable.cc wrapper_info.cc)
+ADD_LIBRARY(src OBJECT arguments.cc array_buffer.cc context_holder.cc converter.cc debug_impl.cc dictionary.cc function_template.cc gin_features.cc interceptor.cc isolate_holder.cc modules/console.cc modules/file_module_provider.cc modules/module_registry.cc modules/module_runner_delegate.cc modules/timer.cc object_template_builder.cc per_context_data.cc per_isolate_data.cc runner.cc run_microtasks_observer.cc shell_runner.cc try_catch.cc v8_initializer.cc v8_isolate_memory_dump_provider.cc v8_platform.cc wrappable.cc wrapper_info.cc)
 
 
 # all files refer to "gin/...", so we include ".." here

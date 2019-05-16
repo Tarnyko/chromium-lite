@@ -1,0 +1,22 @@
+--- keycodes/xkb_keysym.h	2019-05-15 22:45:44.171086026 +0200
++++ keycodes/xkb_keysym.h	2019-05-15 22:42:59.566085531 +0200
+@@ -5,17 +5,15 @@
+ #ifndef UI_EVENTS_KEYCODES_XKB_KEYSYM_H_
+ #define UI_EVENTS_KEYCODES_XKB_KEYSYM_H_
+ 
+-#include "ui/base/ui_features.h"
+-
+ // This file provides definitions of the xkbcommon keysym type (xkb_keysym_t)
+ // and values (XKB_KEY_...) for both xkbcommon and traditional X11.
+ 
+-#if BUILDFLAG(USE_XKBCOMMON)
++#if defined(USE_XKBCOMMON)
+ 
+ #include <xkbcommon/xkbcommon.h>
+ #include <xkbcommon/xkbcommon-keysyms.h>
+ 
+-#else  // !BUILDFLAG(USE_XKBCOMMON)
++#else  // !defined(USE_XKBCOMMON)
+ 
+ #define XK_3270  // For XK_3270_BackTab in particular.
+ #include <X11/X.h>
