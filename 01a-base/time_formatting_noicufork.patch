@@ -57,6 +57,7 @@
 +#endif
  
  using icu::UnicodeString;
+
 --- ../third_party/icu/source/i18n/unicode/dtitvinf.h	2019-04-18 20:59:53.342287058 +0200
 +++ /dev/null
  

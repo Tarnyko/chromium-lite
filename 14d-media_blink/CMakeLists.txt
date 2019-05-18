@@ -42,8 +42,7 @@ ENDIF()
 
 # SOURCES FILE LIST
 ADD_LIBRARY(src OBJECT active_loader.cc buffered_data_source.cc buffered_data_source_host_impl.cc buffered_resource_loader.cc cache_util.cc cdm_result_promise_helper.cc cdm_session_adapter.cc key_system_config_selector.cc multibuffer.cc multibuffer_data_source.cc multibuffer_reader.cc new_session_cdm_result_promise.cc resource_multibuffer_data_provider.cc texttrack_impl.cc url_index.cc video_frame_compositor.cc webaudiosourceprovider_impl.cc webcontentdecryptionmodule_impl.cc webcontentdecryptionmoduleaccess_impl.cc webcontentdecryptionmodulesession_impl.cc webencryptedmediaclient_impl.cc webinbandtexttrack_impl.cc webmediaplayer_params.cc webmediaplayer_util.cc webmediasource_impl.cc websourcebuffer_impl.cc)
-# "encrypted_media_player_support.cc" and "webmediaplayer_impl.cc" are disabled
-# because they pull FFmpeg
+# "webmediaplayer_impl.cc" is disabled because it pulls FFmpeg
 
 
 # all files refer to "media/...", so we include "../.." here

@@ -11,6 +11,7 @@
 
 #include <list>
 #include <memory>
+#include <algorithm>
 
 #include "base/debug/leak_annotations.h"
 #include "base/logging.h"
@@ -531,7 +532,7 @@ RSAPrivateKey::~RSAPrivateKey() {
 }
 
 // static
-RSAPrivateKey* RSAPrivateKey::Create(uint16_t num_bits) {
+std::unique_ptr<RSAPrivateKey> RSAPrivateKey::Create(uint16_t num_bits) {
   EnsureNSSInit();
 
   ScopedPK11Slot slot(PK11_GetInternalSlot());
@@ -547,14 +548,14 @@ RSAPrivateKey* RSAPrivateKey::Create(uint16_t num_bits) {
     return nullptr;
   }
 
-  RSAPrivateKey* rsa_key = new RSAPrivateKey;
+  std::unique_ptr<RSAPrivateKey> rsa_key(new RSAPrivateKey);
   rsa_key->public_key_ = public_key.release();
   rsa_key->key_ = private_key.release();
   return rsa_key;
 }
 
 // static
-RSAPrivateKey* RSAPrivateKey::CreateFromPrivateKeyInfo(
+std::unique_ptr<RSAPrivateKey> RSAPrivateKey::CreateFromPrivateKeyInfo(
     const std::vector<uint8_t>& input) {
   EnsureNSSInit();
 
@@ -567,7 +568,9 @@ RSAPrivateKey* RSAPrivateKey::CreateFromPrivateKeyInfo(
       slot.get(), input, false /* not permanent */));
   if (!key || SECKEY_GetPrivateKeyType(key.get()) != rsaKey)
     return nullptr;
-  return RSAPrivateKey::CreateFromKey(key.get());
+
+  std::unique_ptr<RSAPrivateKey> rsa_key(RSAPrivateKey::CreateFromKey(key.get()));
+  return rsa_key;
 }
 
 // static
@@ -586,8 +589,8 @@ RSAPrivateKey* RSAPrivateKey::CreateFromKey(SECKEYPrivateKey* key) {
   return copy;
 }
 
-RSAPrivateKey* RSAPrivateKey::Copy() const {
-  RSAPrivateKey* copy = new RSAPrivateKey();
+std::unique_ptr<RSAPrivateKey> RSAPrivateKey::Copy() const {
+  std::unique_ptr<RSAPrivateKey> copy(new RSAPrivateKey);
   copy->key_ = SECKEY_CopyPrivateKey(key_);
   copy->public_key_ = SECKEY_CopyPublicKey(public_key_);
   return copy;
