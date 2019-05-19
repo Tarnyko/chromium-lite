@@ -131,8 +131,10 @@ MESSAGE(STATUS "Generating .cc,.h files from .mojom...")
 EXECUTE_PROCESS(COMMAND mkdir -p skia WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py --use_bundled_pylibs generate ${SKIA_EXT_DIR}/public/interfaces/bitmap.mojom -d .. -I. -o ${CMAKE_BINARY_DIR}/skia --bytecode_path ${CMAKE_BINARY_DIR}/mojo/public/tools/bindings WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-
 EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py --use_bundled_pylibs generate ${SKIA_EXT_DIR}/public/interfaces/bitmap.mojom -d .. -I. -o ${CMAKE_BINARY_DIR}/skia --bytecode_path ${CMAKE_BINARY_DIR}/mojo/public/tools/bindings --generate_non_variant_code -g c++  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py --use_bundled_pylibs generate ${SKIA_EXT_DIR}/public/interfaces/bitmap_array.mojom -d .. -I../.. -o ${CMAKE_BINARY_DIR}/skia --bytecode_path ${CMAKE_BINARY_DIR}/mojo/public/tools/bindings WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+EXECUTE_PROCESS(COMMAND python ${MOJO_SRC_DIR}/public/tools/bindings/mojom_bindings_generator.py --use_bundled_pylibs generate ${SKIA_EXT_DIR}/public/interfaces/bitmap_array.mojom -d .. -I../.. -o ${CMAKE_BINARY_DIR}/skia --bytecode_path ${CMAKE_BINARY_DIR}/mojo/public/tools/bindings --generate_non_variant_code -g c++  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
 # SOURCES FILE LIST, PER SECTION
@@ -192,12 +194,12 @@ ADD_LIBRARY(opts OBJECT ${TOOLCHAIN_OPTS_SOURCE_FILES} src/opts/SkOpts_hsw.cpp)
 ADD_LIBRARY(ext OBJECT ${SKIA_EXT_DIR}/ext/analysis_canvas.cc ${SKIA_EXT_DIR}/ext/opacity_filter_canvas.cc ${SKIA_EXT_DIR}/ext/platform_canvas.cc ${SKIA_EXT_DIR}/ext/convolver.cc ${SKIA_EXT_DIR}/ext/event_tracer_impl.cc ${SKIA_EXT_DIR}/ext/image_operations.cc ${SKIA_EXT_DIR}/ext/skia_utils_base.cc ${SKIA_EXT_DIR}/ext/skia_memory_dump_provider.cc ${SKIA_EXT_DIR}/ext/skia_trace_memory_dump_impl.cc ${SKIA_EXT_DIR}/ext/google_logging.cc ${SKIA_EXT_DIR}/ext/SkDiscardableMemory_chrome.cc)
 
 # generated (These are generated !)
-ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/skia/public/interfaces/bitmap.mojom.cc)
+ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/skia/public/interfaces/bitmap.mojom.cc ${CMAKE_BINARY_DIR}/skia/public/interfaces/bitmap.mojom-shared.cc ${CMAKE_BINARY_DIR}/skia/public/interfaces/bitmap_array.mojom.cc ${CMAKE_BINARY_DIR}/skia/public/interfaces/bitmap_array.mojom-shared.cc)
 
 
 # we include CMAKE_BINARY_DIR because generated .cc/.h files are inside
 # we include ${SKIA_EXT_DIR}/config first to prioritize its SkUserConfig.h header
-SET(include_dirs ${INCLUDE_DIRS} ${freetype_INCLUDE_DIRS} ${fontconfig_INCLUDE_DIRS} ${libpng12_INCLUDE_DIRS} ${libwebp_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${CMAKE_SOURCE_DIR}/include/config ${CMAKE_SOURCE_DIR}/include/private ${CMAKE_SOURCE_DIR}/include/c ${CMAKE_SOURCE_DIR}/src/core ${CMAKE_SOURCE_DIR}/include/core ${CMAKE_SOURCE_DIR}/src/utils ${CMAKE_SOURCE_DIR}/include/utils ${CMAKE_SOURCE_DIR}/src/gpu ${CMAKE_SOURCE_DIR}/include/gpu ${CMAKE_SOURCE_DIR}/src/image ${CMAKE_SOURCE_DIR}/include/images ${CMAKE_SOURCE_DIR}/include/pathops ${CMAKE_SOURCE_DIR}/include/ports ${CMAKE_SOURCE_DIR}/src/opts ${CMAKE_SOURCE_DIR}/include/pdf ${CMAKE_SOURCE_DIR}/src/sfnt ${CMAKE_SOURCE_DIR}/include/pipe ${CMAKE_SOURCE_DIR}/include/effects ${CMAKE_SOURCE_DIR}/src/lazy ${CMAKE_SOURCE_DIR}/third_party/etc1 ${CMAKE_SOURCE_DIR}/third_party/ktx ${CMAKE_SOURCE_DIR}/src/sksl ${CMAKE_SOURCE_DIR}/src/codec ${CMAKE_SOURCE_DIR}/include/codec ${CMAKE_SOURCE_DIR}/src/codec ${CMAKE_SOURCE_DIR}/third_party/gif ${CMAKE_SOURCE_DIR}/tools/gpu ${SKIA_EXT_DIR}/.. ${MOJO_SRC_DIR}/Build ${MOJO_SRC_DIR}/Build/mojo ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/skia)
+SET(include_dirs ${INCLUDE_DIRS} ${freetype_INCLUDE_DIRS} ${fontconfig_INCLUDE_DIRS} ${libpng12_INCLUDE_DIRS} ${libwebp_INCLUDE_DIRS} ${backend_INCLUDE_DIRS} ${SKIA_EXT_DIR}/config ${CMAKE_SOURCE_DIR}/include/config ${CMAKE_SOURCE_DIR}/include/private ${CMAKE_SOURCE_DIR}/include/c ${CMAKE_SOURCE_DIR}/src/core ${CMAKE_SOURCE_DIR}/include/core ${CMAKE_SOURCE_DIR}/src/utils ${CMAKE_SOURCE_DIR}/include/utils ${CMAKE_SOURCE_DIR}/src/gpu ${CMAKE_SOURCE_DIR}/include/gpu ${CMAKE_SOURCE_DIR}/src/image ${CMAKE_SOURCE_DIR}/include/images ${CMAKE_SOURCE_DIR}/include/pathops ${CMAKE_SOURCE_DIR}/include/ports ${CMAKE_SOURCE_DIR}/src/opts ${CMAKE_SOURCE_DIR}/include/pdf ${CMAKE_SOURCE_DIR}/src/sfnt ${CMAKE_SOURCE_DIR}/include/pipe ${CMAKE_SOURCE_DIR}/include/effects ${CMAKE_SOURCE_DIR}/src/lazy ${CMAKE_SOURCE_DIR}/third_party/etc1 ${CMAKE_SOURCE_DIR}/third_party/ktx ${CMAKE_SOURCE_DIR}/src/sksl ${CMAKE_SOURCE_DIR}/src/codec ${CMAKE_SOURCE_DIR}/include/codec ${CMAKE_SOURCE_DIR}/third_party/gif ${CMAKE_SOURCE_DIR}/tools/gpu ${SKIA_EXT_DIR}/.. ${MOJO_SRC_DIR}/Build ${MOJO_SRC_DIR}/Build/mojo ${CMAKE_BINARY_DIR} ${CMAKE_BINARY_DIR}/skia)
 # TODO : "${MOJO_SRC_DIR}/Build" is a HACK ! Fix this once we use .pc files
 SET(link_libraries ${LINK_LIBRARIES} ${freetype_LIBRARIES} ${fontconfig_LIBRARIES} ${libpng12_LIBRARIES} ${libwebp_LIBRARIES} ${backend_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} -ljpeg -lgif)
 

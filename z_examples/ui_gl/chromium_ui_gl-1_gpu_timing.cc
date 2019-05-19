@@ -3,8 +3,8 @@
 
 #include <iostream>			// for << >>
 
-#include "ui/gl/gl_context_stub_with_extensions.h"
-#include "ui/gl/gpu_timing.h"
+#include "ui/gl/gl_context_stub.h"	// for gl::GLContextStub
+#include "ui/gl/gpu_timing.h"		// for gl::GPUTimingClient, gl::GPUTimer
 
 
  /* we initialize OpenGL 3.2 with the timer query extension,
@@ -12,16 +12,16 @@
 
 int main (int argc, char *argv[])
 {
-	auto *context = new gfx::GLContextStubWithExtensions;
+	auto *context = new gl::GLContextStub;
 
 	context->SetGLVersionString ("3.2");
-	context->AddExtensionsString ("GL_ARB_timer_query");
+	context->SetExtensionsString ("GL_ARB_timer_query");
 
-	scoped_refptr<gfx::GPUTimingClient> client = context->CreateGPUTimingClient ();
+	scoped_refptr<gl::GPUTimingClient> client = context->CreateGPUTimingClient ();
 	std::cout << "Current CPU time : " << client->GetCurrentCPUTime () << std::endl;
 
 
-	scoped_ptr<gfx::GPUTimer> gpu_timer = client->CreateGPUTimer (false);
+	std::unique_ptr<gl::GPUTimer> gpu_timer = client->CreateGPUTimer (false);
 
 	gpu_timer->Reset ();
 
