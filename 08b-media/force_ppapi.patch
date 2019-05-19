@@ -1,0 +1,84 @@
+--- base/media_switches.h	2019-05-19 03:51:41.123152244 +0200
++++ base/media_switches.h	2019-05-19 04:57:36.331164150 +0200
+@@ -10,7 +10,9 @@
+ #include "base/feature_list.h"
+ #include "build/build_config.h"
+ #include "media/base/media_export.h"
++#if 0
+ #include "ppapi/features/features.h"
++#endif
+ 
+ namespace switches {
+ 
+@@ -44,13 +46,9 @@
+ MEDIA_EXPORT extern const char kUseCras[];
+ #endif
+ 
+-#if !defined(OS_ANDROID) || BUILDFLAG(ENABLE_PLUGINS)
+ MEDIA_EXPORT extern const char kEnableDefaultMediaSession[];
+-#endif  // !defined(OS_ANDROID) || BUILDFLAG(ENABLE_PLUGINS)
+ 
+-#if BUILDFLAG(ENABLE_PLUGINS)
+ MEDIA_EXPORT extern const char kEnableDefaultMediaSessionDuckFlash[];
+-#endif  // BUILDFLAG(ENABLE_PLUGINS)
+ 
+ MEDIA_EXPORT extern const char kUseFakeDeviceForMediaStream[];
+ MEDIA_EXPORT extern const char kUseFileForFakeVideoCapture[];
+--- base/key_systems.h	2019-05-19 03:47:29.661151487 +0200
++++ base/key_systems.h	2019-05-19 03:49:37.841151873 +0200
+@@ -12,7 +12,9 @@
+ 
+ #include "media/base/eme_constants.h"
+ #include "media/base/media_export.h"
++#if 0
+ #include "ppapi/features/features.h"
++#endif
+ 
+ namespace media {
+ 
+@@ -83,11 +85,9 @@
+ // Returns whether AesDecryptor can be used for the given |key_system|.
+ MEDIA_EXPORT bool CanUseAesDecryptor(const std::string& key_system);
+ 
+-#if BUILDFLAG(ENABLE_PEPPER_CDMS)
+ // Returns the Pepper MIME type for |key_system|.
+ // Returns empty string if |key_system| is unknown or not Pepper-based.
+ MEDIA_EXPORT std::string GetPepperType(const std::string& key_system);
+-#endif
+ 
+ #if defined(UNIT_TEST)
+ // Helper functions to add container/codec types for testing purposes.
+--- base/key_systems.cc	2019-05-19 03:46:52.077151374 +0200
++++ base/key_systems.cc	2019-05-19 03:47:00.913151401 +0200
+@@ -20,7 +20,9 @@
+ #include "media/base/key_system_properties.h"
+ #include "media/base/media.h"
+ #include "media/base/media_switches.h"
++#if 0
+ #include "ppapi/features/features.h"
++#endif
+ #include "media/base/media_client.h"
+ #include "media/media_features.h"
+ #include "third_party/widevine/cdm/widevine_cdm_common.h"
+--- base/key_system_properties.cc	2019-05-19 03:50:11.261151974 +0200
++++ base/key_system_properties.cc	2019-05-19 03:51:18.777152177 +0200
+@@ -5,7 +5,9 @@
+ #include "media/base/key_system_properties.h"
+ 
+ #include "base/logging.h"
++#if 0
+ #include "ppapi/features/features.h"
++#endif
+ 
+ namespace media {
+ 
+@@ -21,9 +23,6 @@
+ }
+ 
+ std::string KeySystemProperties::GetPepperType() const {
+-#if !BUILDFLAG(ENABLE_PEPPER_CDMS)
+-  NOTREACHED();
+-#endif
+   return "";
+ }
+ 

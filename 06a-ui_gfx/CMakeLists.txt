@@ -131,10 +131,10 @@ ADD_LIBRARY(ipc OBJECT ipc/gfx_param_traits.cc ipc/geometry/gfx_param_traits.cc)
 ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
 
 # misc
-ADD_LIBRARY(misc OBJECT blit.cc buffer_format_util.cc canvas.cc canvas_skia.cc color_analysis.cc color_space.cc color_utils.cc favicon_size.cc generic_shared_memory_id.cc gfx_paths.cc gpu_memory_buffer.cc icc_profile.cc interpolated_transform.cc nine_image_painter.cc paint_throbber.cc paint_vector_icon.cc path.cc scoped_canvas.cc scrollbar_size.cc selection_bound.cc selection_model.cc sequential_id_generator.cc shadow_value.cc skbitmap_operations.cc skia_util.cc skia_paint_util.cc switches.cc text_elider.cc text_utils.cc text_utils_skia.cc transform.cc transform_util.cc ui_gfx_exports.cc utf16_indexing.cc)
+ADD_LIBRARY(misc OBJECT blit.cc buffer_format_util.cc canvas.cc canvas_skia.cc color_analysis.cc color_space.cc color_utils.cc favicon_size.cc generic_shared_memory_id.cc gfx_paths.cc gpu_memory_buffer.cc gpu_memory_buffer_tracing.cc icc_profile.cc interpolated_transform.cc nine_image_painter.cc paint_throbber.cc paint_vector_icon.cc path.cc scoped_canvas.cc scrollbar_size.cc selection_bound.cc selection_model.cc sequential_id_generator.cc shadow_value.cc skbitmap_operations.cc skia_util.cc skia_paint_util.cc switches.cc text_elider.cc text_utils.cc text_utils_skia.cc transform.cc transform_util.cc ui_gfx_exports.cc utf16_indexing.cc)
 
 # generated (these are generated !)
-ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ui/gfx/geometry/mojo/geometry.mojom.cc ${CMAKE_BINARY_DIR}/ui/gfx/vector_icons/vector_icons.cc)
+ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ui/gfx/geometry/mojo/geometry.mojom.cc ${CMAKE_BINARY_DIR}/ui/gfx/geometry/mojo/geometry.mojom-shared.cc ${CMAKE_BINARY_DIR}/ui/gfx/vector_icons/vector_icons.cc)
 
 
 # all files refer to "ui/...", so we include "../.." here
