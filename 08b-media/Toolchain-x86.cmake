@@ -15,6 +15,8 @@ EXECUTE_PROCESS(COMMAND yasm -I.. -felf32 -m x86 -DARCH_X86_32 -DELF -DCHROMIUM 
 
 EXECUTE_PROCESS(COMMAND yasm -I.. -felf32 -m x86 -DARCH_X86_32 -DELF -DCHROMIUM -DEXPORT_SYMBOLS -o ${CMAKE_BINARY_DIR}/convert_yuv_to_rgb_sse.o base/simd/convert_yuv_to_rgb_sse.asm WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
+EXECUTE_PROCESS(COMMAND yasm -I.. -felf32 -m x86 -DARCH_X86_32 -DELF -DCHROMIUM -DEXPORT_SYMBOLS -o ${CMAKE_BINARY_DIR}/convert_yuva_to_argb_mmx.o base/simd/convert_yuva_to_argb_mmx.asm WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
 EXECUTE_PROCESS(COMMAND yasm -I.. -felf32 -m x86 -DARCH_X86_32 -DELF -DCHROMIUM -DEXPORT_SYMBOLS -o ${CMAKE_BINARY_DIR}/empty_register_state_mmx.o base/simd/empty_register_state_mmx.asm WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 EXECUTE_PROCESS(COMMAND yasm -I.. -felf32 -m x86 -DARCH_X86_32 -DELF -DCHROMIUM -DEXPORT_SYMBOLS -o ${CMAKE_BINARY_DIR}/linear_scale_yuv_to_rgb_mmx.o base/simd/linear_scale_yuv_to_rgb_mmx.asm WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
