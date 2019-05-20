@@ -18,27 +18,26 @@ int main (int argc, char *argv[])
 
 	 // initialize resources, language (OpenGL 2.0) and translator
 
-	ShInitBuiltInResources (&resources);
+	sh::InitBuiltInResources (&resources);
 	resources.MaxExpressionComplexity = 32;
 	resources.MaxCallStackDepth = 32;
 
-	language = gpu::gles2::ShaderTranslator::GetShaderOutputLanguageForContext (gfx::GLVersionInfo("2.0", "", ""));
+	language = gpu::gles2::ShaderTranslator::GetShaderOutputLanguageForContext (gl::GLVersionInfo("2.0", "", ""));
 
 	translator = new gpu::gles2::ShaderTranslator ();
-	translator->Init (GL_VERTEX_SHADER, SH_GLES2_SPEC, &resources, language, SH_EMULATE_BUILT_IN_FUNCTIONS);
+	translator->Init (GL_VERTEX_SHADER, SH_GLES2_SPEC, &resources, language, static_cast<ShCompileOptions>(0), false);
 
 	 // --------------------------
 	 // create and compile shader
 
-	gpu::gles2::ShaderManager manager;
-
-	auto *shader = manager.CreateShader (1, 1, GL_VERTEX_SHADER);
+	auto *manager = new gpu::gles2::ShaderManager (NULL);
+	auto *shader = manager->CreateShader (1, 1, GL_VERTEX_SHADER);
 
 	shader->set_source ("hello world !");
 	shader->RequestCompile (translator, gpu::gles2::Shader::kANGLE);
 	shader->DoCompile ();
 
-	manager.Delete (shader);
+	manager->Delete (shader);
 
 	return 0;
 }
