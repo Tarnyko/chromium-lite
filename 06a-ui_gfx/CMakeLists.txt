@@ -13,6 +13,9 @@ SET(MOJO_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../mojo")
 SET(SKIA_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../third_party/skia")
 SET(SKIA_EXT_DIR "${CMAKE_SOURCE_DIR}/../../skia")
 
+# Location of third_party dependencies
+SET(QCMS_DIR "${CMAKE_SOURCE_DIR}/../../third_party/qcms")
+
 # Verify a backend (X11/OZONE) has been chosen ; default to OZONE
 IF(NOT BACKEND)
   MESSAGE(STATUS "Option \"-DBACKEND=<X11/OZONE>\" not passed; defaulting to OZONE...")
@@ -134,7 +137,11 @@ ADD_LIBRARY(ipc OBJECT ipc/gfx_param_traits.cc ipc/geometry/gfx_param_traits.cc 
 ADD_LIBRARY(backend OBJECT ${BACKEND_SOURCE_FILES})
 
 # misc
-ADD_LIBRARY(misc OBJECT blit.cc buffer_format_util.cc canvas.cc canvas_skia.cc color_analysis.cc color_space.cc color_utils.cc favicon_size.cc generic_shared_memory_id.cc gfx_paths.cc gpu_memory_buffer.cc gpu_memory_buffer_tracing.cc icc_profile.cc interpolated_transform.cc nine_image_painter.cc paint_throbber.cc paint_vector_icon.cc path.cc scoped_canvas.cc scrollbar_size.cc selection_bound.cc selection_model.cc sequential_id_generator.cc shadow_value.cc skbitmap_operations.cc skia_util.cc skia_paint_util.cc switches.cc text_elider.cc text_utils.cc text_utils_skia.cc transform.cc transform_util.cc ui_gfx_exports.cc utf16_indexing.cc)
+ADD_LIBRARY(misc OBJECT blit.cc buffer_format_util.cc canvas.cc canvas_skia.cc color_analysis.cc color_space.cc color_utils.cc favicon_size.cc generic_shared_memory_id.cc gfx_paths.cc gpu_memory_buffer.cc gpu_memory_buffer_tracing.cc half_float.cc icc_profile.cc interpolated_transform.cc nine_image_painter.cc paint_throbber.cc paint_vector_icon.cc path.cc scoped_canvas.cc scrollbar_size.cc selection_bound.cc selection_model.cc sequential_id_generator.cc shadow_value.cc skbitmap_operations.cc skia_util.cc skia_paint_util.cc switches.cc text_elider.cc text_utils.cc text_utils_skia.cc transform.cc transform_util.cc ui_gfx_exports.cc utf16_indexing.cc color_transform.cc)
+# "color_transform.cc" pulls qcms
+
+# qcms
+ADD_LIBRARY(qcms OBJECT ${QCMS_DIR}/src/chain.c ${QCMS_DIR}/src/iccread.c ${QCMS_DIR}/src/matrix.c ${QCMS_DIR}/src/transform.c ${QCMS_DIR}/src/transform_util.c)
 
 # generated (these are generated !)
 ADD_LIBRARY(generated OBJECT ${CMAKE_BINARY_DIR}/ui/gfx/geometry/mojo/geometry.mojom.cc ${CMAKE_BINARY_DIR}/ui/gfx/geometry/mojo/geometry.mojom-shared.cc ${CMAKE_BINARY_DIR}/ui/gfx/mojo/accelerated_widget.mojom.cc ${CMAKE_BINARY_DIR}/ui/gfx/mojo/accelerated_widget.mojom-shared.cc ${CMAKE_BINARY_DIR}/ui/gfx/vector_icons/vector_icons.cc)
@@ -146,7 +153,7 @@ SET(include_dirs ${INCLUDE_DIRS} ${harfbuzz_INCLUDE_DIRS} ${backend_INCLUDE_DIRS
 # TODO : "${MOJO_SOURCE_DIR}/Build" is a HACK ! Fix this once we use .pc files
 SET(link_libraries ${LINK_LIBRARIES} ${harfbuzz_LIBRARIES} ${backend_LIBRARIES} -ljpeg)
 
-ADD_LIBRARY(ui_gfx SHARED $<TARGET_OBJECTS:geometry> $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:codec> $<TARGET_OBJECTS:image> $<TARGET_OBJECTS:font> $<TARGET_OBJECTS:range> $<TARGET_OBJECTS:ipc> $<TARGET_OBJECTS:backend> $<TARGET_OBJECTS:misc> $<TARGET_OBJECTS:generated>)
+ADD_LIBRARY(ui_gfx SHARED $<TARGET_OBJECTS:geometry> $<TARGET_OBJECTS:animation> $<TARGET_OBJECTS:codec> $<TARGET_OBJECTS:image> $<TARGET_OBJECTS:font> $<TARGET_OBJECTS:range> $<TARGET_OBJECTS:ipc> $<TARGET_OBJECTS:backend> $<TARGET_OBJECTS:misc> $<TARGET_OBJECTS:qcms> $<TARGET_OBJECTS:generated>)
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(ui_gfx ${link_libraries})
 
