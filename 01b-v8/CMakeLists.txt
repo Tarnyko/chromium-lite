@@ -12,6 +12,10 @@ IF(NOT CMAKE_TOOLCHAIN_FILE)
 ENDIF(NOT CMAKE_TOOLCHAIN_FILE)
 MESSAGE(STATUS "Chosen Toolchain: ${CMAKE_TOOLCHAIN_FILE}")
 
+# Location of third-party dependencies
+SET(JINJA_DIR "${CMAKE_SOURCE_DIR}/../third_party/jinja2")
+SET(INSPECTOR_DIR "${CMAKE_SOURCE_DIR}/../third_party/inspector_protocol")
+
 # CMake modules
 INCLUDE(FindPkgConfig)
 INCLUDE(GNUInstallDirs)
@@ -47,6 +51,16 @@ EXECUTE_PROCESS(COMMAND ./tools/js2c.py ${CMAKE_BINARY_DIR}/experimental-librari
 EXECUTE_PROCESS(COMMAND ./tools/js2c.py ${CMAKE_BINARY_DIR}/extras-libraries.cc EXTRAS WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 EXECUTE_PROCESS(COMMAND ./tools/js2c.py ${CMAKE_BINARY_DIR}/experimental-extras-libraries.cc EXPERIMENTAL_EXTRAS WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+
+# PRE-GENERATION INSPECTOR .TEMPLATE -> .CPP/.H
+
+MESSAGE(STATUS "Generating .cpp files from .template...")
+
+EXECUTE_PROCESS(COMMAND mkdir -p v8/src/inspector     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+EXECUTE_PROCESS(COMMAND mkdir -p v8/include/inspector WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+EXECUTE_PROCESS(COMMAND python ${INSPECTOR_DIR}/CodeGenerator.py --jinja_dir ${JINJA_DIR}/.. --output_base ${CMAKE_BINARY_DIR}/v8/src/inspector --config src/inspector/inspector_protocol_config.json WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
 # SOURCES FILE LIST, PER SECTION
@@ -114,14 +128,18 @@ ADD_LIBRARY(wasm OBJECT src/wasm/function-body-decoder.cc src/wasm/module-decode
 # zone
 ADD_LIBRARY(zone OBJECT src/zone/accounting-allocator.cc src/zone/zone-segment.cc src/zone/zone.cc)
 
+# inspector_libraries (these were generated !)
+ADD_LIBRARY(inspector_libraries OBJECT ${CMAKE_BINARY_DIR}/v8/src/inspector/protocol/Console.cpp ${CMAKE_BINARY_DIR}/v8/src/inspector/protocol/Debugger.cpp ${CMAKE_BINARY_DIR}/v8/src/inspector/protocol/HeapProfiler.cpp ${CMAKE_BINARY_DIR}/v8/src/inspector/protocol/Profiler.cpp ${CMAKE_BINARY_DIR}/v8/src/inspector/protocol/Protocol.cpp ${CMAKE_BINARY_DIR}/v8/src/inspector/protocol/Runtime.cpp ${CMAKE_BINARY_DIR}/v8/src/inspector/protocol/Schema.cpp)
+
 # js_libraries (these were generated !)
 ADD_LIBRARY(js_libraries OBJECT ${CMAKE_BINARY_DIR}/libraries.cc ${CMAKE_BINARY_DIR}/experimental-libraries.cc ${CMAKE_BINARY_DIR}/extras-libraries.cc ${CMAKE_BINARY_DIR}/experimental-extras-libraries.cc src/snapshot/snapshot-empty.cc)
 
 
-SET(include_dirs ${INCLUDE_DIRS} ${icui18n_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/..)
+# we include ${CMAKE_BINARY_DIR}/v8 for generated inspector files
+SET(include_dirs ${INCLUDE_DIRS} ${icui18n_INCLUDE_DIRS} ${CMAKE_BINARY_DIR}/v8 ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/..)
 SET(link_libraries ${icui18n_LIBRARIES} -ldl -lrt)
 
-ADD_LIBRARY(v8 SHARED $<TARGET_OBJECTS:core> $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:builtins> $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:asmjs> $<TARGET_OBJECTS:ast> $<TARGET_OBJECTS:compiler> $<TARGET_OBJECTS:compilerdispatcher> $<TARGET_OBJECTS:crankshaft> $<TARGET_OBJECTS:debug> $<TARGET_OBJECTS:extensions> $<TARGET_OBJECTS:heap> $<TARGET_OBJECTS:ic> $<TARGET_OBJECTS:interpreter> $<TARGET_OBJECTS:parsing> $<TARGET_OBJECTS:profiler> $<TARGET_OBJECTS:regexp> $<TARGET_OBJECTS:runtime> $<TARGET_OBJECTS:tracing> $<TARGET_OBJECTS:wasm> $<TARGET_OBJECTS:zone> $<TARGET_OBJECTS:js_libraries> ${TOOLCHAIN_OPTS_SOURCE_FILES})
+ADD_LIBRARY(v8 SHARED $<TARGET_OBJECTS:core> $<TARGET_OBJECTS:base> $<TARGET_OBJECTS:builtins> $<TARGET_OBJECTS:platform> $<TARGET_OBJECTS:asmjs> $<TARGET_OBJECTS:ast> $<TARGET_OBJECTS:compiler> $<TARGET_OBJECTS:compilerdispatcher> $<TARGET_OBJECTS:crankshaft> $<TARGET_OBJECTS:debug> $<TARGET_OBJECTS:extensions> $<TARGET_OBJECTS:heap> $<TARGET_OBJECTS:ic> $<TARGET_OBJECTS:interpreter> $<TARGET_OBJECTS:parsing> $<TARGET_OBJECTS:profiler> $<TARGET_OBJECTS:regexp> $<TARGET_OBJECTS:runtime> $<TARGET_OBJECTS:tracing> $<TARGET_OBJECTS:wasm> $<TARGET_OBJECTS:zone> $<TARGET_OBJECTS:inspector_libraries> $<TARGET_OBJECTS:js_libraries> ${TOOLCHAIN_OPTS_SOURCE_FILES})
 INCLUDE_DIRECTORIES(${include_dirs})
 TARGET_LINK_LIBRARIES(v8 ${link_libraries})
 
